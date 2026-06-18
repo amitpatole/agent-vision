@@ -24,6 +24,9 @@ uv.lock
 .agentvision/
 *.agentvision-cache/
 
+# Generated media / launch assets (kept local, not committed)
+media/
+
 # OS / editor
 .DS_Store
 *.swp
