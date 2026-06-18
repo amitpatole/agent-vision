@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><style>
+  :root{
+    --bg:#0b0f17; --panel:#131a26; --ink:#e8edf6; --muted:#93a4bf;
+    --indigo:#6366f1; --cyan:#22d3ee; --green:#22c55e; --red:#ef4444; --amber:#f59e0b;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:1200px;height:630px;overflow:hidden}
+  body{
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    background:radial-gradient(1200px 600px at 80% -10%, #1b2740 0%, var(--bg) 55%);
+    color:var(--ink); padding:64px 72px; position:relative;
+  }
+  .eye{font-size:84px; line-height:1}
+  .brand{display:flex; align-items:center; gap:22px; margin-top:6px}
+  .brand h1{font-size:72px; letter-spacing:-1.5px; font-weight:800}
+  .brand h1 span{background:linear-gradient(90deg,var(--cyan),var(--indigo));
+    -webkit-background-clip:text; background-clip:text; color:transparent}
+  .tag{margin-top:14px; font-size:30px; font-weight:600; color:var(--muted)}
+  .lead{margin-top:26px; font-size:25px; line-height:1.45; max-width:920px; color:#cdd8 ;}
+  .lead b{color:var(--ink)}
+  .chips{position:absolute; left:72px; bottom:120px; display:flex; gap:12px; align-items:center}
+  .chip{background:var(--panel); border:1px solid #243149; color:var(--ink);
+    padding:12px 18px; border-radius:999px; font-size:20px; font-weight:600; white-space:nowrap}
+  .arrow{color:var(--muted); font-size:22px}
+  .verdict{position:absolute; right:72px; top:72px; display:flex; gap:14px; align-items:center;
+    background:var(--panel); border:1px solid #243149; border-radius:16px; padding:16px 22px; font-size:24px; font-weight:700}
+  .fail{color:var(--red)} .pass{color:var(--green)} .to{color:var(--muted); font-weight:500}
+  .pip{position:absolute; left:72px; bottom:56px; font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+    font-size:22px; color:var(--cyan); background:#0e1626; border:1px solid #213049; padding:12px 18px; border-radius:12px}
+  .url{position:absolute; right:72px; bottom:60px; font-size:20px; color:var(--muted)}
+</style></head>
+<body>
+  <div class="verdict"><span class="fail">● FAIL</span><span class="to">→</span><span class="pass">PASS ✓</span></div>
+  <div class="brand"><div class="eye">👁️</div><h1>Agent<span>Vision</span></h1></div>
+  <div class="tag">Eyes for AI Agents</div>
+  <div class="lead">Coding agents are <b>blind</b> — they write a UI, a chart, an SVG, a PDF and never
+    <b>see</b> the result, then declare success while it's visibly broken. AgentVision lets an agent
+    <b>render its own output, look at it, and self-correct</b> before claiming done.</div>
+  <div class="chips">
+    <div class="chip">✍️ code</div><div class="arrow">→</div>
+    <div class="chip">🖼️ render</div><div class="arrow">→</div>
+    <div class="chip">👁️ see</div><div class="arrow">→</div>
+    <div class="chip">📋 report</div><div class="arrow">→</div>
+    <div class="chip">🔧 fix</div>
+  </div>
+  <div class="pip">pip install agentvision</div>
+  <div class="url">github.com/amitpatole/agent-vision · MIT</div>
+</body></html>
