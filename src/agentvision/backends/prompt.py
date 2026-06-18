@@ -57,6 +57,11 @@ Look for: broken or overlapping layout, content overflow or clipping, unreadable
 low-contrast text, missing/expected elements, broken images, distorted charts, visible \
 error messages, and anything that looks wrong to a careful human reviewer.
 
+ALSO read ALL visible text carefully and report TEXT defects (use kind "typo"): \
+misspelled words, garbled or nonsensical letters, duplicated/repeated words or labels, \
+mojibake, and truncated/cut-off words. Spelling and text correctness matter — do not let a \
+typo ship. Quote the exact offending text in the message.
+
 Rules:
 - Be specific and actionable. Each issue should tell the agent WHAT is wrong and WHERE.
 - Provide a bounding box in IMAGE PIXELS when you can localize an issue. Boxes are \

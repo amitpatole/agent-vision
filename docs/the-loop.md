@@ -18,6 +18,10 @@ Every analysis returns a `Report`:
   and a `source`:
   - `dom` / `ocr` / `cv` → **precise** boxes (`bbox_precise: true`)
   - `vision` → **advisory** boxes from the LLM (`bbox_precise: false`)
+  - issue kinds include `layout`, `overflow`, `clipped`, `contrast`, `missing_element`,
+    `broken_image`, `overlap`, `blank`, `error_text`, **`typo`** (spelling/garbled text),
+    `other`. The `typo` check is OCR + dictionary based (deterministic, offline) and is the
+    reliable way to catch misspellings — a weak vision model can miss them.
 - `capabilities[]` — which issue kinds the producing backend can emit (the `local`
   backend emits fewer than the LLM backends — it does structural checks only)
 

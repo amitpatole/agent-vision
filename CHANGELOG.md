@@ -5,9 +5,17 @@ All notable changes to AgentVision are documented here.
 ## [Unreleased]
 
 ### Added
+- **Spelling / garbled-text detection** (new `typo` issue kind): an offline, deterministic
+  OCR + dictionary check flags misspellings and garbled text (e.g. diffusion-mangled labels,
+  typo'd UI copy) with precise boxes; the vision-LLM prompt also now explicitly checks for
+  typos, duplicated, and nonsensical text. Requires Tesseract + `pyspellchecker` (in the
+  `[ocr]` extra). Note: a *weak* vision model may miss typos a strong one (or the OCR check)
+  catches — run the OCR check for a deterministic guarantee.
 - **Ollama vision backend** (`--backend ollama`): use any multimodal Ollama model (local or
   Ollama Cloud) as the perception backend — the OSS/self-hosted option. Default
   `gemma3:27b`; key from `OLLAMA_API_KEY` or `~/.config/ollama/key`; base URL configurable.
+- **Key-file fallback** for every backend: keys resolve from the conventional env var or
+  `~/.config/<Provider>/key` (`Anthropic`, `OpenAI`, `Google`, `ollama`).
 - Launch infographic in `media/` — including one **designed by `qwen3-coder:480b` and
   self-corrected through AgentVision's own render→see→fix loop** (vision via `gemma3:27b`).
 

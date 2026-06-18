@@ -9,6 +9,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from ...models.report import Issue
+from ...ocr.base import OcrResult
 from ...renderers.base import RenderResult
 from .contrast import check_contrast_dom
 from .layout import (
@@ -18,20 +19,27 @@ from .layout import (
     check_overflow,
     run_structural_checks,
 )
+from .spelling import check_spelling_from_ocr
 
 # IssueKinds the classic-checks layer (and thus the local backend) can emit.
-CLASSIC_CAPABILITIES = ["contrast", "overflow", "broken_image", "error_text", "blank", "other"]
+CLASSIC_CAPABILITIES = [
+    "contrast", "overflow", "broken_image", "error_text", "typo", "blank", "other",
+]
 
 
-def run_all_checks(render: RenderResult, image_path: str | Path | None) -> list[Issue]:
+def run_all_checks(
+    render: RenderResult, image_path: str | Path | None, ocr: OcrResult | None = None
+) -> list[Issue]:
     issues: list[Issue] = []
     issues += check_contrast_dom(render)
     issues += run_structural_checks(render, image_path)
+    if ocr is not None:
+        issues += check_spelling_from_ocr(ocr)
     return issues
 
 
 __all__ = [
     "run_all_checks", "run_structural_checks", "check_contrast_dom",
     "check_overflow", "check_broken_images", "check_console", "check_blank",
-    "CLASSIC_CAPABILITIES",
+    "check_spelling_from_ocr", "CLASSIC_CAPABILITIES",
 ]

@@ -40,18 +40,20 @@ async def _render_and_ground(
     )
     primary = render_result.primary
     image_path = primary.path if primary else None
-    grounded = run_all_checks(render_result, image_path)
 
-    ocr_text = None
+    ocr_result = None
     if use_ocr and image_path:
         try:
             from ..ocr import get_ocr_backend
 
             ocr = get_ocr_backend()
             if ocr.available():
-                ocr_text = ocr.run(image_path).text or None
+                ocr_result = ocr.run(image_path)
         except Exception as e:  # noqa: BLE001
             log.debug("OCR skipped: %s", e)
+
+    grounded = run_all_checks(render_result, image_path, ocr_result)
+    ocr_text = ocr_result.text or None if ocr_result else None
     return render_result, grounded, ocr_text
 
 
@@ -106,10 +108,10 @@ async def check(
     viewport: Viewport | None = None,
     full_page: bool | None = None,
     wait_for: str | None = None,
-    use_ocr: bool = False,
+    use_ocr: bool = True,
     out_dir: Path | None = None,
 ) -> Report:
-    """Classic checks only — no LLM, no API key, no egress."""
+    """Classic checks only — no LLM, no API key, no egress (incl. OCR spell-check)."""
     settings = settings or load_settings()
     render_result, grounded, _ = await _render_and_ground(
         source, settings, source_type=source_type, viewport=viewport,

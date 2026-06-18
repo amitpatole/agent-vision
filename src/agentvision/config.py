@@ -24,8 +24,13 @@ DEFAULT_MODELS = {
     "ollama": "gemma3:27b",
 }
 
-# Fallback location for an Ollama API key if the env var is unset.
-OLLAMA_KEY_FILE = Path.home() / ".config" / "ollama" / "key"
+# Fallback key-file locations if the conventional env var is unset.
+KEY_FILES = {
+    "anthropic": Path.home() / ".config" / "Anthropic" / "key",
+    "openai": Path.home() / ".config" / "OpenAI" / "key",
+    "gemini": Path.home() / ".config" / "Google" / "key",
+    "ollama": Path.home() / ".config" / "ollama" / "key",
+}
 
 
 def default_cache_dir() -> Path:
@@ -95,12 +100,14 @@ class Settings(BaseSettings):
             "gemini": self.google_api_key,
             "ollama": self.ollama_api_key,
         }.get(backend)
-        # Ollama: fall back to the conventional key file if env is unset.
-        if backend == "ollama" and not key and OLLAMA_KEY_FILE.exists():
-            try:
-                key = OLLAMA_KEY_FILE.read_text().strip() or None
-            except OSError:
-                key = None
+        # Fall back to a conventional key file (~/.config/<Provider>/key) if env is unset.
+        if not key:
+            f = KEY_FILES.get(backend)
+            if f and f.exists():
+                try:
+                    key = f.read_text().strip() or None
+                except OSError:
+                    key = None
         return key
 
 

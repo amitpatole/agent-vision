@@ -33,6 +33,7 @@ class IssueKind(str, Enum):
     OVERLAP = "overlap"
     BLANK = "blank"
     ERROR_TEXT = "error_text"
+    TYPO = "typo"
     OTHER = "other"
 
 

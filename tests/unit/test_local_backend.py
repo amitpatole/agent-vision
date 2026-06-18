@@ -24,10 +24,10 @@ async def test_local_backend_pass_when_clean():
 
 
 def _no_keys(monkeypatch, tmp_path):
-    """Neutralize all credentials, including the Ollama key-file fallback."""
+    """Neutralize all credentials, including the key-file fallbacks."""
     import agentvision.config as cfg
 
-    monkeypatch.setattr(cfg, "OLLAMA_KEY_FILE", tmp_path / "no-ollama-key")
+    monkeypatch.setattr(cfg, "KEY_FILES", {})
     for var in ("ANTHROPIC_API_KEY", "OPENAI_API_KEY", "GOOGLE_API_KEY", "OLLAMA_API_KEY"):
         monkeypatch.delenv(var, raising=False)
     return load_settings(anthropic_api_key=None, openai_api_key=None,
