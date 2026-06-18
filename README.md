@@ -1,5 +1,9 @@
 # AgentVision — Eyes for AI Agents 👁️
 
+<p align="center">
+  <img src="docs/banner.png" alt="AgentVision — Eyes for AI Agents: render, see, report, fix — before claiming done" width="100%">
+</p>
+
 > Coding agents are **blind**. They write a UI, a chart, an SVG, a PDF — and never *see*
 > the rendered result. They reason from source code and stdout, then declare success while
 > the button overflows, the legend is clipped, the contrast fails, or an image 404s.
