@@ -4,10 +4,9 @@
   <img src="docs/banner.png" alt="AgentVision — Eyes for AI Agents: render, see, report, fix — before claiming done" width="100%">
 </p>
 
-> Coding agents are **blind**. They write a UI, a chart, an SVG, a PDF — and never *see*
-> the rendered result. They reason from source code and stdout, then declare success while
-> the button overflows, the legend is clipped, the contrast fails, or an image 404s.
-> **AgentVision gives agents eyes.**
+> **Problem:** AI coding agents are *blind* — they write a UI, chart, SVG or PDF and never *see* the result, shipping breakage they can't perceive.  
+> **Result:** AgentVision gives them eyes — render → see → report → fix — catching overflow, low contrast, broken images and typos.  
+> So your agent **self-corrects before it claims done.**
 
 AgentVision is a provider-agnostic framework that closes the visual feedback loop for AI
 coding agents:
