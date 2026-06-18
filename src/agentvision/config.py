@@ -21,7 +21,11 @@ DEFAULT_MODELS = {
     "anthropic": "claude-haiku-4-5",
     "openai": "gpt-4o-mini",
     "gemini": "gemini-2.0-flash",
+    "ollama": "gemma3:27b",
 }
+
+# Fallback location for an Ollama API key if the env var is unset.
+OLLAMA_KEY_FILE = Path.home() / ".config" / "ollama" / "key"
 
 
 def default_cache_dir() -> Path:
@@ -47,11 +51,14 @@ class Settings(BaseSettings):
     anthropic_model: str = DEFAULT_MODELS["anthropic"]
     openai_model: str = DEFAULT_MODELS["openai"]
     gemini_model: str = DEFAULT_MODELS["gemini"]
+    ollama_model: str = DEFAULT_MODELS["ollama"]
+    ollama_base_url: str = "https://ollama.com/v1"
 
     # Provider credentials (conventional names; never logged/persisted)
     anthropic_api_key: str | None = Field(default=None, validation_alias="ANTHROPIC_API_KEY")
     openai_api_key: str | None = Field(default=None, validation_alias="OPENAI_API_KEY")
     google_api_key: str | None = Field(default=None, validation_alias="GOOGLE_API_KEY")
+    ollama_api_key: str | None = Field(default=None, validation_alias="OLLAMA_API_KEY")
 
     # Rendering
     default_viewport_width: int = 1280
@@ -78,14 +85,23 @@ class Settings(BaseSettings):
             "anthropic": self.anthropic_model,
             "openai": self.openai_model,
             "gemini": self.gemini_model,
+            "ollama": self.ollama_model,
         }.get(backend, "")
 
     def key_for(self, backend: str) -> str | None:
-        return {
+        key = {
             "anthropic": self.anthropic_api_key,
             "openai": self.openai_api_key,
             "gemini": self.google_api_key,
+            "ollama": self.ollama_api_key,
         }.get(backend)
+        # Ollama: fall back to the conventional key file if env is unset.
+        if backend == "ollama" and not key and OLLAMA_KEY_FILE.exists():
+            try:
+                key = OLLAMA_KEY_FILE.read_text().strip() or None
+            except OSError:
+                key = None
+        return key
 
 
 def load_settings(**overrides) -> Settings:

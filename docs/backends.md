@@ -9,6 +9,21 @@ each, via per-provider schema adapters.
 | `anthropic` | `[anthropic]` | `ANTHROPIC_API_KEY` | Default. Model `claude-haiku-4-5`. |
 | `openai` | `[openai]` | `OPENAI_API_KEY` | Strict `json_schema` structured output. |
 | `gemini` | `[gemini]` | `GOOGLE_API_KEY` | `response_schema` structured output. |
+| `ollama` | `[openai]` | `OLLAMA_API_KEY` | OSS multimodal models via Ollama (local **or** Ollama Cloud). Default `gemma3:27b`. Tolerant JSON parsing. |
+
+### Ollama
+
+Use any multimodal Ollama model as the vision backend — great for OSS / self-hosted setups
+and for Ollama Cloud (no local GPU needed):
+
+```bash
+export OLLAMA_API_KEY=...                       # or put the key in ~/.config/ollama/key
+export AGENTVISION_OLLAMA_MODEL=gemma3:27b      # any multimodal model
+export AGENTVISION_OLLAMA_BASE_URL=https://ollama.com/v1   # default; or http://localhost:11434/v1
+agentvision analyze page.html --backend ollama
+```
+
+The key resolves from `OLLAMA_API_KEY`, falling back to `~/.config/ollama/key`.
 
 ## Selection
 

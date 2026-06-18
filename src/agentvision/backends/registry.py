@@ -10,8 +10,8 @@ from __future__ import annotations
 
 from ..config import Settings
 
-_CLOUD_ORDER = ("anthropic", "openai", "gemini")
-ALL_BACKENDS = ("anthropic", "openai", "gemini", "local")
+_CLOUD_ORDER = ("anthropic", "openai", "gemini", "ollama")
+ALL_BACKENDS = ("anthropic", "openai", "gemini", "ollama", "local")
 
 
 def build_backend(name: str, settings: Settings):
@@ -31,6 +31,10 @@ def build_backend(name: str, settings: Settings):
         from .gemini_backend import GeminiBackend
 
         return GeminiBackend(settings)
+    if name == "ollama":
+        from .ollama_backend import OllamaBackend
+
+        return OllamaBackend(settings)
     raise ValueError(f"Unknown backend: {name!r}")
 
 

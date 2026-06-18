@@ -2,6 +2,15 @@
 
 All notable changes to AgentVision are documented here.
 
+## [Unreleased]
+
+### Added
+- **Ollama vision backend** (`--backend ollama`): use any multimodal Ollama model (local or
+  Ollama Cloud) as the perception backend — the OSS/self-hosted option. Default
+  `gemma3:27b`; key from `OLLAMA_API_KEY` or `~/.config/ollama/key`; base URL configurable.
+- Launch infographic in `media/` — including one **designed by `qwen3-coder:480b` and
+  self-corrected through AgentVision's own render→see→fix loop** (vision via `gemma3:27b`).
+
 ## [0.1.0] — 2026-06-18
 
 Initial release — "Eyes for AI Agents".
