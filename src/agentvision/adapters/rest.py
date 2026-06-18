@@ -38,7 +38,9 @@ def build_app():
     if FastAPI is None:
         raise MissingDependencyError("REST service", pip_extra="serve")
 
-    app = FastAPI(title="AgentVision", version="0.1.0")
+    from .. import __version__
+
+    app = FastAPI(title="AgentVision", version=__version__)
     settings = load_settings()
 
     class AnalyzeBody(BaseModel):
@@ -77,7 +79,9 @@ def build_app():
 
     @app.get("/healthz")
     def healthz():
-        return {"status": "ok", "version": "0.1.0"}
+        from .. import __version__
+
+        return {"status": "ok", "version": __version__}
 
     @app.post("/analyze")
     async def analyze_ep(body: AnalyzeBody):

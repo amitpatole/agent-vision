@@ -2,7 +2,7 @@
 
 All notable changes to AgentVision are documented here.
 
-## [Unreleased]
+## [0.2.0] — 2026-06-18
 
 ### Added
 - **Spelling / garbled-text detection** (new `typo` issue kind): an offline, deterministic
