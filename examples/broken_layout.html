@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard (broken)</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 0; padding: 24px; background: #ffffff; }
+    h1 { color: #111; }
+    /* Low-contrast body text: light gray on white (fails WCAG AA). */
+    p.note { color: #c9c9c9; background: #ffffff; font-size: 15px; }
+    /* A fixed-width row far wider than the viewport -> horizontal overflow. */
+    .wide-row { width: 2200px; background: #eef; padding: 16px; }
+    .card { display: inline-block; width: 600px; height: 80px; background: #f4f4f4;
+            margin-right: 16px; }
+    .cta { color: #9fcaff; background: #ffffff; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <h1>Quarterly Dashboard</h1>
+  <p class="note">Revenue is up 12% over last quarter. This summary text is hard to read.</p>
+
+  <!-- Broken image: this asset does not exist, so it fails to load. -->
+  <img src="missing-logo.png" alt="Company logo" width="160" height="48">
+
+  <div class="wide-row">
+    <span class="card">Metric A</span>
+    <span class="card">Metric B</span>
+    <span class="card">Metric C</span>
+  </div>
+
+  <p class="cta">Click here to view the full report</p>
+</body>
+</html>

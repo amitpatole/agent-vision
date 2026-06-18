@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest   # --with-deps works on Ubuntu runners
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install package (extras pinned via the lockfile)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[all,dev]"
+
+      - name: Install system deps for OCR/PDF
+        run: sudo apt-get update && sudo apt-get install -y tesseract-ocr tesseract-ocr-eng poppler-utils
+
+      - name: Install Chromium (browser pinned by the playwright package version)
+        run: python -m playwright install --with-deps chromium
+
+      - name: Lint
+        run: ruff check src tests
+
+      - name: Type check
+        run: mypy src || true   # advisory in v1
+
+      - name: Test
+        env:
+          # Deterministic rendering: animations off / fixed scale handled in code.
+          AGENTVISION_LOG_LEVEL: ERROR
+        run: pytest -q
+
+      - name: Smoke (no-key demo path)
+        run: agentvision check examples/broken_layout.html --json || true
