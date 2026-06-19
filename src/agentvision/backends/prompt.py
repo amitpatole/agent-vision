@@ -97,10 +97,11 @@ def build_user_text(req: AnalysisRequest, image_size: tuple[int, int]) -> str:
         )
     if req.extra_images:
         lines.append(
-            f"\n{len(req.extra_images)} FULL-RESOLUTION crop(s) of visual regions "
-            "(charts / canvas / images) are attached after the main image. The main image "
-            "may be downscaled; judge the visual content of these regions from the crops "
-            "(e.g. is the chart actually plotting data, is the canvas/scene rendered)."
+            f"\n{len(req.extra_images)} FULL-RESOLUTION image(s) covering the artifact are "
+            "attached after the main image (focused region crops and/or tiles). The main "
+            "image may be downscaled, so read fine detail and text from these — and judge "
+            "visual content here (e.g. is the chart actually plotting data, is the canvas/"
+            "scene rendered, is small text legible)."
         )
     if req.claims:
         lines.append(

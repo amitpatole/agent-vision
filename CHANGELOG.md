@@ -55,6 +55,26 @@ clean, provider-agnostic handoff — it perceives and hands off, it does not dec
   brain's sense adapter can keep it for provenance yet exclude it from gating (this honors the
   contract Verel's `verel.senses.sight` already documents and tests).
 
+## [0.5.0] — 2026-06-19
+
+### Added — full-coverage vision (the eyes see everything, from pixels alone)
+Generalizes focused crops beyond DOM-known elements. The model is sent a *downscaled* whole
+image for layout (to avoid the "lazy on a huge image" failure), which loses fine detail —
+small text, a chart's data, a thumbnail. Now, whenever the rendered artifact is larger than
+the model-friendly edge, AgentVision also attaches **full-resolution tiles covering it**, so
+no region is lost to downscaling.
+
+- **Pixel-based and source-agnostic** (`core/tiling.py`): operates on the rendered screenshot
+  alone, with zero DOM dependency — so it works uniformly for HTML, a **flat image**, a
+  **PDF page**, a `<canvas>`/WebGL surface, or an `<iframe>`. Anything the eyes can render is
+  now fully visible to them, not just elements the DOM enumerates.
+- Bounded and content-aware: near-uniform (blank) tiles are skipped; when there are more
+  content tiles than `max_vision_tiles` (default 6) the most content-rich are kept. Tiles
+  share the `extra_images` budget with the visual-region crops from 0.4.0.
+- Applies to **any vision analyze** (not only intent grading), and is the better fix for the
+  original "lazy/hallucinated on large/dense images" problem: overview + full detail.
+- Config: `vision_full_coverage` (default on), `max_vision_tiles`.
+
 ## [0.4.0] — 2026-06-19
 
 ### Added — focused full-res crops for visual intent claims

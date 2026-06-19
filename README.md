@@ -46,6 +46,11 @@ Findings are grounded in sources we can actually trust:
 A vision LLM (Claude/OpenAI/Gemini) adds semantic critique on top. Its pixel boxes are
 treated as **advisory** (`bbox_precise: false`), never marketed as pixel-accurate.
 
+**Full-coverage vision.** On a large artifact the model gets a downscaled overview *plus*
+full-resolution tiles covering it, so fine detail and small text aren't lost to downscaling.
+It's pixel-based and source-agnostic — the same coverage applies to HTML, a flat image, or a
+PDF page, not just elements the DOM enumerates.
+
 ## Match the intent, not just avoid defects
 
 A typo-free, well-laid-out artifact can still be **the wrong thing** — an infographic that

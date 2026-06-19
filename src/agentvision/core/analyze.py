@@ -139,15 +139,26 @@ async def analyze(
     # Pre-derive claims so the vision call can grade against the numbered checklist.
     claims = await derive_claims(brief, backend=vision) if grade_intent else []
 
-    # For visual intent (charts/canvas/images), send focused FULL-RES crops so the model
-    # judges the actual visual content instead of a downscaled whole page.
+    # Give the eyes full detail, never just a downscaled blur:
+    #  (1) focused FULL-RES crops of named visual regions when grading visual intent, and
+    #  (2) source-agnostic FULL-RES coverage tiles of any large artifact (pixel-based — works
+    #      for HTML, a flat image, a PDF page, a canvas, an iframe). Bounded by max_vision_tiles.
     extra_images: list[str] = []
-    if (grade_intent and getattr(vision, "name", "local") != "local"
-            and settings.crop_visual_claims and render_result.visual_elements
-            and _wants_visual_judgment(brief, claims)):
-        extra_images = _visual_crop_paths(
+    is_vision = getattr(vision, "name", "local") != "local"
+    if (is_vision and grade_intent and settings.crop_visual_claims
+            and render_result.visual_elements and _wants_visual_judgment(brief, claims)):
+        extra_images += _visual_crop_paths(
             primary.path, render_result.visual_elements, max_crops=settings.max_visual_crops
         )
+    if is_vision and settings.vision_full_coverage:
+        budget = settings.max_vision_tiles - len(extra_images)
+        if budget > 0:
+            from .tiling import plan_coverage_tiles
+
+            extra_images += plan_coverage_tiles(
+                primary.path, max_edge=settings.vision_max_edge_px, max_tiles=budget
+            )
+    extra_images = extra_images[: settings.max_vision_tiles]
 
     req = AnalysisRequest(
         image_path=primary.path, viewport=primary.viewport,

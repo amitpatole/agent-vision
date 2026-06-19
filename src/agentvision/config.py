@@ -84,6 +84,11 @@ class Settings(BaseSettings):
     # focused FULL-RES crops of those regions (a downscaled whole page can't be judged well).
     crop_visual_claims: bool = True
     max_visual_crops: int = 3
+    # Full-coverage vision: when the artifact is larger than the model-friendly edge, also
+    # send FULL-RES tiles covering it (pixel-based, source-agnostic — works for any HTML/
+    # image/PDF/canvas) so nothing is lost to downscaling. The eyes see everything.
+    vision_full_coverage: bool = True
+    max_vision_tiles: int = 6
 
     # Safety
     allow_url_rendering: bool = True
