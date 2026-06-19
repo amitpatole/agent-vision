@@ -34,7 +34,25 @@ class IssueKind(str, Enum):
     BLANK = "blank"
     ERROR_TEXT = "error_text"
     TYPO = "typo"
+    INTENT_MISMATCH = "intent_mismatch"
     OTHER = "other"
+
+
+class Importance(str, Enum):
+    """How much a requirement matters to conformance.
+
+    ``must`` violations fail the verdict; ``should`` warns; ``nice`` never escalates.
+    """
+
+    MUST = "must"
+    SHOULD = "should"
+    NICE = "nice"
+
+
+class ClaimStatus(str, Enum):
+    SATISFIED = "satisfied"
+    VIOLATED = "violated"
+    UNCERTAIN = "uncertain"
 
 
 class Confidence(str, Enum):
@@ -88,10 +106,55 @@ class Issue(BaseModel):
         )
 
 
+class ClaimResult(BaseModel):
+    """One requirement (a piece of *the thought*) graded against the render."""
+
+    text: str = Field(description="The requirement, as a checkable visual claim.")
+    importance: Importance = Importance.MUST
+    status: ClaimStatus = ClaimStatus.UNCERTAIN
+    confidence: Confidence = Confidence.MEDIUM
+    evidence: str = Field(default="", description="Why we judged it satisfied/violated.")
+    source: IssueSource = IssueSource.VISION
+
+
+class Conformance(BaseModel):
+    """How well the render matches the intended product (the brief / checklist)."""
+
+    claims: list[ClaimResult] = Field(default_factory=list)
+
+    @property
+    def total(self) -> int:
+        return len(self.claims)
+
+    @property
+    def satisfied(self) -> int:
+        return sum(1 for c in self.claims if c.status == ClaimStatus.SATISFIED)
+
+    @property
+    def violated(self) -> list[ClaimResult]:
+        return [c for c in self.claims if c.status == ClaimStatus.VIOLATED]
+
+    @property
+    def score(self) -> float:
+        """Fraction of claims satisfied (0..1); 1.0 when there are no claims."""
+        return 1.0 if not self.claims else self.satisfied / self.total
+
+    def matches_intent(self) -> bool:
+        """True only when no ``must`` requirement is violated or left uncertain."""
+        return not any(
+            c.importance == Importance.MUST and c.status != ClaimStatus.SATISFIED
+            for c in self.claims
+        )
+
+
 class Report(BaseModel):
     verdict: Verdict
     summary: str
     issues: list[Issue] = Field(default_factory=list)
+    conformance: Conformance | None = Field(
+        default=None,
+        description="Per-requirement grading vs the intended product, when a brief is given.",
+    )
     capabilities: list[IssueKind] = Field(
         default_factory=list,
         description="Which IssueKinds the producing backend is able to emit.",
@@ -108,6 +171,15 @@ class Report(BaseModel):
 
     def is_ok(self) -> bool:
         return self.verdict == Verdict.PASS
+
+    def to_handoff(self):
+        """Distill this Report into a :class:`~agentvision.models.handoff.Handoff`.
+
+        The afferent signal an agent's reasoning/memory layer ("the brain") acts on.
+        """
+        from .handoff import Handoff
+
+        return Handoff.from_report(self)
 
     def issue_signature(self) -> frozenset[tuple[str, str]]:
         """Identity of the issue *set* — used for loop progress/stuck detection.

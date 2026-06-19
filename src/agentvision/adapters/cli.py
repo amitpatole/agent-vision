@@ -79,6 +79,18 @@ def _print_report(report: Report, as_json: bool) -> None:
         typer.secho(f" {i.message}", nl=False)
         typer.secho(f"{loc} ({i.source.value}/{i.confidence.value})",
                     fg=typer.colors.BRIGHT_BLACK)
+    if report.conformance and report.conformance.claims:
+        conf = report.conformance
+        typer.secho(f"\n  intent match: {conf.satisfied}/{conf.total} requirement(s)",
+                    fg=typer.colors.CYAN, bold=True)
+        _mark = {"satisfied": ("✓", typer.colors.GREEN),
+                 "violated": ("✗", typer.colors.RED),
+                 "uncertain": ("?", typer.colors.YELLOW)}
+        for c in conf.claims:
+            sym, col = _mark.get(c.status.value, ("·", typer.colors.WHITE))
+            typer.secho(f"    {sym} ", fg=col, nl=False)
+            typer.secho(f"[{c.importance.value}] {c.text}", nl=False)
+            typer.secho(f"  ({c.source.value})", fg=typer.colors.BRIGHT_BLACK)
     if report.image_path:
         typer.secho(f"\n  image: {report.image_path}", fg=typer.colors.BRIGHT_BLACK)
     typer.echo()
@@ -87,6 +99,22 @@ def _print_report(report: Report, as_json: bool) -> None:
 def _exit_for(report: Report) -> None:
     if report.verdict == Verdict.FAIL:
         raise typer.Exit(code=2)
+
+
+def _emit(report: Report, json_out: bool, handoff: bool = False) -> None:
+    """Print the full report, or the distilled eyes→brain handoff signal."""
+    if handoff:
+        typer.echo(report.to_handoff().model_dump_json(indent=2))
+    else:
+        _print_report(report, json_out)
+
+
+def _build_brief(brief: str | None, expect: list[str] | None, reference: str | None):
+    """Assemble a Brief from CLI inputs, or None if no intent was supplied."""
+    from ..models.intent import Brief
+
+    b = Brief.from_inputs(text=brief, expect=expect, reference_image=reference)
+    return None if b.is_empty() else b
 
 
 # --------------------------------------------------------------------------- commands
@@ -103,21 +131,63 @@ def analyze(
     backend: str = typer.Option(None, help="anthropic|openai|gemini|local"),
     instructions: str = typer.Option(None, help="Task context for the vision model."),
     expected: str = typer.Option(None, help="What the artifact was supposed to look like."),
+    brief: str = typer.Option(None, help="The intended product — graded for intent match."),
+    expect: list[str] = typer.Option(None, "--expect", help="A required visual claim "
+                                      "(repeatable; prefix 'should:'/'nice:')."),
+    reference: str = typer.Option(None, help="Reference/mockup image the render should match."),
     source_type: str = typer.Option("auto", help="auto|html|file|url|svg|pdf|image"),
     viewport: str = typer.Option(None, help="WxH, e.g. 1280x800"),
     full_page: bool = typer.Option(False, "--full-page/--viewport-only"),
     no_ocr: bool = typer.Option(False, "--no-ocr", help="Disable OCR grounding."),
     json_out: bool = typer.Option(False, "--json", help="Emit JSON."),
+    handoff: bool = typer.Option(False, "--handoff", help="Emit the eyes→brain handoff "
+                                 "signal (JSON) for an agent/brain to act on."),
 ):
-    """Render and analyze an artifact with a vision backend (+ DOM/CV grounding)."""
+    """Render and analyze an artifact with a vision backend (+ DOM/CV grounding).
+
+    Pass --brief/--expect/--reference to also grade *intent conformance*.
+    """
     from ..core import analyze as do_analyze
 
     settings = _settings(backend=backend, full_page=full_page, viewport=viewport)
     report = asyncio.run(do_analyze(
         source, settings=settings, backend=backend, instructions=instructions,
-        expected=expected, use_ocr=not no_ocr, source_type=source_type, full_page=full_page,
+        expected=expected, brief=_build_brief(brief, expect, reference),
+        use_ocr=not no_ocr, source_type=source_type, full_page=full_page,
     ))
-    _print_report(report, json_out)
+    _emit(report, json_out, handoff)
+    _exit_for(report)
+
+
+@app.command()
+def conform(
+    source: str = typer.Argument(..., help="HTML/file/URL/SVG/PDF/image, or inline HTML."),
+    brief: str = typer.Option(None, help="Free-text description of the intended product."),
+    expect: list[str] = typer.Option(None, "--expect", help="A required visual claim "
+                                      "(repeatable; prefix 'should:'/'nice:')."),
+    reference: str = typer.Option(None, help="Reference/mockup image the render should match."),
+    backend: str = typer.Option(None, help="anthropic|openai|gemini|ollama|local"),
+    source_type: str = typer.Option("auto"),
+    viewport: str = typer.Option(None, help="WxH"),
+    full_page: bool = typer.Option(False, "--full-page/--viewport-only"),
+    json_out: bool = typer.Option(False, "--json"),
+    handoff: bool = typer.Option(False, "--handoff", help="Emit the eyes→brain handoff "
+                                 "signal (JSON) for an agent/brain to act on."),
+):
+    """Grade an artifact against intent — does it match what you set out to build?"""
+    from ..core import analyze as do_analyze
+
+    the_brief = _build_brief(brief, expect, reference)
+    if the_brief is None:
+        typer.secho("Provide at least one of --brief / --expect / --reference.",
+                    fg=typer.colors.RED)
+        raise typer.Exit(code=1)
+    settings = _settings(backend=backend, full_page=full_page, viewport=viewport)
+    report = asyncio.run(do_analyze(
+        source, settings=settings, backend=backend, brief=the_brief,
+        source_type=source_type, full_page=full_page,
+    ))
+    _emit(report, json_out, handoff)
     _exit_for(report)
 
 
@@ -128,6 +198,8 @@ def check(
     viewport: str = typer.Option(None, help="WxH"),
     full_page: bool = typer.Option(True, "--full-page/--viewport-only"),
     json_out: bool = typer.Option(False, "--json"),
+    handoff: bool = typer.Option(False, "--handoff", help="Emit the eyes→brain handoff "
+                                 "signal (JSON) for an agent/brain to act on."),
 ):
     """Classic DOM/CV checks only — no LLM, no API key, no egress."""
     from ..core import check as do_check
@@ -135,7 +207,7 @@ def check(
     settings = _settings(full_page=full_page, viewport=viewport)
     report = asyncio.run(do_check(source, settings=settings, source_type=source_type,
                                   full_page=full_page))
-    _print_report(report, json_out)
+    _emit(report, json_out, handoff)
     _exit_for(report)
 
 
@@ -220,16 +292,23 @@ def loop(
     backend: str = typer.Option(None),
     max_iter: int = typer.Option(3, "--max-iter"),
     instructions: str = typer.Option(None),
+    brief: str = typer.Option(None, help="The intended product — graded for intent match."),
+    expect: list[str] = typer.Option(None, "--expect", help="A required visual claim "
+                                      "(repeatable; prefix 'should:'/'nice:')."),
+    reference: str = typer.Option(None, help="Reference/mockup image the render should match."),
     json_out: bool = typer.Option(False, "--json"),
 ):
     """Run the visual feedback loop (re-renders the source up to --max-iter times).
 
     Agents instead drive the loop programmatically, editing the source between iterations.
+    With --brief/--expect/--reference the loop is conformance-aware (matches intent, not just
+    defect-free).
     """
     from ..core.loop import LoopSession
 
     settings = _settings(backend=backend, full_page=True)
-    session = LoopSession(source, settings=settings, backend=backend, instructions=instructions)
+    session = LoopSession(source, settings=settings, backend=backend, instructions=instructions,
+                          brief=_build_brief(brief, expect, reference))
     history = asyncio.run(session.run(max_iter=max_iter))
     if json_out:
         import json as _json
@@ -244,6 +323,69 @@ def loop(
                 typer.secho(f"   Δ {h.diff.narrative}", fg=typer.colors.BRIGHT_BLACK)
         typer.echo(f"\nstop reason: {session.stop_reason or 'max-iter'}")
     last = history[-1] if history else None
+    if last and last.verdict == Verdict.FAIL:
+        raise typer.Exit(code=2)
+
+
+@app.command()
+def generate(
+    generator: str = typer.Option(..., "--generator", help="Generator hook as 'module:function' "
+                                  "— a callable (prompt:str)->image_path."),
+    brief: str = typer.Option(None, help="Free-text description of what to generate."),
+    expect: list[str] = typer.Option(None, "--expect", help="A required visual claim "
+                                      "(repeatable; prefix 'should:'/'nice:')."),
+    reference: str = typer.Option(None, help="Reference/mockup image the output should match."),
+    backend: str = typer.Option(None, help="Vision backend used to perceive + refine."),
+    max_iter: int = typer.Option(4, "--max-iter"),
+    out: str = typer.Option("agentvision-generated.png", "-o", "--out"),
+    json_out: bool = typer.Option(False, "--json"),
+):
+    """Generative loop: generate → see → grade vs intent → refine prompt → regenerate.
+
+    The generator is YOUR callable, e.g. ``mypkg.gen:make_image``; AgentVision never bundles
+    an image-gen dependency. Closes the loop for AI images/infographics until they match the
+    brief.
+    """
+    import importlib
+
+    from ..core.generate import GenerativeLoopSession
+
+    the_brief = _build_brief(brief, expect, reference)
+    if the_brief is None:
+        typer.secho("Provide at least one of --brief / --expect / --reference.",
+                    fg=typer.colors.RED)
+        raise typer.Exit(code=1)
+    try:
+        mod_name, _, fn_name = generator.partition(":")
+        fn = getattr(importlib.import_module(mod_name), fn_name)
+    except (ImportError, AttributeError, ValueError) as e:
+        typer.secho(f"Could not load generator '{generator}': {e}", fg=typer.colors.RED)
+        raise typer.Exit(code=1) from e
+
+    settings = _settings(backend=backend)
+    session = GenerativeLoopSession(the_brief, fn, settings=settings, backend=backend)
+    history = asyncio.run(session.run(max_iter=max_iter))
+    if json_out:
+        import json as _json
+
+        typer.echo(_json.dumps([h.model_dump(mode="json") for h in history], indent=2))
+    else:
+        for h in history:
+            tag = "PASS" if h.verdict == Verdict.PASS else ("STUCK" if h.stuck
+                                                            else h.verdict.value.upper())
+            conf = h.report.conformance
+            score = f" — intent {conf.satisfied}/{conf.total}" if conf and conf.claims else ""
+            typer.secho(f"gen {h.index}: {tag}{score}", fg=_VERDICT_COLOR.get(h.verdict))
+        typer.echo(f"\nstop reason: {session.stop_reason or 'max-iter'}")
+    last = history[-1] if history else None
+    if last and last.artifact:
+        import shutil
+
+        try:
+            shutil.copyfile(last.artifact, out)
+            typer.secho(f"final artifact -> {out}", fg=typer.colors.GREEN)
+        except OSError:
+            typer.secho(f"final artifact: {last.artifact}", fg=typer.colors.BRIGHT_BLACK)
     if last and last.verdict == Verdict.FAIL:
         raise typer.Exit(code=2)
 

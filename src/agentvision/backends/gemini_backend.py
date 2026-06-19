@@ -42,15 +42,18 @@ class GeminiBackend:
         image_bytes = _b64.b64decode(b64)
         user_text = build_user_text(req, size)
         model = self.settings.gemini_model
+        contents: list = [types.Part.from_bytes(data=image_bytes, mime_type=media)]
+        if req.reference_image_path:
+            rb64, rmedia, _ = load_image_b64(req.reference_image_path)
+            contents.append("REFERENCE image (target to match):")
+            contents.append(types.Part.from_bytes(data=_b64.b64decode(rb64), mime_type=rmedia))
+        contents.append(user_text)
         client = genai.Client(api_key=key)
         t0 = time.monotonic()
         try:
             resp = await client.aio.models.generate_content(
                 model=model,
-                contents=[
-                    types.Part.from_bytes(data=image_bytes, mime_type=media),
-                    user_text,
-                ],
+                contents=contents,
                 config=types.GenerateContentConfig(
                     system_instruction=SYSTEM_PROMPT,
                     response_mime_type="application/json",
@@ -77,3 +80,28 @@ class GeminiBackend:
             findings, req, backend=self.name, model=model,
             grounded=req.dom_hints, image_size=size, elapsed_ms=elapsed,
         )
+
+    async def complete_text(self, system: str, user: str) -> str:
+        from google import genai
+        from google.genai import types
+
+        key = self.settings.key_for("gemini")
+        if not key:
+            raise BackendAuthError("GOOGLE_API_KEY is not set.")
+        client = genai.Client(api_key=key)
+        try:
+            resp = await client.aio.models.generate_content(
+                model=self.settings.gemini_model,
+                contents=[user],
+                config=types.GenerateContentConfig(
+                    system_instruction=system, max_output_tokens=1024
+                ),
+            )
+        except genai.errors.ClientError as e:
+            code = getattr(e, "code", None)
+            if code in (401, 403, 429):
+                raise BackendAuthError(f"Gemini auth/quota error: {e}") from e
+            raise BackendError(f"Gemini client error: {e}") from e
+        except genai.errors.APIError as e:
+            raise BackendError(f"Gemini API error: {e}") from e
+        return (resp.text or "").strip()

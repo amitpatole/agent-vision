@@ -41,18 +41,69 @@ def build_server():
 
     mcp = FastMCP("agentvision")
 
+    def _brief(brief, expect, reference):
+        from ..models.intent import Brief
+
+        b = Brief.from_inputs(text=brief, expect=expect, reference_image=reference)
+        return None if b.is_empty() else b
+
     @mcp.tool()
     async def analyze_artifact(source: str, backend: str | None = None,
                                instructions: str | None = None,
                                expected: str | None = None,
+                               brief: str | None = None,
+                               expect: list[str] | None = None,
+                               reference: str | None = None,
                                full_page: bool = True) -> dict:
-        """Render an artifact and return a structured visual Report (verdict + issues)."""
+        """Render an artifact and return a structured visual Report (verdict + issues).
+
+        Pass brief/expect/reference to also grade intent conformance.
+        """
         from ..core import analyze
 
         settings = load_settings()
         report = await analyze(source, settings=settings, backend=backend,
-                               instructions=instructions, expected=expected, full_page=full_page)
+                               instructions=instructions, expected=expected,
+                               brief=_brief(brief, expect, reference), full_page=full_page)
         return report.model_dump(mode="json")
+
+    @mcp.tool()
+    async def conform_artifact(source: str, brief: str | None = None,
+                               expect: list[str] | None = None,
+                               reference: str | None = None,
+                               backend: str | None = None,
+                               full_page: bool = True) -> dict:
+        """Grade an artifact against intent — does it match what you set out to build?
+
+        Provide at least one of brief / expect / reference. Returns a Report whose
+        `conformance` field lists each requirement as satisfied/violated/uncertain.
+        """
+        from ..core import analyze
+
+        the_brief = _brief(brief, expect, reference)
+        if the_brief is None:
+            return {"error": "Provide at least one of brief / expect / reference."}
+        report = await analyze(source, settings=load_settings(), backend=backend,
+                               brief=the_brief, full_page=full_page)
+        return report.model_dump(mode="json")
+
+    @mcp.tool()
+    async def perceive_handoff(source: str, brief: str | None = None,
+                               expect: list[str] | None = None,
+                               reference: str | None = None,
+                               backend: str | None = None,
+                               full_page: bool = True) -> dict:
+        """The eyes→brain handoff: perceive an artifact and return the distilled signal.
+
+        Returns {perceived, next_action, matches_intent, summary, todo[], open_questions[]}
+        — what an agent ("the brain") should do next: 'done', 'revise' (act on todo), or
+        'review'. Use this when you want the decision, not the full report.
+        """
+        from ..core import analyze
+
+        report = await analyze(source, settings=load_settings(), backend=backend,
+                               brief=_brief(brief, expect, reference), full_page=full_page)
+        return report.to_handoff().model_dump(mode="json")
 
     @mcp.tool()
     async def check_artifact(source: str, full_page: bool = True) -> dict:
@@ -105,12 +156,19 @@ def build_server():
 
     @mcp.tool()
     async def start_loop(source: str, backend: str | None = None,
-                         instructions: str | None = None) -> dict:
-        """Start a visual feedback loop session; returns session_id + first iteration."""
+                         instructions: str | None = None,
+                         brief: str | None = None,
+                         expect: list[str] | None = None,
+                         reference: str | None = None) -> dict:
+        """Start a visual feedback loop session; returns session_id + first iteration.
+
+        Pass brief/expect/reference to make the loop conformance-aware.
+        """
         from ..core.loop import LoopSession
 
         session = LoopSession(source, settings=load_settings(), backend=backend,
-                              instructions=instructions)
+                              instructions=instructions,
+                              brief=_brief(brief, expect, reference))
         _sessions[session.session_id] = session
         result = await session.iterate()
         return {"session_id": session.session_id, "iteration": result.model_dump(mode="json")}

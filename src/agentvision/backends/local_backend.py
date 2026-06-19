@@ -39,3 +39,8 @@ class LocalBackend:
             image_path=req.image_path,
             elapsed_ms=int((time.monotonic() - t0) * 1000),
         )
+
+    async def complete_text(self, system: str, user: str) -> str:
+        # Offline backend has no language model — it cannot extract a checklist or refine a
+        # generation prompt. Callers fall back to explicit claims / report-only guidance.
+        return ""

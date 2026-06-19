@@ -53,6 +53,26 @@ done:
 5. **Only report success when the verdict is `pass`** (or remaining items are explicitly
    accepted `warn`s).
 
+## Grade against intent (not just defects)
+
+A defect-free artifact can still be **the wrong thing**. When the task had an intended
+result (a brief, a spec, a "make it look like X"), also grade conformance — PASS then means
+*"matches what I was asked to build,"* not just *"nothing broken"*:
+
+```bash
+agentvision conform ./artifact.html \
+  --brief "pricing page with three tiers and a highlighted middle plan" \
+  --expect 'must: a "Pro" plan card is visible'
+```
+
+Use `--expect 'must:/should:/nice: …'` (repeatable) for explicit, checkable requirements;
+put exact required **text in quotes** (those are graded deterministically via OCR). The
+report's `conformance` field lists each requirement as satisfied/violated/uncertain, and a
+violated `must` fails the verdict. `analyze` and `loop` accept the same
+`--brief/--expect/--reference`. For artifacts **you generate** (AI images/infographics),
+close the loop on the *prompt*: `agentvision generate --generator mypkg:make_image
+--brief "…" --max-iter 4`.
+
 ## Tips
 
 - Check responsiveness with a contact sheet: `agentvision sheet ./page.html`.

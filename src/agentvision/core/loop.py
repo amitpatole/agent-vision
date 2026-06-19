@@ -11,6 +11,8 @@ from pydantic import BaseModel, Field
 
 from ..config import Settings, load_settings
 from ..models.diff import DiffResult
+from ..models.handoff import Handoff
+from ..models.intent import Brief
 from ..models.report import Report, Verdict
 from ..workspace import Workspace
 from .analyze import analyze
@@ -22,6 +24,7 @@ class IterationResult(BaseModel):
     report: Report
     diff: DiffResult | None = None
     verdict: Verdict
+    handoff: Handoff | None = None
     progressed: bool = False
     stuck: bool = False
     artifacts: dict[str, str] = Field(default_factory=dict)
@@ -42,6 +45,7 @@ class LoopSession:
         backend: str | None = None,
         instructions: str | None = None,
         expected: str | None = None,
+        brief: Brief | None = None,
         source_type: str = "auto",
         session_id: str | None = None,
         stuck_threshold: int = 2,
@@ -51,6 +55,7 @@ class LoopSession:
         self.backend = backend
         self.instructions = instructions
         self.expected = expected
+        self.brief = brief
         self.source_type = source_type
         self.stuck_threshold = stuck_threshold
         self.ws = Workspace(self.settings)
@@ -77,7 +82,7 @@ class LoopSession:
         prev_image = self.last_image
         report = await analyze(
             src, settings=self.settings, backend=self.backend,
-            instructions=self.instructions, expected=self.expected,
+            instructions=self.instructions, expected=self.expected, brief=self.brief,
             source_type=self.source_type, out_dir=out_dir,
         )
 
@@ -95,16 +100,19 @@ class LoopSession:
         self._signatures.append(sig)
         stuck = self._repeat_count >= (self.stuck_threshold - 1) and report.verdict != Verdict.PASS
 
-        # Persist artifacts.
+        # Persist artifacts (report + the distilled eyes→brain handoff signal).
+        handoff = report.to_handoff()
         (out_dir / "report.json").write_text(report.model_dump_json(indent=2))
-        artifacts = {"report": str(out_dir / "report.json")}
+        (out_dir / "handoff.json").write_text(handoff.model_dump_json(indent=2))
+        artifacts = {"report": str(out_dir / "report.json"),
+                     "handoff": str(out_dir / "handoff.json")}
         if report.image_path:
             artifacts["image"] = report.image_path
         if diff and diff.diff_image_path:
             artifacts["diff"] = diff.diff_image_path
 
         result = IterationResult(
-            index=idx, report=report, diff=diff, verdict=report.verdict,
+            index=idx, report=report, diff=diff, verdict=report.verdict, handoff=handoff,
             progressed=progressed, stuck=stuck, artifacts=artifacts,
         )
         self.history.append(result)

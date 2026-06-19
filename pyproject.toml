@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "agentvision"
-version = "0.2.0"
+version = "0.3.0"
 description = "Eyes for AI Agents — a machine-graded visual feedback loop coding agents consume to self-correct before claiming done."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -67,6 +67,10 @@ target-version = "py311"
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "W"]
 ignore = ["E501", "UP042"]  # keep explicit str+Enum for Pydantic compatibility
+
+[tool.ruff.lint.flake8-bugbear]
+# Typer/FastAPI put callables in arg defaults by design (incl. list[str] options).
+extend-immutable-calls = ["typer.Option", "typer.Argument", "fastapi.Depends"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

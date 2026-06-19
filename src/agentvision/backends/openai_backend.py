@@ -41,6 +41,16 @@ class OpenAIBackend:
         b64, media, size = load_image_b64(req.image_path)
         user_text = build_user_text(req, size)
         model = self.settings.openai_model
+        user_content: list = [
+            {"type": "text", "text": user_text},
+            {"type": "image_url", "image_url": {"url": f"data:{media};base64,{b64}"}},
+        ]
+        if req.reference_image_path:
+            rb64, rmedia, _ = load_image_b64(req.reference_image_path)
+            user_content.append({"type": "text", "text": "REFERENCE image (target to match):"})
+            user_content.append(
+                {"type": "image_url", "image_url": {"url": f"data:{rmedia};base64,{rb64}"}}
+            )
         client = AsyncOpenAI(api_key=key)
         t0 = time.monotonic()
         try:
@@ -50,11 +60,7 @@ class OpenAIBackend:
                 response_format=openai_response_format(),
                 messages=[
                     {"role": "system", "content": SYSTEM_PROMPT},
-                    {"role": "user", "content": [
-                        {"type": "text", "text": user_text},
-                        {"type": "image_url",
-                         "image_url": {"url": f"data:{media};base64,{b64}"}},
-                    ]},
+                    {"role": "user", "content": user_content},
                 ],
             )
         except openai.AuthenticationError as e:
@@ -76,3 +82,28 @@ class OpenAIBackend:
             findings, req, backend=self.name, model=model,
             grounded=req.dom_hints, image_size=size, elapsed_ms=elapsed,
         )
+
+    async def complete_text(self, system: str, user: str) -> str:
+        import openai
+        from openai import AsyncOpenAI
+
+        key = self.settings.key_for("openai")
+        if not key:
+            raise BackendAuthError("OPENAI_API_KEY is not set.")
+        client = AsyncOpenAI(api_key=key)
+        try:
+            resp = await client.chat.completions.create(
+                model=self.settings.openai_model,
+                max_tokens=1024,
+                messages=[
+                    {"role": "system", "content": system},
+                    {"role": "user", "content": user},
+                ],
+            )
+        except openai.AuthenticationError as e:
+            raise BackendAuthError(f"OpenAI auth failed: {e}") from e
+        except openai.APIError as e:
+            raise BackendError(f"OpenAI API error: {e}") from e
+        finally:
+            await client.close()
+        return (resp.choices[0].message.content or "").strip()

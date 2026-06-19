@@ -28,6 +28,13 @@ class AnalysisRequest(BaseModel):
         default_factory=list,
         description="Grounded DOM/CV findings the LLM should confirm/expand, not re-derive.",
     )
+    claims: list[str] = Field(
+        default_factory=list,
+        description="Numbered requirements (the intended product) to grade the render against.",
+    )
+    reference_image_path: str | None = Field(
+        default=None, description="A target/mockup image the render should match."
+    )
 
 
 @runtime_checkable
@@ -37,3 +44,10 @@ class VisionBackend(Protocol):
     def available(self) -> bool: ...
 
     async def analyze(self, req: AnalysisRequest) -> Report: ...
+
+    async def complete_text(self, system: str, user: str) -> str:
+        """Text-only completion (no image) — for checklist extraction + prompt refinement.
+
+        Backends that cannot do this (e.g. the offline ``local`` backend) return ``""``.
+        """
+        ...

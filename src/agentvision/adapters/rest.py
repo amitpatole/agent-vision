@@ -43,12 +43,34 @@ def build_app():
     app = FastAPI(title="AgentVision", version=__version__)
     settings = load_settings()
 
+    def _brief_from(body) -> object | None:
+        from ..models.intent import Brief
+
+        b = Brief.from_inputs(
+            text=getattr(body, "brief", None),
+            expect=getattr(body, "expect", None),
+            reference_image=getattr(body, "reference", None),
+        )
+        return None if b.is_empty() else b
+
     class AnalyzeBody(BaseModel):
         source: str
         source_type: str = "auto"
         backend: str | None = None
         instructions: str | None = None
         expected: str | None = None
+        brief: str | None = None
+        expect: list[str] | None = None
+        reference: str | None = None
+        full_page: bool = True
+
+    class ConformBody(BaseModel):
+        source: str
+        source_type: str = "auto"
+        backend: str | None = None
+        brief: str | None = None
+        expect: list[str] | None = None
+        reference: str | None = None
         full_page: bool = True
 
     class CheckBody(BaseModel):
@@ -60,6 +82,9 @@ def build_app():
         source: str
         backend: str | None = None
         instructions: str | None = None
+        brief: str | None = None
+        expect: list[str] | None = None
+        reference: str | None = None
 
     class IterBody(BaseModel):
         source: str | None = None
@@ -91,10 +116,47 @@ def build_app():
         try:
             report = await analyze(body.source, settings=settings, backend=body.backend,
                                    instructions=body.instructions, expected=body.expected,
+                                   brief=_brief_from(body),
                                    source_type=body.source_type, full_page=body.full_page)
         except AgentVisionError as e:
             raise HTTPException(status_code=400, detail=str(e)) from e
         data = report.model_dump(mode="json")
+        data["artifact_id"] = _register_artifact(report.image_path)
+        return data
+
+    @app.post("/conform")
+    async def conform_ep(body: ConformBody):
+        from ..core import analyze
+
+        _check_backend(body.backend)
+        the_brief = _brief_from(body)
+        if the_brief is None:
+            raise HTTPException(status_code=400,
+                                detail="Provide at least one of brief / expect / reference.")
+        try:
+            report = await analyze(body.source, settings=settings, backend=body.backend,
+                                   brief=the_brief, source_type=body.source_type,
+                                   full_page=body.full_page)
+        except AgentVisionError as e:
+            raise HTTPException(status_code=400, detail=str(e)) from e
+        data = report.model_dump(mode="json")
+        data["artifact_id"] = _register_artifact(report.image_path)
+        return data
+
+    @app.post("/handoff")
+    async def handoff_ep(body: AnalyzeBody):
+        """Perceive + return the distilled eyes→brain handoff signal (verdict + next action)."""
+        from ..core import analyze
+
+        _check_backend(body.backend)
+        try:
+            report = await analyze(body.source, settings=settings, backend=body.backend,
+                                   instructions=body.instructions, expected=body.expected,
+                                   brief=_brief_from(body),
+                                   source_type=body.source_type, full_page=body.full_page)
+        except AgentVisionError as e:
+            raise HTTPException(status_code=400, detail=str(e)) from e
+        data = report.to_handoff().model_dump(mode="json")
         data["artifact_id"] = _register_artifact(report.image_path)
         return data
 
@@ -114,7 +176,7 @@ def build_app():
 
         _check_backend(body.backend)
         session = LoopSession(body.source, settings=settings, backend=body.backend,
-                             instructions=body.instructions)
+                             instructions=body.instructions, brief=_brief_from(body))
         _sessions[session.session_id] = session
         result = await session.iterate()
         return {"session_id": session.session_id,

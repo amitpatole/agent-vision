@@ -23,18 +23,26 @@ from .errors import (
 )
 from .models import (
     BBox,
+    Brief,
+    ClaimResult,
+    ClaimStatus,
     Confidence,
+    Conformance,
     DiffResult,
+    Handoff,
+    Importance,
+    IntentClaim,
     Issue,
     IssueKind,
     IssueSource,
+    NextAction,
     Report,
     Severity,
     Verdict,
     Viewport,
 )
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
 __all__ = [
     "__version__",
@@ -43,8 +51,10 @@ __all__ = [
     "UnsafeSourceError", "BackendError", "BackendAuthError", "ConfigError",
     "BBox", "Viewport", "Issue", "IssueKind", "IssueSource", "Severity", "Confidence",
     "Verdict", "Report", "DiffResult",
+    "Brief", "IntentClaim", "Importance", "ClaimStatus", "ClaimResult", "Conformance",
+    "Handoff", "NextAction",
     # lazy:
-    "render", "analyze", "diff", "check", "LoopSession",
+    "render", "analyze", "diff", "check", "LoopSession", "GenerativeLoopSession",
 ]
 
 
@@ -58,4 +68,8 @@ def __getattr__(name: str):
         from .core.loop import LoopSession
 
         return LoopSession
+    if name == "GenerativeLoopSession":
+        from .core.generate import GenerativeLoopSession
+
+        return GenerativeLoopSession
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

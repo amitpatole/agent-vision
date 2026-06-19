@@ -72,6 +72,14 @@ are precise. You may CONFIRM or EXPAND on them, but focus on what they missed.
 so and return verdict "pass" with no issues.
 - verdict: "fail" if there are clear defects, "warn" for minor/uncertain issues, "pass" if \
 it looks good.
+
+CONFORMANCE — when a "Requirements checklist" is provided, you are ALSO judging whether the \
+artifact matches what the agent set out to build, not just whether it is defect-free. For \
+EACH requirement that is NOT clearly satisfied, emit one issue with kind "intent_mismatch" \
+whose message BEGINS with the requirement's number in the form "[#N]" (e.g. "[#2] the \
+header shows three tabs, but only two are visible"). Do NOT emit an issue for a requirement \
+that is satisfied. If a REFERENCE image is provided, the rendered artifact should match it; \
+report meaningful differences as "intent_mismatch" too.
 """
 
 
@@ -82,6 +90,18 @@ def build_user_text(req: AnalysisRequest, image_size: tuple[int, int]) -> str:
         lines.append(f"\nTask context: {req.instructions}")
     if req.expected:
         lines.append(f"Expected result: {req.expected}")
+    if req.reference_image_path:
+        lines.append(
+            "\nA REFERENCE image (the target the render should match) is attached as a "
+            "second image. Compare the rendered artifact against it."
+        )
+    if req.claims:
+        lines.append(
+            "\nRequirements checklist — the intended product. For each item NOT clearly "
+            "satisfied, emit an 'intent_mismatch' issue whose message starts with its [#N]:"
+        )
+        for n, claim in enumerate(req.claims, start=1):
+            lines.append(f"  [#{n}] {claim}")
     if req.dom_hints:
         lines.append("\nAlready-detected (grounded) findings — precise, do not repeat:")
         for h in req.dom_hints[:25]:

@@ -46,6 +46,57 @@ Findings are grounded in sources we can actually trust:
 A vision LLM (Claude/OpenAI/Gemini) adds semantic critique on top. Its pixel boxes are
 treated as **advisory** (`bbox_precise: false`), never marketed as pixel-accurate.
 
+## Match the intent, not just avoid defects
+
+A typo-free, well-laid-out artifact can still be **the wrong thing** — an infographic that
+shows the wrong stages, a page missing the panel you asked for, a generated image that
+ignored half the prompt. Give AgentVision the **intent** and it grades the render against it,
+so **PASS means "matches what I set out to build,"** not merely "defect-free":
+
+```bash
+# Does the render match the thought? (text claims grade deterministically via OCR)
+agentvision conform ./infographic.png \
+  --brief "launch infographic for AgentVision" \
+  --expect 'must: title reads "AgentVision"' \
+  --expect 'should: shows 4 stages left to right'
+```
+
+For **AI-generated** artifacts the fix is a better *prompt*, not code — so the generative loop
+**generate → see → grade vs intent → refine prompt → regenerate** runs until it matches. The
+image generator is a hook you supply; AgentVision never bundles an image-gen dependency:
+
+```bash
+agentvision generate --generator mypkg.gen:make_image \
+  --brief "minimalist infographic, dark background, no typos" --max-iter 4 -o final.png
+```
+
+See [docs/conformance.md](docs/conformance.md). Express intent three ways — a free-text
+**brief** (eyes extract the checklist), an **explicit checklist** (`--expect`, deterministic),
+or a **reference image** (`--reference`). Claims are `must:` / `should:` / `nice:`.
+
+## Eyes → brain: the handoff
+
+In anatomy the eyes are only the *afferent* half — the retina perceives, the optic nerve
+carries the signal to the brain, the brain decides, the hand acts, the eyes look again.
+AgentVision is that afferent pathway for an agent: it perceives and hands a clean signal back
+to **the brain** (whatever does your reasoning/planning/memory) — it deliberately doesn't
+decide for you. Any perception call distills to a **`Handoff`**:
+
+```bash
+agentvision analyze ./page.html --handoff
+```
+```jsonc
+{ "perceived": "fail", "next_action": "revise", "matches_intent": false,
+  "todo": ["[overflow] hero text overflows on the right",
+           "[intent/must] a \"Checkout\" button is visible"],
+  "open_questions": ["Verify: uses the brand's dark theme"] }
+```
+
+`next_action` (`done` / `revise` / `review`) drives the brain's loop; `todo` is the work-list;
+`open_questions` is what perception couldn't confirm (never dropped). Available as
+`report.to_handoff()`, the MCP `perceive_handoff` tool, `POST /handoff`, and a `handoff.json`
+per loop iteration — provider- and brain-agnostic. See [docs/handoff.md](docs/handoff.md).
+
 ## Many faces, one core
 
 | Surface | Who it's for |
@@ -125,6 +176,7 @@ asyncio.run(main())
 ## Documentation
 
 - [Quickstart](docs/quickstart.md) · [The Loop](docs/the-loop.md) ·
+  [Conformance](docs/conformance.md) · [Handoff (eyes→brain)](docs/handoff.md) ·
   [Backends](docs/backends.md) · [Adapters](docs/adapters.md) ·
   [Integrations](docs/integrations.md) · [Vision](docs/VISION.md)
 
