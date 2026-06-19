@@ -65,6 +65,34 @@ class RenderedImage(BaseModel):
     height: int
 
 
+class MediaState(BaseModel):
+    """Deterministic `<video>`/`<audio>` state at one instant — the trustworthy streaming
+    signal (read from the media element, not inferred from pixels)."""
+
+    selector: str = ""
+    current_time: float = 0.0
+    duration: float = 0.0
+    paused: bool = True
+    ended: bool = False
+    ready_state: int = 0  # 0=HAVE_NOTHING … 4=HAVE_ENOUGH_DATA
+    video_width: int = 0
+    video_height: int = 0
+    buffered_end: float = 0.0
+    captions: int = 0  # number of text tracks
+    active_captions: int = 0  # text tracks showing
+
+
+class Frame(BaseModel):
+    """One sampled frame in a temporal capture."""
+
+    index: int
+    t_ms: int
+    image_path: str
+    width: int = 0
+    height: int = 0
+    media: list[MediaState] = Field(default_factory=list)
+
+
 class RenderResult(BaseModel):
     images: list[RenderedImage] = Field(default_factory=list)
     dom_boxes: list[ElementBox] = Field(default_factory=list)

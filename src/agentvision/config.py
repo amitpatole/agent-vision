@@ -89,6 +89,10 @@ class Settings(BaseSettings):
     # image/PDF/canvas) so nothing is lost to downscaling. The eyes see everything.
     vision_full_coverage: bool = True
     max_vision_tiles: int = 6
+    # Temporal verification (`watch`): sample frames over time to judge playback / loading /
+    # transitions / liveness — for streaming UIs, video, live dashboards.
+    watch_frames: int = 5
+    watch_interval_ms: int = 600
 
     # Safety
     allow_url_rendering: bool = True

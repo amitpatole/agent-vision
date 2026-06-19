@@ -187,6 +187,18 @@ agentvision analyze http://localhost:5173 --allow-local \
   --wait-for "#dashboard" --settle-ms 800 --quiet
 ```
 
+**Streaming / video / over-time behavior** — watch, don't just glance:
+
+```bash
+# Is the video actually playing? Did loading finish? Are captions on?
+agentvision watch https://app.example.com/player --frames 6 --interval-ms 500 \
+  --expect 'must: the video is playing'
+```
+
+`watch` reads deterministic `<video>` state (currentTime/readyState/captions) + pixel
+liveness/stall/black-frame detection, then adds a time-aware vision pass. See
+[docs/use-cases/streaming.md](docs/use-cases/streaming.md).
+
 `--nav-wait` defaults to `load` (polling pages never go idle); `--freeze` (default on) pauses
 animations + `requestAnimationFrame` so canvas/WebGL pages capture without hanging; `--quiet`
 prints only JSON (logs to stderr, exit codes 0 pass/warn · 2 fail · 3 error).
@@ -211,8 +223,8 @@ asyncio.run(main())
 
 - [Quickstart](docs/quickstart.md) · [The Loop](docs/the-loop.md) ·
   [Conformance](docs/conformance.md) · [Handoff (eyes→brain)](docs/handoff.md) ·
-  [Backends](docs/backends.md) · [Adapters](docs/adapters.md) ·
-  [Integrations](docs/integrations.md) · [Vision](docs/VISION.md)
+  [Streaming / temporal](docs/use-cases/streaming.md) · [Backends](docs/backends.md) ·
+  [Adapters](docs/adapters.md) · [Integrations](docs/integrations.md) · [Vision](docs/VISION.md)
 
 ## What we do **not** claim (honesty)
 

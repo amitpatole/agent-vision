@@ -473,6 +473,38 @@ def generate(
 
 
 @app.command()
+def watch(
+    source: str = typer.Argument(..., help="URL / HTML / SVG to capture over time."),
+    backend: str = typer.Option(None, help="Vision backend for the time-aware pass."),
+    frames: int = typer.Option(None, "--frames", help="How many frames to sample."),
+    interval_ms: int = typer.Option(None, "--interval-ms", help="Delay between frames (ms)."),
+    brief: str = typer.Option(None, help="Intended behavior (e.g. 'the video plays')."),
+    expect: list[str] = typer.Option(None, "--expect", help="A required behavior (repeatable)."),
+    no_vision: bool = typer.Option(False, "--no-vision", help="Deterministic signals only."),
+    allow_local: bool = typer.Option(False, "--allow-local", help="Allow localhost / LAN URLs."),
+    nav_wait: str = typer.Option(None, "--nav-wait", help="load|domcontentloaded|networkidle."),
+    render_timeout: float = typer.Option(None, "--render-timeout", help="Max seconds."),
+    json_out: bool = typer.Option(False, "--json"),
+    handoff: bool = typer.Option(False, "--handoff", help="Emit the eyes→brain handoff signal."),
+    quiet: bool = typer.Option(False, "--quiet", help="Machine mode: only JSON on stdout."),
+):
+    """Watch an artifact over time — verify playback / loading / liveness, not just a glance.
+
+    Deterministic signals (video currentTime/readyState/captions, pixel liveness, stall /
+    black-frame detection) plus a time-aware vision pass over the frames. For streaming UIs,
+    video players, live dashboards, and any animated/canvas surface.
+    """
+    from ..core import watch as do_watch
+
+    settings = _settings(backend=backend, allow_local=allow_local, nav_wait=nav_wait,
+                         render_timeout=render_timeout)
+    _run_report(do_watch(
+        source, settings=settings, backend=backend, frames=frames, interval_ms=interval_ms,
+        brief=_build_brief(brief, expect, None), use_vision=not no_vision,
+    ), json_out=json_out, handoff=handoff, quiet=quiet)
+
+
+@app.command()
 def sheet(
     source: str = typer.Argument(...),
     breakpoints: str = typer.Option("375,768,1280,1920", help="Comma-separated widths."),

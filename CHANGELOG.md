@@ -55,6 +55,30 @@ clean, provider-agnostic handoff — it perceives and hands off, it does not dec
   brain's sense adapter can keep it for provenance yet exclude it from gating (this honors the
   contract Verel's `verel.senses.sight` already documents and tests).
 
+## [0.6.0] — 2026-06-19
+
+### Added — temporal verification (`watch`): eyes that watch, not just glance
+Everything before this was single-frame. But streaming correctness is *temporal* — does the
+video actually play, does the buffering spinner clear, do captions appear, does the live tile
+update, does a transition finish. `agentvision watch` samples a sequence of frames over time
+and judges behavior across them. For streaming UIs, video players, live dashboards, and any
+animated/canvas surface.
+
+- **Deterministic, trustworthy signals** (no LLM): per-`<video>` playback read from the media
+  element itself — `currentTime` advancing ⇒ playing; not advancing while unpaused ⇒ **stall/
+  buffering** (error); `readyState`/`videoWidth` ⇒ has decoded frames; `textTracks` ⇒ captions
+  present/active. Plus pixel **liveness** (is it changing?), **stabilization** (loading→loaded
+  converged?), and **black/blank-frame** detection.
+- **Time-aware vision pass**: frames are stitched into a labeled contact sheet (+ sent as
+  full-res frames) with a temporal prompt, so the model judges playback/loading/transition.
+- Returns a normal `Report` (flows through `--handoff` and any brain/Verel); the machine-
+  readable temporal signal rides on the leading issue's `detail.temporal`. Findings reuse
+  existing `IssueKind`s (tagged `temporal`) so the verdict-bus contract stays stable.
+- Surfaced as CLI `agentvision watch` (`--frames`, `--interval-ms`, `--brief/--expect`,
+  `--no-vision`, `--quiet`), MCP `watch_artifact`, REST `POST /watch`, and `agentvision.watch`.
+- Config: `watch_frames` (5), `watch_interval_ms` (600). Static sources (image/PDF) degrade
+  gracefully to single-frame `analyze`. See [docs/use-cases/streaming.md](docs/use-cases/streaming.md).
+
 ## [0.5.0] — 2026-06-19
 
 ### Added — full-coverage vision (the eyes see everything, from pixels alone)

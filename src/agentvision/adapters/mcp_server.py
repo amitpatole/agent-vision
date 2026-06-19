@@ -106,6 +106,23 @@ def build_server():
         return report.to_handoff().model_dump(mode="json")
 
     @mcp.tool()
+    async def watch_artifact(source: str, frames: int | None = None,
+                             interval_ms: int | None = None, backend: str | None = None,
+                             brief: str | None = None, use_vision: bool = True) -> dict:
+        """Watch an artifact OVER TIME — verify playback / loading / liveness, not a glance.
+
+        Returns a Report whose deterministic temporal signal (video currentTime/readyState/
+        captions, pixel liveness, stall / black-frame detection) rides on the leading issue's
+        `detail.temporal`. For streaming UIs, video players, and live dashboards.
+        """
+        from ..core import watch
+
+        report = await watch(source, settings=load_settings(), backend=backend, frames=frames,
+                             interval_ms=interval_ms, brief=_brief(brief, None, None),
+                             use_vision=use_vision)
+        return report.model_dump(mode="json")
+
+    @mcp.tool()
     async def check_artifact(source: str, full_page: bool = True) -> dict:
         """Classic DOM/CV checks only (no LLM, no key)."""
         from ..core import check

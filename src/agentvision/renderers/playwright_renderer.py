@@ -24,6 +24,8 @@ from .base import (
     ContrastSample,
     ElementBox,
     FailedResponse,
+    Frame,
+    MediaState,
     RenderedImage,
     RenderResult,
     RenderSpec,
@@ -70,6 +72,22 @@ _VISUALS_JS = """() => {
       out.push({tag: el.tagName.toLowerCase(), x: r.left, y: r.top, w: r.width, h: r.height});
   });
   return out;
+}"""
+
+# Deterministic media state (the trustworthy streaming signal) read from each <video>/<audio>.
+_MEDIA_JS = """() => {
+  const sel = function(el){ return el.id ? '#'+el.id : el.tagName.toLowerCase(); };
+  return Array.from(document.querySelectorAll('video,audio')).map(function(m){
+    let bEnd = 0;
+    try { if (m.buffered && m.buffered.length) bEnd = m.buffered.end(m.buffered.length-1); } catch(e){}
+    const tracks = m.textTracks || []; let active = 0;
+    for (let i=0;i<tracks.length;i++){ if (tracks[i].mode === 'showing') active++; }
+    return { selector: sel(m), currentTime: m.currentTime||0,
+             duration: (isFinite(m.duration) ? m.duration : 0) || 0,
+             paused: !!m.paused, ended: !!m.ended, readyState: m.readyState||0,
+             videoWidth: m.videoWidth||0, videoHeight: m.videoHeight||0,
+             bufferedEnd: bEnd, captions: tracks.length, activeCaptions: active };
+  });
 }"""
 
 # Headless flags. --no-sandbox is commonly required on bare/CI Linux without user
@@ -276,6 +294,68 @@ class PlaywrightRenderer:
         await context.close()
         return result
 
+    async def render_sequence(
+        self, spec: RenderSpec, resolved: ResolvedSource, out_dir: Path,
+        *, frames: int, interval_ms: int,
+    ) -> list[Frame]:
+        """Sample ``frames`` screenshots over time (no freeze) + per-frame media state.
+
+        For temporal verification: deliberately keeps motion so playback/loading/transition
+        can be judged across frames. Viewport-only (full-page stitch is too slow/inconsistent
+        frame-to-frame).
+        """
+        window_s = frames * interval_ms / 1000.0
+        try:
+            return await asyncio.wait_for(
+                self._render_sequence(spec, resolved, out_dir, frames, interval_ms),
+                timeout=self.settings.render_timeout_s + window_s + 10,
+            )
+        except TimeoutError as e:
+            raise RenderTimeout(
+                f"Temporal capture exceeded {self.settings.render_timeout_s + window_s:.0f}s."
+            ) from e
+
+    async def _render_sequence(self, spec, resolved, out_dir, frames, interval_ms):
+        async_playwright = _import_playwright()
+        out_dir.mkdir(parents=True, exist_ok=True)
+        from PIL import Image
+
+        vp = spec.viewports[0]
+        dsf = spec.device_scale or 1.0
+        out: list[Frame] = []
+        async with async_playwright() as pw:
+            try:
+                browser = await pw.chromium.launch(headless=True, args=_LAUNCH_ARGS)
+            except Exception as e:  # noqa: BLE001
+                raise RenderError(f"Could not launch Chromium: {e}") from e
+            try:
+                context = await browser.new_context(
+                    viewport={"width": vp.width, "height": vp.height}, device_scale_factor=dsf,
+                )
+                await self._install_guards(context)
+                page = await context.new_page()
+                await self._navigate(page, resolved, spec.wait_for or self.settings.nav_wait)
+                if spec.settle_ms and spec.settle_ms > 0:
+                    await page.wait_for_timeout(spec.settle_ms)
+                for i in range(frames):
+                    try:
+                        media_raw = await page.evaluate(_MEDIA_JS) or []
+                    except Exception:  # noqa: BLE001
+                        media_raw = []
+                    img = out_dir / f"frame_{i}.png"
+                    await page.screenshot(path=str(img), full_page=False)  # no freeze: keep motion
+                    with Image.open(img) as im:
+                        iw, ih = im.size
+                    out.append(Frame(
+                        index=i, t_ms=i * interval_ms, image_path=str(img), width=iw, height=ih,
+                        media=[_to_media(m) for m in media_raw],
+                    ))
+                    if i < frames - 1:
+                        await page.wait_for_timeout(interval_ms)
+            finally:
+                await browser.close()
+        return out
+
     async def _navigate(self, page, resolved: ResolvedSource, wait: str):
         is_state = wait in ("load", "domcontentloaded", "networkidle")
         wait_state = wait if is_state else "load"
@@ -342,6 +422,17 @@ class PlaywrightRenderer:
             large_text=c["large"], passes_aa=c["aa"], passes_aaa=c["aaa"],
             confidence=c["confidence"], text=c.get("text", ""), selector=c.get("selector", ""),
         )
+
+
+def _to_media(m: dict) -> MediaState:
+    return MediaState(
+        selector=m.get("selector", ""), current_time=float(m.get("currentTime", 0) or 0),
+        duration=float(m.get("duration", 0) or 0), paused=bool(m.get("paused", True)),
+        ended=bool(m.get("ended", False)), ready_state=int(m.get("readyState", 0) or 0),
+        video_width=int(m.get("videoWidth", 0) or 0), video_height=int(m.get("videoHeight", 0) or 0),
+        buffered_end=float(m.get("bufferedEnd", 0) or 0), captions=int(m.get("captions", 0) or 0),
+        active_captions=int(m.get("activeCaptions", 0) or 0),
+    )
 
 
 def _dedupe_failed(failed: list[FailedResponse]) -> list[FailedResponse]:

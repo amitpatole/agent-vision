@@ -160,6 +160,30 @@ def build_app():
         data["artifact_id"] = _register_artifact(report.image_path)
         return data
 
+    class WatchBody(BaseModel):
+        source: str
+        backend: str | None = None
+        frames: int | None = None
+        interval_ms: int | None = None
+        brief: str | None = None
+        expect: list[str] | None = None
+        use_vision: bool = True
+
+    @app.post("/watch")
+    async def watch_ep(body: WatchBody):
+        from ..core import watch
+
+        _check_backend(body.backend)
+        try:
+            report = await watch(body.source, settings=settings, backend=body.backend,
+                                 frames=body.frames, interval_ms=body.interval_ms,
+                                 brief=_brief_from(body), use_vision=body.use_vision)
+        except AgentVisionError as e:
+            raise HTTPException(status_code=400, detail=str(e)) from e
+        data = report.model_dump(mode="json")
+        data["artifact_id"] = _register_artifact(report.image_path)
+        return data
+
     @app.post("/check")
     async def check_ep(body: CheckBody):
         from ..core import check

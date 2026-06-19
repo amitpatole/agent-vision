@@ -42,7 +42,7 @@ from .models import (
     Viewport,
 )
 
-__version__ = "0.5.0"
+__version__ = "0.6.0"
 
 __all__ = [
     "__version__",
@@ -54,13 +54,13 @@ __all__ = [
     "Brief", "IntentClaim", "Importance", "ClaimStatus", "ClaimResult", "Conformance",
     "Handoff", "NextAction",
     # lazy:
-    "render", "analyze", "diff", "check", "LoopSession", "GenerativeLoopSession",
+    "render", "analyze", "diff", "check", "watch", "LoopSession", "GenerativeLoopSession",
 ]
 
 
 def __getattr__(name: str):
     # Lazy high-level API — imported on demand to keep the base import light.
-    if name in {"render", "analyze", "diff", "check"}:
+    if name in {"render", "analyze", "diff", "check", "watch"}:
         from . import core
 
         return getattr(core, name)
