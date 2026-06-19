@@ -76,6 +76,9 @@ class Settings(BaseSettings):
     nav_wait: str = "load"  # load|domcontentloaded|networkidle
     settle_ms: int = 400  # quiet wait after load so client-rendered data can populate
     freeze_animations: bool = True  # pause CSS animations + rAF before capture
+    # When a <canvas> is present, let rAF run at least this long so a scene that BUILDS in the
+    # rAF loop (three.js/WebGL/games) draws before we pause it ("settle-then-freeze").
+    canvas_settle_ms: int = 1500
     vision_max_edge_px: int = 2000  # downscale oversized screenshots before the vision LLM
 
     # Safety

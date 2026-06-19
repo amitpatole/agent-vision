@@ -117,8 +117,10 @@ async def analyze(
     haystack = " ".join(t for t in (ocr_text, dom_text) if t)
 
     # Never let an advisory vision "missing"/intent claim survive when DOM/OCR proves the
-    # element is present (the model misread a dense or early-captured frame).
-    kept, dropped = suppress_contradicted_vision(report.issues, haystack)
+    # element is present (text in DOM/OCR, or a named visual whose DOM tag exists).
+    kept, dropped = suppress_contradicted_vision(
+        report.issues, haystack, render_result.visual_tags
+    )
     if dropped:
         report.issues = kept
         report.verdict = verdict_from_issues(report.issues)

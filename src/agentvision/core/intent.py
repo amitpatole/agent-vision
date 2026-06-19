@@ -114,19 +114,40 @@ def check_claims_ocr(
     return results
 
 
+# Visual-element keywords → the DOM tag(s) whose presence proves the element exists. A
+# downscaled full-page makes small canvases/charts blurry, so the vision model may call a
+# present visual "missing"; if the matching element is actually in the DOM, we overrule it.
+_VISUAL_KW = {
+    "canvas": {"canvas"}, "webgl": {"canvas"}, "3d": {"canvas"}, "scene": {"canvas"},
+    "three": {"canvas"}, "game": {"canvas"},
+    "chart": {"canvas", "svg"}, "graph": {"canvas", "svg"}, "plot": {"canvas", "svg"},
+    "curve": {"canvas", "svg"}, "diagram": {"canvas", "svg"}, "visualization": {"canvas", "svg"},
+    "sparkline": {"canvas", "svg"}, "gauge": {"canvas", "svg"},
+    "image": {"img", "svg"}, "logo": {"img", "svg"}, "photo": {"img"}, "picture": {"img"},
+    "icon": {"svg", "img"}, "video": {"video"},
+}
+
+
+def _visual_contradicted(message: str, present: set[str]) -> bool:
+    msg = message.lower()
+    return any(kw in msg and (tags & present) for kw, tags in _VISUAL_KW.items())
+
+
 def suppress_contradicted_vision(
-    issues: list[Issue], haystack_text: str | None
+    issues: list[Issue], haystack_text: str | None, visual_tags: list[str] | None = None,
 ) -> tuple[list[Issue], list[Issue]]:
     """Drop vision claims that DOM/OCR ground truth contradicts.
 
-    A vision model on a dense or early-captured frame will sometimes call a plainly-present
-    element "missing". When the issue quotes specific text and that text IS in the DOM/OCR
-    haystack, the element demonstrably exists — so we suppress the (advisory) vision finding
-    rather than ship a false fail. Returns ``(kept, dropped)``.
+    A vision model on a dense or early/downscaled frame will sometimes call a plainly-present
+    element "missing". We overrule the (advisory) vision finding when ground truth proves the
+    element exists — either its quoted **text** is in the DOM/OCR haystack, or it names a
+    **visual** element (canvas/chart/image) whose matching DOM tag is actually present.
+    Returns ``(kept, dropped)``.
     """
-    if not haystack_text:
+    hay = _norm(haystack_text) if haystack_text else ""
+    present = set(visual_tags or [])
+    if not hay and not present:
         return issues, []
-    hay = _norm(haystack_text)
     kept: list[Issue] = []
     dropped: list[Issue] = []
     for iss in issues:
@@ -136,7 +157,10 @@ def suppress_contradicted_vision(
         )
         if contradictable:
             phrases = _QUOTED.findall(iss.message)
-            if phrases and all(_norm(p) in hay for p in phrases):
+            if phrases and hay and all(_norm(p) in hay for p in phrases):
+                dropped.append(iss)
+                continue
+            if present and _visual_contradicted(iss.message, present):
                 dropped.append(iss)
                 continue
         kept.append(iss)

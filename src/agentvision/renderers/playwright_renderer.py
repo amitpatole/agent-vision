@@ -37,20 +37,36 @@ _SVG_WRAPPER = (
     "<body>{svg}</body></html>"
 )
 
-# Freeze perpetual motion before capture: pause CSS animations/transitions and neuter the
-# requestAnimationFrame loop (three.js/canvas/WebGL) so a continuously-animating page can be
+# Freeze perpetual motion before capture so a continuously-animating page can be
 # screenshotted (incl. full-page) instead of waiting forever for a "stable" frame.
-_FREEZE_JS = """() => {
+# Split in two: CSS/media is always safe to freeze; neutering requestAnimationFrame is NOT
+# safe for a <canvas> that BUILDS its scene inside rAF (it would capture an empty canvas),
+# so the renderer only applies the rAF freeze when there is no canvas.
+_FREEZE_CSS_JS = """() => {
   try {
     const s = document.createElement('style');
     s.textContent = '*,*::before,*::after{animation:none !important;' +
       'animation-play-state:paused !important;transition:none !important;' +
       'scroll-behavior:auto !important;caret-color:transparent !important}';
     document.documentElement.appendChild(s);
-    window.requestAnimationFrame = function(){ return 0; };
-    window.cancelAnimationFrame = function(){};
     document.querySelectorAll('video,audio').forEach(function(m){ try { m.pause(); } catch(e){} });
   } catch (e) {}
+}"""
+
+_FREEZE_RAF_JS = """() => {
+  try { window.requestAnimationFrame = function(){ return 0; };
+        window.cancelAnimationFrame = function(){}; } catch (e) {}
+}"""
+
+# Report sizable non-text visual elements present, so the analyzer can overrule a vision
+# "missing" claim about a canvas/chart/image that demonstrably exists.
+_VISUALS_JS = """() => {
+  const out = new Set(); const min = 64;
+  document.querySelectorAll('canvas,svg,img,video').forEach(function(el){
+    const r = el.getBoundingClientRect();
+    if (r.width >= min && r.height >= min) out.add(el.tagName.toLowerCase());
+  });
+  return Array.from(out);
 }"""
 
 # Headless flags. --no-sandbox is commonly required on bare/CI Linux without user
@@ -113,6 +129,7 @@ class PlaywrightRenderer:
         contrast: list[ContrastSample] = []
         broken: list[ElementBox] = []
         overflow_x = 0.0
+        visual_tags: list[str] = []
 
         async with async_playwright() as pw:
             try:
@@ -138,13 +155,15 @@ class PlaywrightRenderer:
                         console_errors = page_result["console_errors"]
                         failed = page_result["failed"]
                         overflow_x = page_result["overflow_x"]
+                        visual_tags = page_result["visual_tags"]
             finally:
                 await browser.close()
 
         return RenderResult(
             images=images, dom_boxes=dom_boxes, contrast_samples=contrast,
             console_errors=console_errors, failed_responses=failed,
-            broken_images=broken, overflow_x=overflow_x, source_type=resolved.kind,
+            broken_images=broken, overflow_x=overflow_x, visual_tags=visual_tags,
+            source_type=resolved.kind,
         )
 
     async def _render_one(self, browser, spec, resolved, vp: Viewport, out_dir: Path, idx: int):
@@ -177,19 +196,35 @@ class PlaywrightRenderer:
             await context.close()
             raise RenderError(f"Navigation failed: {e}") from e
 
-        # Settle: give client-rendered data a beat to populate before we judge the page
-        # (avoids false "blank/missing" verdicts on the shell-then-fill frame).
-        if spec.settle_ms and spec.settle_ms > 0:
+        # A <canvas> scene often BUILDS inside the rAF loop, so we must let rAF run long
+        # enough for it to draw before pausing it ("settle-then-freeze", not the reverse).
+        has_canvas = False
+        try:
+            has_canvas = bool(await page.evaluate("() => !!document.querySelector('canvas')"))
+        except Exception:  # noqa: BLE001
+            pass
+
+        # Settle: give client-rendered data (and canvas scenes) a beat to populate before we
+        # judge the page (avoids false "blank/missing" verdicts on the shell-then-fill frame).
+        settle = spec.settle_ms or 0
+        if has_canvas and spec.freeze:
+            settle = max(settle, self.settings.canvas_settle_ms)
+        if settle > 0:
             try:
-                await page.wait_for_timeout(spec.settle_ms)
+                await page.wait_for_timeout(settle)
             except Exception:  # noqa: BLE001
                 pass
-        # Freeze perpetual motion so capture (incl. full-page) can't hang on rAF/animation.
+        # Freeze perpetual motion so capture (incl. full-page) can't hang on animation. CSS
+        # is always safe; rAF is only frozen when there's no canvas (else we'd capture an
+        # empty canvas). Canvas pages rely on animations="disabled" + the settle above.
         if spec.freeze:
-            try:
-                await page.evaluate(_FREEZE_JS)
-            except Exception:  # noqa: BLE001
-                pass
+            for js in (_FREEZE_CSS_JS, None if has_canvas else _FREEZE_RAF_JS):
+                if js is None:
+                    continue
+                try:
+                    await page.evaluate(js)
+                except Exception:  # noqa: BLE001
+                    pass
 
         # Extract signals at scroll-top so doc-space rects map cleanly to the image.
         await page.evaluate("() => window.scrollTo(0, 0)")
@@ -209,6 +244,11 @@ class PlaywrightRenderer:
         with Image.open(img_path) as im:
             iw, ih = im.size
 
+        try:
+            visual_tags = await page.evaluate(_VISUALS_JS) or []
+        except Exception:  # noqa: BLE001
+            visual_tags = []
+
         dom_boxes = [self._to_box(b, dsf) for b in data.get("domBoxes", [])]
         broken = [self._to_box(b, dsf) for b in data.get("broken", [])]
         contrast = [self._to_contrast(c, dsf) for c in data.get("contrast", [])]
@@ -219,6 +259,7 @@ class PlaywrightRenderer:
             "dom_boxes": dom_boxes, "contrast": contrast, "broken": broken,
             "console_errors": console_errors, "failed": _dedupe_failed(failed),
             "overflow_x": float(data.get("overflowX", 0) or 0) * dsf,
+            "visual_tags": list(visual_tags),
         }
         await context.close()
         return result

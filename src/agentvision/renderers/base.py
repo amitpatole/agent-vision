@@ -73,6 +73,10 @@ class RenderResult(BaseModel):
     failed_responses: list[FailedResponse] = Field(default_factory=list)
     broken_images: list[ElementBox] = Field(default_factory=list)
     overflow_x: float = Field(default=0.0, description="Horizontal layout overflow in image px.")
+    visual_tags: list[str] = Field(
+        default_factory=list,
+        description="Sizable non-text visual elements present (canvas/svg/img/video).",
+    )
     source_type: str = "html"
 
     @property

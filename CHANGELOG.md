@@ -55,6 +55,23 @@ clean, provider-agnostic handoff — it perceives and hands off, it does not dec
   brain's sense adapter can keep it for provenance yet exclude it from gating (this honors the
   contract Verel's `verel.senses.sight` already documents and tests).
 
+## [0.3.2] — 2026-06-19
+
+### Fixed — v0.3.1 retest residuals (canvas/WebGL visual path)
+Two residual findings from re-grading the live WebGL dashboard, both on the vision path for
+**visual (non-text) elements**:
+
+- **Freeze no longer blanks canvas/WebGL scenes that build inside `requestAnimationFrame`.**
+  Freeze is now *canvas-aware*: CSS animations/transitions are still paused, but when a
+  `<canvas>` is present rAF is left running and the renderer waits `canvas_settle_ms`
+  (default 1500) so the scene draws before capture ("settle-then-freeze"). Heavy scenes can
+  still raise `--settle-ms`. (Static pages keep the full rAF freeze.)
+- **Vision "missing" claims about visual elements are overruled by the DOM.** The renderer
+  reports sizable `canvas`/`svg`/`img`/`video` elements (`RenderResult.visual_tags`); a vision
+  `missing_element`/`intent_mismatch` that names a visual (canvas, chart, 3D scene, image…)
+  is suppressed when the matching element is actually present — so a downscaled/blurry full
+  page no longer false-fails a chart or canvas that demonstrably exists.
+
 ## [0.3.1] — 2026-06-19
 
 ### Fixed / changed — live-dashboard field report (live-dashboard)

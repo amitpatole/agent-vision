@@ -51,6 +51,31 @@ def test_suppress_empty_haystack_is_noop():
     assert kept == issues and dropped == []
 
 
+def test_suppress_visual_missing_when_element_present():
+    # vision says the 3D scene is missing, but a sizable <canvas> exists -> overrule it.
+    issues = [_vis(IssueKind.MISSING_ELEMENT, "the 3D scene / canvas is not rendered")]
+    kept, dropped = suppress_contradicted_vision(issues, None, visual_tags=["canvas"])
+    assert dropped and not kept
+
+
+def test_suppress_visual_chart_matches_svg_or_canvas():
+    issues = [_vis(IssueKind.INTENT_MISMATCH, "[#1] the equity curve chart is missing")]
+    kept, dropped = suppress_contradicted_vision(issues, None, visual_tags=["svg"])
+    assert dropped and not kept
+
+
+def test_suppress_visual_keeps_when_tag_absent():
+    # claims a video is missing but only a canvas is present -> keep (genuinely could be missing)
+    issues = [_vis(IssueKind.MISSING_ELEMENT, "the video player is missing")]
+    kept, dropped = suppress_contradicted_vision(issues, None, visual_tags=["canvas"])
+    assert kept and not dropped
+
+
+def test_canvas_settle_default():
+    from agentvision.config import load_settings
+    assert load_settings().canvas_settle_ms == 1500
+
+
 def test_load_image_b64_downscales_oversized(tmp_path):
     from PIL import Image
 
