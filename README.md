@@ -97,6 +97,23 @@ agentvision analyze ./page.html --handoff
 `report.to_handoff()`, the MCP `perceive_handoff` tool, `POST /handoff`, and a `handoff.json`
 per loop iteration — provider- and brain-agnostic. See [docs/handoff.md](docs/handoff.md).
 
+## Eyes & Brain — AgentVision × Verel
+
+AgentVision is the **eyes**. It pairs with **[Verel](https://github.com/amitpatole/verel)**,
+the **brain** — an agent framework where *nothing is "done" until a grader returns a verdict.*
+The eyes perceive and grade intent; the brain decides with attestation and **compounds only
+verified work** into memory; then the eyes look again.
+
+<p align="center">
+  <img src="docs/unified-architecture.png" alt="Eyes & Brain — AgentVision perceives and grades intent; Verel decides and compounds verified work into memory" width="100%">
+</p>
+
+They ship and version independently (`pip install agentvision`, `pip install verel`) yet work
+in sync: AgentVision plugs into Verel as its `verel.senses` perception organ — mapped onto a
+unified verdict bus (vision *alongside* tests, lint and types), with intent conformance
+recorded in the brain's memory each iteration. AgentVision stays brain-agnostic; Verel is the
+reference brain. See [docs/handoff.md](docs/handoff.md).
+
 ## Many faces, one core
 
 | Surface | Who it's for |

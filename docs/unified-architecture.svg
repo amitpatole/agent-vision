@@ -1,0 +1,143 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1060" viewBox="0 0 1600 1060" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0c0f17"/>
+      <stop offset="1" stop-color="#0f1320"/>
+    </linearGradient>
+    <linearGradient id="eyeGlow" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5ad1e6"/>
+      <stop offset="1" stop-color="#3a9fd6"/>
+    </linearGradient>
+    <linearGradient id="brainGlow" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8b7cff"/>
+      <stop offset="1" stop-color="#b06cff"/>
+    </linearGradient>
+    <linearGradient id="nerve" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#5ad1e6"/>
+      <stop offset="1" stop-color="#8b7cff"/>
+    </linearGradient>
+    <marker id="ah" markerWidth="12" markerHeight="12" refX="8" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 Z" fill="#8b7cff"/>
+    </marker>
+    <marker id="ahb" markerWidth="14" markerHeight="14" refX="9" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#46d39a"/>
+    </marker>
+  </defs>
+
+  <rect width="1600" height="1060" fill="url(#bg)"/>
+
+  <!-- Title -->
+  <text x="800" y="66" text-anchor="middle" font-size="48" font-weight="800" fill="#eef2fb">Eyes &amp; Brain</text>
+  <text x="800" y="104" text-anchor="middle" font-size="22" fill="#9aa4b8">AgentVision <tspan fill="#5ad1e6">sees</tspan>  ·  Verel <tspan fill="#8b7cff">decides</tspan>  ·  only <tspan fill="#46d39a">verified</tspan> work ships</text>
+
+  <!-- ================= EYES PANEL ================= -->
+  <rect x="56" y="150" width="610" height="700" rx="22" fill="#12161f" stroke="#274050" stroke-width="1.5"/>
+  <text x="92" y="200" font-size="15" letter-spacing="3" fill="#5ad1e6" font-weight="700">THE EYES · PERCEPTION</text>
+  <text x="92" y="246" font-size="38" font-weight="800" fill="#eef2fb">AgentVision</text>
+  <!-- eye glyph -->
+  <g transform="translate(566,210)">
+    <ellipse cx="0" cy="0" rx="44" ry="26" fill="none" stroke="url(#eyeGlow)" stroke-width="4"/>
+    <circle cx="0" cy="0" r="13" fill="#5ad1e6"/>
+    <circle cx="5" cy="-5" r="4" fill="#0c0f17"/>
+  </g>
+  <text x="92" y="282" font-size="17" fill="#9aa4b8">It writes a UI, chart, SVG, PDF or image — and actually looks at the result.</text>
+
+  <!-- pipeline -->
+  <g font-size="16" font-weight="700" text-anchor="middle">
+    <rect x="92" y="312" width="118" height="46" rx="10" fill="#14202a" stroke="#2f5163"/>
+    <text x="151" y="341" fill="#cfe9f2">RENDER</text>
+    <rect x="232" y="312" width="118" height="46" rx="10" fill="#14202a" stroke="#2f5163"/>
+    <text x="291" y="341" fill="#cfe9f2">PERCEIVE</text>
+    <rect x="372" y="312" width="118" height="46" rx="10" fill="#14202a" stroke="#2f5163"/>
+    <text x="431" y="341" fill="#cfe9f2">REPORT</text>
+    <rect x="512" y="312" width="118" height="46" rx="10" fill="#14202a" stroke="#2f5163"/>
+    <text x="571" y="341" fill="#cfe9f2">DIFF</text>
+    <text x="221" y="341" fill="#5ad1e6">›</text>
+    <text x="361" y="341" fill="#5ad1e6">›</text>
+    <text x="501" y="341" fill="#5ad1e6">›</text>
+  </g>
+
+  <!-- trust card -->
+  <rect x="92" y="386" width="538" height="146" rx="14" fill="#101a22" stroke="#23323d"/>
+  <text x="112" y="416" font-size="18" font-weight="700" fill="#eef2fb">Grounded truth, not vibes</text>
+  <text x="112" y="446" font-size="16" fill="#bfe7f0">▪ DOM geometry + computed-style WCAG contrast — <tspan fill="#46d39a">precise</tspan></text>
+  <text x="112" y="474" font-size="16" fill="#bfe7f0">▪ OCR word boxes + spelling/typo check — <tspan fill="#46d39a">precise</tspan></text>
+  <text x="112" y="502" font-size="16" fill="#bfe7f0">▪ Vision-LLM critique (Claude/GPT/Gemini/Ollama) — <tspan fill="#f5b14c">advisory</tspan></text>
+
+  <!-- conformance card -->
+  <rect x="92" y="548" width="538" height="150" rx="14" fill="#101a22" stroke="#23323d"/>
+  <text x="112" y="578" font-size="18" font-weight="700" fill="#eef2fb">Matches intent, not just defects</text>
+  <text x="112" y="608" font-size="16" fill="#bfe7f0">brief / checklist / reference  →  a render is graded per requirement</text>
+  <text x="112" y="636" font-size="16" fill="#bfe7f0">must · should · nice  →  <tspan fill="#46d39a">satisfied</tspan> · <tspan fill="#ff7a7a">violated</tspan> · <tspan fill="#f5b14c">uncertain</tspan></text>
+  <text x="112" y="664" font-size="16" fill="#9aa4b8">PASS means “it’s what we set out to build,” not “nothing’s broken.”</text>
+
+  <!-- handoff output pill -->
+  <rect x="92" y="716" width="538" height="104" rx="14" fill="#0e2230" stroke="#2f6f7e"/>
+  <text x="112" y="752" font-size="18" font-weight="800" fill="#5ad1e6">The handoff →</text>
+  <text x="112" y="782" font-size="15" fill="#cfe9f2">verdict · next_action · matches_intent · todo[] · open_questions[]</text>
+  <text x="112" y="806" font-size="14" fill="#9aa4b8">a clean afferent signal — the eyes report, they don’t decide</text>
+
+  <!-- ================= OPTIC NERVE ================= -->
+  <text x="800" y="430" text-anchor="middle" font-size="14" letter-spacing="2" fill="#9aa4b8">THE OPTIC NERVE</text>
+  <line x1="676" y1="470" x2="924" y2="470" stroke="url(#nerve)" stroke-width="7" marker-end="url(#ah)"/>
+  <g text-anchor="middle" font-size="14" font-weight="700">
+    <rect x="690" y="492" width="220" height="34" rx="17" fill="#13202b" stroke="#2f5163"/>
+    <text x="800" y="514" fill="#bfe7f0">perception → decision</text>
+  </g>
+  <text x="800" y="560" text-anchor="middle" font-size="14" fill="#9aa4b8">grounded observations + a verdict,</text>
+  <text x="800" y="580" text-anchor="middle" font-size="14" fill="#9aa4b8">mapped onto one bus the brain trusts</text>
+
+  <!-- ================= BRAIN PANEL ================= -->
+  <rect x="934" y="150" width="610" height="700" rx="22" fill="#15131f" stroke="#3a2f5e" stroke-width="1.5"/>
+  <text x="970" y="200" font-size="15" letter-spacing="3" fill="#b6a6ff" font-weight="700">THE BRAIN · DECISION + MEMORY</text>
+  <text x="970" y="246" font-size="38" font-weight="800" fill="#eef2fb">Verel</text>
+  <!-- brain glyph -->
+  <g transform="translate(1444,212)">
+    <circle cx="0" cy="0" r="30" fill="none" stroke="url(#brainGlow)" stroke-width="4"/>
+    <circle cx="-12" cy="-6" r="4" fill="#8b7cff"/><circle cx="8" cy="-12" r="4" fill="#8b7cff"/>
+    <circle cx="12" cy="8" r="4" fill="#8b7cff"/><circle cx="-8" cy="10" r="4" fill="#8b7cff"/>
+    <path d="M-12,-6 L8,-12 M8,-12 L12,8 M12,8 L-8,10 M-8,10 L-12,-6" stroke="#6a5acf" stroke-width="1.5" fill="none"/>
+  </g>
+  <text x="970" y="282" font-size="17" fill="#9aa4b8">Nothing is “done” until a grader returns a verdict.</text>
+
+  <!-- five organs -->
+  <g font-size="16">
+    <rect x="970" y="312" width="258" height="76" rx="12" fill="#1a1730" stroke="#3a2f5e"/>
+    <text x="986" y="340" font-weight="700" fill="#eef2fb">⚖  Verdict bus</text>
+    <text x="986" y="366" font-size="13" fill="#b6a6ff">vision + tests + lint + types → one pass/warn/fail</text>
+
+    <rect x="1250" y="312" width="258" height="76" rx="12" fill="#1a1730" stroke="#3a2f5e"/>
+    <text x="1266" y="340" font-weight="700" fill="#eef2fb">Memory that compounds</text>
+    <text x="1266" y="366" font-size="13" fill="#b6a6ff">only verified facts/skills graduate</text>
+
+    <rect x="970" y="402" width="258" height="76" rx="12" fill="#16202a" stroke="#2f5163"/>
+    <text x="986" y="430" font-weight="700" fill="#cfe9f2">Eyes = AgentVision</text>
+    <text x="986" y="456" font-size="13" fill="#7fd3e6">perception as one sense among many</text>
+
+    <rect x="1250" y="402" width="258" height="76" rx="12" fill="#1a1730" stroke="#3a2f5e"/>
+    <text x="1266" y="430" font-weight="700" fill="#eef2fb">Fleet</text>
+    <text x="1266" y="456" font-size="13" fill="#b6a6ff">agents managing agents, gated by the bus</text>
+
+    <rect x="970" y="492" width="538" height="76" rx="12" fill="#1a1730" stroke="#3a2f5e"/>
+    <text x="986" y="520" font-weight="700" fill="#eef2fb">Tool-smith</text>
+    <text x="986" y="546" font-size="13" fill="#b6a6ff">agents build, test &amp; register their own tools — sandboxed, admitted only on a passing eval</text>
+  </g>
+
+  <!-- compounds pill -->
+  <rect x="970" y="588" width="538" height="110" rx="14" fill="#10231b" stroke="#2f6f55"/>
+  <text x="990" y="624" font-size="18" font-weight="800" fill="#46d39a">Only verified work compounds</text>
+  <text x="990" y="654" font-size="15" fill="#c8e9da">the brain decides with grader attestation — a hollow check can’t mint green</text>
+  <text x="990" y="680" font-size="14" fill="#9aa4b8">records “did it match what we set out to build?” across every iteration</text>
+
+  <!-- brain decision output -->
+  <rect x="970" y="716" width="538" height="104" rx="14" fill="#1a1730" stroke="#4a3f7e"/>
+  <text x="990" y="752" font-size="18" font-weight="800" fill="#b6a6ff">The decision →</text>
+  <text x="990" y="782" font-size="15" fill="#d7ccff">done · revise (act on the to-do) · review</text>
+  <text x="990" y="806" font-size="14" fill="#9aa4b8">a full brain runs its own gate; a simpler brain can use the handoff verbatim</text>
+
+  <!-- ================= EFFERENT LOOP ================= -->
+  <path d="M1230,866 C 1100,948 520,948 372,894" fill="none" stroke="#46d39a" stroke-width="4" stroke-dasharray="2 0" marker-end="url(#ahb)"/>
+  <rect x="612" y="906" width="376" height="44" rx="22" fill="#10231b" stroke="#2f6f55"/>
+  <text x="800" y="934" text-anchor="middle" font-size="16" font-weight="700" fill="#c8e9da">decide → act (edit code / refine prompt) → look again</text>
+  <text x="800" y="1000" text-anchor="middle" font-size="18" fill="#9aa4b8">render → perceive → gate → fix → re-render → <tspan fill="#46d39a" font-weight="700">pass</tspan> — the loop where “done” becomes a verdict, not an opinion</text>
+</svg>
