@@ -95,6 +95,13 @@ def build_user_text(req: AnalysisRequest, image_size: tuple[int, int]) -> str:
             "\nA REFERENCE image (the target the render should match) is attached as a "
             "second image. Compare the rendered artifact against it."
         )
+    if req.extra_images:
+        lines.append(
+            f"\n{len(req.extra_images)} FULL-RESOLUTION crop(s) of visual regions "
+            "(charts / canvas / images) are attached after the main image. The main image "
+            "may be downscaled; judge the visual content of these regions from the crops "
+            "(e.g. is the chart actually plotting data, is the canvas/scene rendered)."
+        )
     if req.claims:
         lines.append(
             "\nRequirements checklist — the intended product. For each item NOT clearly "

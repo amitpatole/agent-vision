@@ -77,6 +77,10 @@ class RenderResult(BaseModel):
         default_factory=list,
         description="Sizable non-text visual elements present (canvas/svg/img/video).",
     )
+    visual_elements: list[ElementBox] = Field(
+        default_factory=list,
+        description="Sizable visual elements with image-px geometry (for full-res crops).",
+    )
     source_type: str = "html"
 
     @property

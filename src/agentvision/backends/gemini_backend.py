@@ -48,6 +48,10 @@ class GeminiBackend:
                                              self.settings.vision_max_edge_px)
             contents.append("REFERENCE image (target to match):")
             contents.append(types.Part.from_bytes(data=_b64.b64decode(rb64), mime_type=rmedia))
+        for ep in req.extra_images:
+            eb64, emedia, _ = load_image_b64(ep, self.settings.vision_max_edge_px)
+            contents.append("Full-resolution crop of a visual region:")
+            contents.append(types.Part.from_bytes(data=_b64.b64decode(eb64), mime_type=emedia))
         contents.append(user_text)
         client = genai.Client(api_key=key)
         t0 = time.monotonic()

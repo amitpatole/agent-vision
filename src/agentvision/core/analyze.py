@@ -27,6 +27,7 @@ from ..models.report import (
 from ..renderers.base import RenderResult
 from .checks import CLASSIC_CAPABILITIES, run_all_checks
 from .intent import (
+    _VISUAL_KW,
     build_conformance,
     check_claims_ocr,
     derive_claims,
@@ -37,6 +38,41 @@ from .intent import (
 from .render import render
 
 log = get_logger("analyze")
+
+
+def _wants_visual_judgment(brief: Brief | None, claims) -> bool:
+    """True when the intent mentions a visual element (chart/canvas/image/…)."""
+    text = " ".join([(brief.text if brief else "") or ""] + [c.text for c in claims]).lower()
+    return any(kw in text for kw in _VISUAL_KW)
+
+
+def _visual_crop_paths(image_path: str, elements, *, max_crops: int) -> list[str]:
+    """Save full-res crops of the largest visual elements; return their paths."""
+    from PIL import Image
+
+    try:
+        im = Image.open(image_path).convert("RGB")
+    except Exception:  # noqa: BLE001
+        return []
+    w, h = im.size
+    base = Path(image_path).parent
+    out: list[str] = []
+    for i, e in enumerate(sorted(elements, key=lambda e: e.bbox.width * e.bbox.height,
+                                 reverse=True)):
+        if len(out) >= max_crops:
+            break
+        x0, y0 = max(0, int(e.bbox.x)), max(0, int(e.bbox.y))
+        x1 = min(w, int(e.bbox.x + e.bbox.width))
+        y1 = min(h, int(e.bbox.y + e.bbox.height))
+        if x1 - x0 < 32 or y1 - y0 < 32:  # too small / off-screen (e.g. below a viewport shot)
+            continue
+        p = base / f"vcrop_{i}.png"
+        try:
+            im.crop((x0, y0, x1, y1)).save(p)
+            out.append(str(p))
+        except Exception:  # noqa: BLE001
+            continue
+    return out
 
 
 async def _render_and_ground(
@@ -102,11 +138,22 @@ async def analyze(
     vision, fallback_warning = select_backend(settings, backend)
     # Pre-derive claims so the vision call can grade against the numbered checklist.
     claims = await derive_claims(brief, backend=vision) if grade_intent else []
+
+    # For visual intent (charts/canvas/images), send focused FULL-RES crops so the model
+    # judges the actual visual content instead of a downscaled whole page.
+    extra_images: list[str] = []
+    if (grade_intent and getattr(vision, "name", "local") != "local"
+            and settings.crop_visual_claims and render_result.visual_elements
+            and _wants_visual_judgment(brief, claims)):
+        extra_images = _visual_crop_paths(
+            primary.path, render_result.visual_elements, max_crops=settings.max_visual_crops
+        )
+
     req = AnalysisRequest(
         image_path=primary.path, viewport=primary.viewport,
         device_scale=settings.device_scale, instructions=instructions,
         expected=expected, ocr_text=ocr_text, dom_hints=grounded,
-        claims=[c.text for c in claims],
+        claims=[c.text for c in claims], extra_images=extra_images,
         reference_image_path=(brief.reference_image if grade_intent else None),
     )
     report = await vision.analyze(req)

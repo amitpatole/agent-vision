@@ -80,6 +80,10 @@ class Settings(BaseSettings):
     # rAF loop (three.js/WebGL/games) draws before we pause it ("settle-then-freeze").
     canvas_settle_ms: int = 1500
     vision_max_edge_px: int = 2000  # downscale oversized screenshots before the vision LLM
+    # When grading intent on a page with charts/canvas/images, also send the vision model
+    # focused FULL-RES crops of those regions (a downscaled whole page can't be judged well).
+    crop_visual_claims: bool = True
+    max_visual_crops: int = 3
 
     # Safety
     allow_url_rendering: bool = True

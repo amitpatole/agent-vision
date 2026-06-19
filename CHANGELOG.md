@@ -55,6 +55,24 @@ clean, provider-agnostic handoff — it perceives and hands off, it does not dec
   brain's sense adapter can keep it for provenance yet exclude it from gating (this honors the
   contract Verel's `verel.senses.sight` already documents and tests).
 
+## [0.4.0] — 2026-06-19
+
+### Added — focused full-res crops for visual intent claims
+The last residual from the field report (#10): a downscaled full page can't be judged for
+*visual* content (is the chart actually plotting? is the canvas/scene rendered?). Now when a
+brief mentions a visual (chart / canvas / 3D scene / image / …) and the page has matching
+sizable elements, AgentVision sends the vision model **focused full-resolution crops** of
+those regions alongside the (downscaled) whole page — real visual judgment, not just "is it
+there?".
+
+- Renderer reports visual element geometry (`RenderResult.visual_elements`); the analyzer
+  crops the full-res screenshot to the largest matching regions (`max_visual_crops`, default 3)
+  and attaches them via the new `AnalysisRequest.extra_images` (a general multi-image context
+  path, supported by all cloud backends and downscaled per-crop to `vision_max_edge_px`).
+- Gated by intent + relevance: only fires when grading a brief whose text/claims name a
+  visual and the page actually has such an element, and only on a vision backend
+  (`crop_visual_claims`, default on). No extra cost on text-only or no-key runs.
+
 ## [0.3.2] — 2026-06-19
 
 ### Fixed — v0.3.1 retest residuals (canvas/WebGL visual path)

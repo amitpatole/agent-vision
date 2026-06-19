@@ -58,15 +58,18 @@ _FREEZE_RAF_JS = """() => {
         window.cancelAnimationFrame = function(){}; } catch (e) {}
 }"""
 
-# Report sizable non-text visual elements present, so the analyzer can overrule a vision
-# "missing" claim about a canvas/chart/image that demonstrably exists.
+# Report sizable non-text visual elements (with geometry) so the analyzer can overrule a
+# vision "missing" claim about a canvas/chart/image that exists, and send the model a
+# focused full-res CROP of each region for real visual judgment. Read at scroll-top, so
+# getBoundingClientRect is already document-space.
 _VISUALS_JS = """() => {
-  const out = new Set(); const min = 64;
+  const out = []; const min = 64;
   document.querySelectorAll('canvas,svg,img,video').forEach(function(el){
     const r = el.getBoundingClientRect();
-    if (r.width >= min && r.height >= min) out.add(el.tagName.toLowerCase());
+    if (r.width >= min && r.height >= min)
+      out.push({tag: el.tagName.toLowerCase(), x: r.left, y: r.top, w: r.width, h: r.height});
   });
-  return Array.from(out);
+  return out;
 }"""
 
 # Headless flags. --no-sandbox is commonly required on bare/CI Linux without user
@@ -130,6 +133,7 @@ class PlaywrightRenderer:
         broken: list[ElementBox] = []
         overflow_x = 0.0
         visual_tags: list[str] = []
+        visual_elements: list[ElementBox] = []
 
         async with async_playwright() as pw:
             try:
@@ -156,6 +160,7 @@ class PlaywrightRenderer:
                         failed = page_result["failed"]
                         overflow_x = page_result["overflow_x"]
                         visual_tags = page_result["visual_tags"]
+                        visual_elements = page_result["visual_elements"]
             finally:
                 await browser.close()
 
@@ -163,7 +168,7 @@ class PlaywrightRenderer:
             images=images, dom_boxes=dom_boxes, contrast_samples=contrast,
             console_errors=console_errors, failed_responses=failed,
             broken_images=broken, overflow_x=overflow_x, visual_tags=visual_tags,
-            source_type=resolved.kind,
+            visual_elements=visual_elements, source_type=resolved.kind,
         )
 
     async def _render_one(self, browser, spec, resolved, vp: Viewport, out_dir: Path, idx: int):
@@ -245,9 +250,16 @@ class PlaywrightRenderer:
             iw, ih = im.size
 
         try:
-            visual_tags = await page.evaluate(_VISUALS_JS) or []
+            visuals = await page.evaluate(_VISUALS_JS) or []
         except Exception:  # noqa: BLE001
-            visual_tags = []
+            visuals = []
+        visual_elements = [
+            ElementBox(tag=v.get("tag", ""),
+                       bbox=BBox(x=v["x"] * dsf, y=v["y"] * dsf,
+                                 width=v["w"] * dsf, height=v["h"] * dsf))
+            for v in visuals
+        ]
+        visual_tags = sorted({e.tag for e in visual_elements})
 
         dom_boxes = [self._to_box(b, dsf) for b in data.get("domBoxes", [])]
         broken = [self._to_box(b, dsf) for b in data.get("broken", [])]
@@ -259,7 +271,7 @@ class PlaywrightRenderer:
             "dom_boxes": dom_boxes, "contrast": contrast, "broken": broken,
             "console_errors": console_errors, "failed": _dedupe_failed(failed),
             "overflow_x": float(data.get("overflowX", 0) or 0) * dsf,
-            "visual_tags": list(visual_tags),
+            "visual_tags": list(visual_tags), "visual_elements": visual_elements,
         }
         await context.close()
         return result

@@ -96,6 +96,54 @@ def test_load_image_b64_leaves_small_images(tmp_path):
     assert size == (800, 600)
 
 
+def test_wants_visual_judgment():
+    from agentvision.core.analyze import _wants_visual_judgment
+    from agentvision.models.intent import Brief, IntentClaim
+
+    assert _wants_visual_judgment(Brief(text="a dashboard with an equity curve chart"), [])
+    assert _wants_visual_judgment(None, [IntentClaim(text="the 3D scene renders")])
+    assert not _wants_visual_judgment(Brief(text="a heading that reads Hello"),
+                                      [IntentClaim(text='shows "Total"')])
+
+
+def test_visual_crop_paths(tmp_path):
+    from PIL import Image
+
+    from agentvision.core.analyze import _visual_crop_paths
+    from agentvision.models.geometry import BBox
+    from agentvision.renderers.base import ElementBox
+
+    img = tmp_path / "page.png"
+    Image.new("RGB", (1000, 800), "white").save(img)
+    els = [
+        ElementBox(tag="canvas", bbox=BBox(x=100, y=100, width=400, height=300)),  # ok
+        ElementBox(tag="img", bbox=BBox(x=10, y=10, width=20, height=20)),         # too small
+        ElementBox(tag="svg", bbox=BBox(x=900, y=700, width=400, height=400)),     # clipped but ok
+    ]
+    crops = _visual_crop_paths(str(img), els, max_crops=3)
+    assert 1 <= len(crops) <= 2  # the 20x20 is skipped
+    for c in crops:
+        assert Image.open(c).size[0] >= 32
+
+
+def test_visual_crop_respects_max():
+    import os
+    import tempfile
+
+    from PIL import Image
+
+    from agentvision.core.analyze import _visual_crop_paths
+    from agentvision.models.geometry import BBox
+    from agentvision.renderers.base import ElementBox
+
+    d = tempfile.mkdtemp()
+    p = os.path.join(d, "p.png")
+    Image.new("RGB", (2000, 2000), "white").save(p)
+    els = [ElementBox(tag="canvas", bbox=BBox(x=i * 100, y=0, width=200, height=200))
+           for i in range(6)]
+    assert len(_visual_crop_paths(p, els, max_crops=2)) == 2
+
+
 def test_new_render_defaults():
     s = load_settings()
     assert s.nav_wait == "load"           # not networkidle (no hang on polling pages)

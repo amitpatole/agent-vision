@@ -52,6 +52,12 @@ class OpenAIBackend:
             user_content.append(
                 {"type": "image_url", "image_url": {"url": f"data:{rmedia};base64,{rb64}"}}
             )
+        for ep in req.extra_images:
+            eb64, emedia, _ = load_image_b64(ep, self.settings.vision_max_edge_px)
+            user_content.append({"type": "text", "text": "Full-resolution crop of a visual region:"})
+            user_content.append(
+                {"type": "image_url", "image_url": {"url": f"data:{emedia};base64,{eb64}"}}
+            )
         client = AsyncOpenAI(api_key=key)
         t0 = time.monotonic()
         try:

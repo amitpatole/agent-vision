@@ -35,6 +35,10 @@ class AnalysisRequest(BaseModel):
     reference_image_path: str | None = Field(
         default=None, description="A target/mockup image the render should match."
     )
+    extra_images: list[str] = Field(
+        default_factory=list,
+        description="Additional context images (e.g. full-res crops of chart/canvas regions).",
+    )
 
 
 @runtime_checkable

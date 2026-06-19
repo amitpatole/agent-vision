@@ -60,6 +60,11 @@ class AnthropicBackend:
             content.append({"type": "text", "text": "REFERENCE image (target to match):"})
             content.append({"type": "image", "source": {
                 "type": "base64", "media_type": rmedia, "data": rb64}})
+        for ep in req.extra_images:
+            eb64, emedia, _ = load_image_b64(ep, self.settings.vision_max_edge_px)
+            content.append({"type": "text", "text": "Full-resolution crop of a visual region:"})
+            content.append({"type": "image", "source": {
+                "type": "base64", "media_type": emedia, "data": eb64}})
         content.append({"type": "text", "text": user_text})
         client = AsyncAnthropic(api_key=key)
         t0 = time.monotonic()
