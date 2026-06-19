@@ -219,6 +219,21 @@ async def main():
 asyncio.run(main())
 ```
 
+## Drop it into your workflow & your agents
+
+```yaml
+# CI gate (GitHub Action): fails the build on a visual FAIL verdict
+- uses: amitpatole/agent-vision@v0.6.0
+  with: { source: dist/index.html, command: check, args: --full-page }
+```
+
+- **CI / pre-commit / Makefile** — shell out; exit codes `0 pass/warn · 2 fail · 3 error`,
+  `--quiet` for JSON-only output. Reusable **GitHub Action** + **pre-commit hook** included.
+- **Your agents** — drop [`integrations/agent-contract.md`](integrations/agent-contract.md)
+  into the system prompt, use the **Claude Code Skill**, or the **MCP** tools (Cursor/Claude/any host).
+
+Full guide: [docs/integrations.md](docs/integrations.md).
+
 ## Documentation
 
 - [Quickstart](docs/quickstart.md) · [The Loop](docs/the-loop.md) ·

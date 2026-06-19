@@ -1,0 +1,33 @@
+# Use AgentVision as a pre-commit gate. In your repo's .pre-commit-config.yaml:
+#
+#   - repo: https://github.com/amitpatole/agent-vision
+#     rev: v0.6.0
+#     hooks:
+#       - id: agentvision-check
+#         args: ["dist/index.html", "--quiet"]   # the artifact(s) to verify
+#
+# `agentvision-check` is the no-API-key structural pass (DOM/contrast/OCR/typo) — fast and
+# offline, ideal for a commit gate. For semantic/intent checks use `agentvision-analyze`
+# and set a backend + API key (e.g. args: ["dist/index.html", "--backend", "anthropic"]).
+# Each hook instance verifies one artifact; add more instances for more artifacts.
+#
+# Note: rendering needs the Chromium *browser binary*, which pip does not install. Run once on
+# the machine: `python -m playwright install chromium` (see `agentvision doctor`). In CI prefer
+# the GitHub Action (it installs Chromium for you). The hook is best where Chromium is present.
+- id: agentvision-check
+  name: AgentVision (visual check, no key)
+  description: Render an artifact and fail the commit on visual defects (DOM/CV/OCR).
+  entry: agentvision check
+  language: python
+  additional_dependencies: ["agentvision[render]"]
+  pass_filenames: false
+  always_run: true
+
+- id: agentvision-analyze
+  name: AgentVision (visual + semantic analyze)
+  description: Render and analyze with a vision backend; fail on a FAIL verdict.
+  entry: agentvision analyze
+  language: python
+  additional_dependencies: ["agentvision[all]"]
+  pass_filenames: false
+  always_run: true

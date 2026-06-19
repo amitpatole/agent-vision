@@ -1,0 +1,75 @@
+name: "AgentVision"
+description: "Give your CI eyes — render an artifact and fail the build on visual defects or unmet intent."
+branding:
+  icon: "eye"
+  color: "purple"
+
+inputs:
+  source:
+    description: "Artifact to verify: an HTML/SVG/PDF/image file, a URL, or inline HTML."
+    required: true
+  command:
+    description: "Subcommand: check (no key) | analyze | conform | watch."
+    required: false
+    default: "check"
+  backend:
+    description: "Vision backend: local | anthropic | openai | gemini | ollama."
+    required: false
+    default: "local"
+  brief:
+    description: "Intended product, for conform/analyze (optional)."
+    required: false
+    default: ""
+  expect:
+    description: "Newline-separated required claims (prefix must:/should:/nice:)."
+    required: false
+    default: ""
+  args:
+    description: "Extra CLI flags, e.g. '--full-page --allow-local --settle-ms 800'."
+    required: false
+    default: ""
+  extras:
+    description: "pip extras to install (e.g. render, all, render,anthropic)."
+    required: false
+    default: "render"
+  python-version:
+    description: "Python version."
+    required: false
+    default: "3.12"
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python-version }}
+    - name: Install AgentVision + Chromium
+      shell: bash
+      env:
+        EXTRAS: ${{ inputs.extras }}
+      run: |
+        python -m pip install --upgrade pip
+        pip install "agentvision[${EXTRAS}]"
+        python -m playwright install --with-deps chromium
+    - name: Run AgentVision (fails the build on a FAIL verdict)
+      shell: bash
+      env:
+        # Inputs come through the environment (never interpolated into the command) so a
+        # value can't inject shell. Exit codes: 0 pass/warn · 2 fail · 3 error.
+        AV_SOURCE: ${{ inputs.source }}
+        AV_COMMAND: ${{ inputs.command }}
+        AV_BACKEND: ${{ inputs.backend }}
+        AV_BRIEF: ${{ inputs.brief }}
+        AV_EXPECT: ${{ inputs.expect }}
+        AV_ARGS: ${{ inputs.args }}
+      run: |
+        set -euo pipefail
+        cmd=( agentvision "$AV_COMMAND" "$AV_SOURCE" --backend "$AV_BACKEND" --quiet )
+        [ -n "$AV_BRIEF" ] && cmd+=( --brief "$AV_BRIEF" )
+        if [ -n "$AV_EXPECT" ]; then
+          while IFS= read -r line; do
+            [ -n "$line" ] && cmd+=( --expect "$line" )
+          done <<< "$AV_EXPECT"
+        fi
+        # shellcheck disable=SC2086
+        "${cmd[@]}" $AV_ARGS
