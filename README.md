@@ -4,6 +4,12 @@
   <img src="docs/banner.png" alt="AgentVision — Eyes for AI Agents: render, see, report, fix — before claiming done" width="100%">
 </p>
 
+<p align="center">
+  <a href="https://pypi.org/project/agentvision/"><img src="https://img.shields.io/pypi/v/agentvision?color=8b5cf6&label=pip%20install%20agentvision" alt="PyPI"></a>
+  <a href="https://amitpatole.github.io/agent-vision/"><img src="https://img.shields.io/badge/docs-amitpatole.github.io-5ad1e6" alt="Docs"></a>
+  <img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT">
+</p>
+
 > **Problem:** AI coding agents are *blind* — they write a UI, chart, SVG or PDF and never *see* the result, shipping breakage they can't perceive.  
 > **Result:** AgentVision gives them eyes — render → see → report → fix — catching overflow, low contrast, broken images and typos.  
 > So your agent **self-corrects before it claims done.**
@@ -235,6 +241,8 @@ asyncio.run(main())
 Full guide: [docs/integrations.md](docs/integrations.md).
 
 ## Documentation
+
+📖 **Full docs site: [amitpatole.github.io/agent-vision](https://amitpatole.github.io/agent-vision/)**
 
 - [Quickstart](docs/quickstart.md) · [The Loop](docs/the-loop.md) ·
   [Conformance](docs/conformance.md) · [Handoff (eyes→brain)](docs/handoff.md) ·

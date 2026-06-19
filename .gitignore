@@ -37,3 +37,7 @@ media/
 .env
 .env.*
 !.env.example
+
+# mkdocs build output
+site/
+.cache/

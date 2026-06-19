@@ -1,0 +1,65 @@
+site_name: AgentVision
+site_description: >-
+  Eyes for AI Agents — a machine-graded visual feedback loop coding agents consume to
+  self-correct before claiming done.
+site_url: https://amitpatole.github.io/agent-vision/
+repo_url: https://github.com/amitpatole/agent-vision
+repo_name: amitpatole/agent-vision
+copyright: MIT © Amit Patole
+docs_dir: docs
+
+theme:
+  name: material
+  palette:
+    - scheme: slate
+      primary: deep purple
+      accent: cyan
+  font:
+    text: Inter
+  icon:
+    repo: fontawesome/brands/github
+  features:
+    - navigation.sections
+    - navigation.top
+    - navigation.tracking
+    - navigation.instant
+    - content.code.copy
+    - toc.follow
+    - search.suggest
+    - search.highlight
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
+  - pymdownx.tabbed:
+      alternate_style: true
+
+nav:
+  - Home: index.md
+  - Get started:
+      - Quickstart: quickstart.md
+      - The loop: the-loop.md
+  - Capabilities:
+      - Conformance (match intent): conformance.md
+      - Eyes → brain (handoff): handoff.md
+      - Streaming / temporal: use-cases/streaming.md
+      - Vision backends: backends.md
+  - Use it:
+      - Adapters (CLI/MCP/REST/Skill): adapters.md
+      - Workflows & agents: integrations.md
+  - Reference:
+      - Design (VISION): VISION.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/amitpatole/agent-vision
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/agentvision/
