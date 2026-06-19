@@ -234,6 +234,25 @@ AgentVision is a comprehensive visual perception system designed to enable AI ag
 5. **Collaborative Visual Workspaces**: Shared visual environments for human-agent teams
 6. **Adaptive Learning from Visual Feedback**: Improving agent behavior based on visual corrections
 
+## Full-coverage perception (the eyes see everything)
+
+A vision model is sent a *downscaled* whole image for layout (large/dense images make models
+lazy and generic). That overview loses fine detail — small text, a chart's data, a thumbnail.
+So whenever the rendered artifact is larger than the model-friendly edge, AgentVision also
+attaches **full-resolution coverage**:
+
+- **Targeted region crops** — when grading visual intent, the relevant DOM elements
+  (`canvas`/`svg`/`img`/`video`) are cropped at full resolution and sent alongside the page.
+- **Source-agnostic coverage tiles** — a purely pixel-based pass (no DOM dependency) cuts any
+  oversized render into a bounded, content-aware set of full-res tiles. Because it works on
+  the rendered pixels alone, it covers *anything the eyes can render*: HTML, a flat **image**,
+  a **PDF page**, a `<canvas>`/WebGL surface, an `<iframe>` — uniformly. Blank tiles are
+  skipped; the most content-rich are kept within a budget.
+
+The model therefore always gets **overview + full detail**: it can read small text and judge
+the actual content of a chart/canvas, not just whether something is present. This is the
+general form of the earlier element-crop feature — nothing visible is out of the eyes' reach.
+
 ## Implementation Roadmap
 
 ### Phase 1: Foundation
