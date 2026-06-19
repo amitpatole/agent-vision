@@ -55,6 +55,23 @@ clean, provider-agnostic handoff — it perceives and hands off, it does not dec
   brain's sense adapter can keep it for provenance yet exclude it from gating (this honors the
   contract Verel's `verel.senses.sight` already documents and tests).
 
+## [0.6.1] — 2026-06-19
+
+### Added — developer adoption (workflows + agents)
+Frictionless on-ramps for the two places developers use AgentVision — their CI/dev workflow
+and their agents. (No library code change; this release ships the tooling/docs so a pinned
+`@v0.6.1` action ref and `pip install` line up.)
+
+- **Reusable GitHub Action** (`action.yml`): one step installs AgentVision + Chromium and runs
+  `check`/`analyze`/`conform`/`watch`, failing the build on a FAIL verdict. Inputs are passed
+  via the environment (injection-safe).
+- **pre-commit hooks** (`.pre-commit-hooks.yaml`): `agentvision-check` / `agentvision-analyze`
+  as commit gates (with the Chromium-binary caveat documented).
+- **Refreshed agent contract** (`integrations/agent-contract.md`) covering the full loop:
+  check/analyze, `conform` (intent), `watch` (temporal), `--handoff`, `--quiet` + exit codes.
+- **`docs/integrations.md`** reframed as *workflow + agents* with a new "In your CI / workflow"
+  section (Action, pre-commit, raw CLI gate).
+
 ## [0.6.0] — 2026-06-19
 
 ### Added — temporal verification (`watch`): eyes that watch, not just glance

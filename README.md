@@ -223,7 +223,7 @@ asyncio.run(main())
 
 ```yaml
 # CI gate (GitHub Action): fails the build on a visual FAIL verdict
-- uses: amitpatole/agent-vision@v0.6.0
+- uses: amitpatole/agent-vision@v0.6.1
   with: { source: dist/index.html, command: check, args: --full-page }
 ```
 

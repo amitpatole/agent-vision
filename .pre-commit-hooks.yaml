@@ -1,7 +1,7 @@
 # Use AgentVision as a pre-commit gate. In your repo's .pre-commit-config.yaml:
 #
 #   - repo: https://github.com/amitpatole/agent-vision
-#     rev: v0.6.0
+#     rev: v0.6.1
 #     hooks:
 #       - id: agentvision-check
 #         args: ["dist/index.html", "--quiet"]   # the artifact(s) to verify
