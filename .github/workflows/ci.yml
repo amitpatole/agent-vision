@@ -5,6 +5,15 @@ on:
     branches: [main]
   pull_request:
 
+# Least privilege: the default GITHUB_TOKEN is read-only for all jobs.
+permissions:
+  contents: read
+
+# Cancel superseded runs (also limits fork-PR resource abuse).
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     runs-on: ubuntu-latest   # --with-deps works on Ubuntu runners
@@ -13,6 +22,8 @@ jobs:
         python-version: ["3.11", "3.12"]
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false   # don't leave the token on disk
 
       - uses: actions/setup-python@v5
         with:
