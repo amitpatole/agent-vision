@@ -32,6 +32,7 @@ from .intent import (
     derive_claims,
     gate_verdict,
     ocr_violation_issues,
+    suppress_contradicted_vision,
 )
 from .render import render
 
@@ -110,6 +111,18 @@ async def analyze(
     )
     report = await vision.analyze(req)
 
+    # Ground truth from DOM + OCR — overrules contradicted vision claims and grades text
+    # requirements deterministically.
+    dom_text = " ".join(b.text for b in render_result.dom_boxes if getattr(b, "text", ""))
+    haystack = " ".join(t for t in (ocr_text, dom_text) if t)
+
+    # Never let an advisory vision "missing"/intent claim survive when DOM/OCR proves the
+    # element is present (the model misread a dense or early-captured frame).
+    kept, dropped = suppress_contradicted_vision(report.issues, haystack)
+    if dropped:
+        report.issues = kept
+        report.verdict = verdict_from_issues(report.issues)
+
     if fallback_warning:
         # Mark as a synthetic fallback notice so downstream consumers (e.g. a brain's sense
         # adapter) can keep it for provenance but exclude it from gating.
@@ -121,7 +134,7 @@ async def analyze(
             report.verdict = Verdict.WARN
 
     if grade_intent:
-        ocr_results = check_claims_ocr(claims, ocr_text)
+        ocr_results = check_claims_ocr(claims, haystack)
         report.issues.extend(ocr_violation_issues(ocr_results))
         semantic_graded = getattr(vision, "name", "local") != "local"
         conformance = build_conformance(

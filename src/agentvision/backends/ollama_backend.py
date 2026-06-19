@@ -54,7 +54,7 @@ class OllamaBackend:
         if not key:
             raise BackendAuthError("OLLAMA_API_KEY is not set (and no key file found).")
 
-        b64, media, size = load_image_b64(req.image_path)
+        b64, media, size = load_image_b64(req.image_path, self.settings.vision_max_edge_px)
         user_text = build_user_text(req, size) + _JSON_INSTRUCTION
         model = self.settings.ollama_model
         user_content: list = [
@@ -62,7 +62,8 @@ class OllamaBackend:
             {"type": "image_url", "image_url": {"url": f"data:{media};base64,{b64}"}},
         ]
         if req.reference_image_path:
-            rb64, rmedia, _ = load_image_b64(req.reference_image_path)
+            rb64, rmedia, _ = load_image_b64(req.reference_image_path,
+                                             self.settings.vision_max_edge_px)
             user_content.append({"type": "text", "text": "REFERENCE image (target to match):"})
             user_content.append(
                 {"type": "image_url", "image_url": {"url": f"data:{rmedia};base64,{rb64}"}}

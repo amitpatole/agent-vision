@@ -29,6 +29,8 @@ async def render(
     full_page: bool | None = None,
     wait_for: str | None = None,
     device_scale: float | None = None,
+    settle_ms: int | None = None,
+    freeze: bool | None = None,
     out_dir: Path | None = None,
 ) -> RenderResult:
     """Render ``source`` and return image(s) plus trustworthy DOM/CV signals."""
@@ -41,6 +43,8 @@ async def render(
         full_page=settings.full_page if full_page is None else full_page,
         wait_for=wait_for,
         device_scale=settings.device_scale if device_scale is None else device_scale,
+        settle_ms=settings.settle_ms if settle_ms is None else settle_ms,
+        freeze=settings.freeze_animations if freeze is None else freeze,
     )
     if out_dir is None:
         ws = Workspace(settings)

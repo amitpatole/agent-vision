@@ -88,7 +88,8 @@ def _check_url_safety(url: str, settings: Settings) -> None:
         if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved or ip.is_multicast:
             raise UnsafeSourceError(
                 f"Refusing to render {host!r}: resolves to non-public address {ip} "
-                "(SSRF protection). Set block_private_networks=False to override."
+                "(SSRF protection). To allow a localhost / LAN dev server, pass --allow-local "
+                "(CLI) or set AGENTVISION_BLOCK_PRIVATE_NETWORKS=false."
             )
 
 

@@ -43,7 +43,7 @@ class AnthropicBackend:
         if not key:
             raise BackendAuthError("ANTHROPIC_API_KEY is not set.")
 
-        b64, media, size = load_image_b64(req.image_path)
+        b64, media, size = load_image_b64(req.image_path, self.settings.vision_max_edge_px)
         user_text = build_user_text(req, size)
         model = self.settings.anthropic_model
         tool = {
@@ -55,7 +55,8 @@ class AnthropicBackend:
             {"type": "image", "source": {"type": "base64", "media_type": media, "data": b64}},
         ]
         if req.reference_image_path:
-            rb64, rmedia, _ = load_image_b64(req.reference_image_path)
+            rb64, rmedia, _ = load_image_b64(req.reference_image_path,
+                                             self.settings.vision_max_edge_px)
             content.append({"type": "text", "text": "REFERENCE image (target to match):"})
             content.append({"type": "image", "source": {
                 "type": "base64", "media_type": rmedia, "data": rb64}})

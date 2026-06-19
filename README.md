@@ -174,6 +174,18 @@ agentvision baseline ./index.html --name home
 agentvision regress  ./index.html --name home
 ```
 
+**Live pages, SPAs & dashboards** (polling, websockets, canvas/WebGL):
+
+```bash
+# localhost dev server, wait for the data to render, freeze animation, machine output
+agentvision analyze http://localhost:5173 --allow-local \
+  --wait-for "#dashboard" --settle-ms 800 --quiet
+```
+
+`--nav-wait` defaults to `load` (polling pages never go idle); `--freeze` (default on) pauses
+animations + `requestAnimationFrame` so canvas/WebGL pages capture without hanging; `--quiet`
+prints only JSON (logs to stderr, exit codes 0 pass/warn · 2 fail · 3 error).
+
 Library:
 
 ```python

@@ -108,10 +108,39 @@ def check_claims_ocr(
             status=ClaimStatus.SATISFIED if not missing else ClaimStatus.VIOLATED,
             confidence=Confidence.HIGH,
             source=IssueSource.OCR,
-            evidence=("required text found in the render" if not missing
-                      else f"required text not found in the render: {missing}"),
+            evidence=("required text present in the rendered output (OCR/DOM)" if not missing
+                      else f"required text not found in the rendered output (OCR/DOM): {missing}"),
         )
     return results
+
+
+def suppress_contradicted_vision(
+    issues: list[Issue], haystack_text: str | None
+) -> tuple[list[Issue], list[Issue]]:
+    """Drop vision claims that DOM/OCR ground truth contradicts.
+
+    A vision model on a dense or early-captured frame will sometimes call a plainly-present
+    element "missing". When the issue quotes specific text and that text IS in the DOM/OCR
+    haystack, the element demonstrably exists — so we suppress the (advisory) vision finding
+    rather than ship a false fail. Returns ``(kept, dropped)``.
+    """
+    if not haystack_text:
+        return issues, []
+    hay = _norm(haystack_text)
+    kept: list[Issue] = []
+    dropped: list[Issue] = []
+    for iss in issues:
+        contradictable = (
+            iss.source == IssueSource.VISION
+            and iss.kind in (IssueKind.MISSING_ELEMENT, IssueKind.INTENT_MISMATCH)
+        )
+        if contradictable:
+            phrases = _QUOTED.findall(iss.message)
+            if phrases and all(_norm(p) in hay for p in phrases):
+                dropped.append(iss)
+                continue
+        kept.append(iss)
+    return kept, dropped
 
 
 def build_conformance(

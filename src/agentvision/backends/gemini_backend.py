@@ -37,14 +37,15 @@ class GeminiBackend:
         if not key:
             raise BackendAuthError("GOOGLE_API_KEY is not set.")
 
-        b64, media, size = load_image_b64(req.image_path)
+        b64, media, size = load_image_b64(req.image_path, self.settings.vision_max_edge_px)
         import base64 as _b64
         image_bytes = _b64.b64decode(b64)
         user_text = build_user_text(req, size)
         model = self.settings.gemini_model
         contents: list = [types.Part.from_bytes(data=image_bytes, mime_type=media)]
         if req.reference_image_path:
-            rb64, rmedia, _ = load_image_b64(req.reference_image_path)
+            rb64, rmedia, _ = load_image_b64(req.reference_image_path,
+                                             self.settings.vision_max_edge_px)
             contents.append("REFERENCE image (target to match):")
             contents.append(types.Part.from_bytes(data=_b64.b64decode(rb64), mime_type=rmedia))
         contents.append(user_text)

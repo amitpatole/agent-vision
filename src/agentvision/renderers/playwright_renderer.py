@@ -37,6 +37,22 @@ _SVG_WRAPPER = (
     "<body>{svg}</body></html>"
 )
 
+# Freeze perpetual motion before capture: pause CSS animations/transitions and neuter the
+# requestAnimationFrame loop (three.js/canvas/WebGL) so a continuously-animating page can be
+# screenshotted (incl. full-page) instead of waiting forever for a "stable" frame.
+_FREEZE_JS = """() => {
+  try {
+    const s = document.createElement('style');
+    s.textContent = '*,*::before,*::after{animation:none !important;' +
+      'animation-play-state:paused !important;transition:none !important;' +
+      'scroll-behavior:auto !important;caret-color:transparent !important}';
+    document.documentElement.appendChild(s);
+    window.requestAnimationFrame = function(){ return 0; };
+    window.cancelAnimationFrame = function(){};
+    document.querySelectorAll('video,audio').forEach(function(m){ try { m.pause(); } catch(e){} });
+  } catch (e) {}
+}"""
+
 # Headless flags. --no-sandbox is commonly required on bare/CI Linux without user
 # namespaces; the SSRF/file:// guards below are our real safety boundary.
 _LAUNCH_ARGS = [
@@ -78,7 +94,10 @@ class PlaywrightRenderer:
             )
         except TimeoutError as e:
             raise RenderTimeout(
-                f"Render exceeded {self.settings.render_timeout_s}s (hanging page?)."
+                f"Render exceeded {self.settings.render_timeout_s}s (hanging page?). "
+                "For a live/polling page try --nav-wait load; for a continuously-animating "
+                "(canvas/WebGL) page keep --freeze on or drop --full-page; raise the budget "
+                "with --render-timeout."
             ) from e
 
     async def _render(
@@ -133,6 +152,7 @@ class PlaywrightRenderer:
         context = await browser.new_context(
             viewport={"width": vp.width, "height": vp.height},
             device_scale_factor=dsf,
+            reduced_motion="reduce" if spec.freeze else "no-preference",
         )
         await self._install_guards(context)
         page = await context.new_page()
@@ -157,6 +177,20 @@ class PlaywrightRenderer:
             await context.close()
             raise RenderError(f"Navigation failed: {e}") from e
 
+        # Settle: give client-rendered data a beat to populate before we judge the page
+        # (avoids false "blank/missing" verdicts on the shell-then-fill frame).
+        if spec.settle_ms and spec.settle_ms > 0:
+            try:
+                await page.wait_for_timeout(spec.settle_ms)
+            except Exception:  # noqa: BLE001
+                pass
+        # Freeze perpetual motion so capture (incl. full-page) can't hang on rAF/animation.
+        if spec.freeze:
+            try:
+                await page.evaluate(_FREEZE_JS)
+            except Exception:  # noqa: BLE001
+                pass
+
         # Extract signals at scroll-top so doc-space rects map cleanly to the image.
         await page.evaluate("() => window.scrollTo(0, 0)")
         try:
@@ -166,7 +200,10 @@ class PlaywrightRenderer:
             data = {"domBoxes": [], "contrast": [], "broken": [], "overflowX": 0}
 
         img_path = out_dir / f"vp_{vp.label()}_{idx}.png"
-        await page.screenshot(path=str(img_path), full_page=spec.full_page)
+        # animations="disabled" makes Playwright finish CSS animations/transitions and not
+        # wait on them — combined with freeze, even WebGL/rAF pages capture deterministically.
+        await page.screenshot(path=str(img_path), full_page=spec.full_page,
+                              animations="disabled")
         from PIL import Image  # local import; pillow is a base dep
 
         with Image.open(img_path) as im:
@@ -187,18 +224,27 @@ class PlaywrightRenderer:
         return result
 
     async def _navigate(self, page, resolved: ResolvedSource, wait: str):
-        wait_state = wait if wait in ("load", "domcontentloaded", "networkidle") else "load"
+        is_state = wait in ("load", "domcontentloaded", "networkidle")
+        wait_state = wait if is_state else "load"
+        # networkidle never fires on polling/websocket pages, so navigate to 'load' and then
+        # wait for idle only BRIEFLY — never block the whole render on it.
+        goto_state = "load" if wait_state == "networkidle" else wait_state
         if resolved.kind == "url":
-            await page.goto(resolved.url, wait_until=wait_state)
+            await page.goto(resolved.url, wait_until=goto_state)
         else:
             html = resolved.content or ""
             if resolved.kind == "svg":
                 html = _SVG_WRAPPER.format(svg=html)
-            await page.set_content(html, wait_until=wait_state)
-        if wait not in ("load", "domcontentloaded", "networkidle"):
-            # treat as a selector
+            await page.set_content(html, wait_until=goto_state)
+        if wait_state == "networkidle":
             try:
-                await page.wait_for_selector(wait, timeout=5000)
+                await page.wait_for_load_state("networkidle", timeout=5000)
+            except Exception:  # noqa: BLE001
+                pass  # bounded: a live/polling page simply never goes idle
+        if not is_state:
+            # treat as a selector to wait for (the client-rendered-content path)
+            try:
+                await page.wait_for_selector(wait, timeout=8000)
             except Exception:  # noqa: BLE001
                 pass
 

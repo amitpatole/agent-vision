@@ -55,6 +55,35 @@ clean, provider-agnostic handoff — it perceives and hands off, it does not dec
   brain's sense adapter can keep it for provenance yet exclude it from gating (this honors the
   contract Verel's `verel.senses.sight` already documents and tests).
 
+## [0.3.1] — 2026-06-19
+
+### Fixed / changed — live-dashboard field report (live-dashboard)
+Hardening from grading a live, continuously-polling WebGL dashboard. The biggest wins:
+don't default to `networkidle`, settle/freeze before capture, and never let a vision
+"missing" claim survive when DOM/OCR proves the element is present.
+
+- **`nav_wait` default is now `load`** (was `networkidle`). Polling/websocket pages never
+  go idle and used to hang to `RenderTimeout`. When `networkidle` *is* requested it is now
+  **bounded** (≤5s) and falls through instead of blocking. `--nav-wait` is a CLI flag.
+- **Settle + freeze before capture.** A short post-load settle (`settle_ms`, default 400)
+  lets client-rendered data populate (fixes false "blank/missing" on the shell-then-fill
+  frame); `freeze_animations` (default on) pauses CSS animations + the `requestAnimationFrame`
+  loop and the screenshot uses `animations="disabled"`, so canvas/WebGL/animation-heavy pages
+  (incl. **`--full-page`**) capture deterministically instead of timing out. `--settle-ms`,
+  `--freeze/--no-freeze`, and `--wait-for <selector>` are CLI flags.
+- **Vision claims cross-checked against DOM/OCR ground truth.** An advisory vision
+  `missing_element` / `intent_mismatch` finding is suppressed when the quoted element text is
+  actually present in the DOM/OCR — killing the false-fail class entirely.
+- **Intent text claims grade against DOM *and* OCR**, so `--expect 'must: "…"'` is
+  deterministic even with no OCR/no key (the text is read from the DOM).
+- **Oversized screenshots are downscaled** before the vision LLM (`vision_max_edge_px`,
+  default 2000) — large/dense images made models return lazy/generic critiques.
+- **`--allow-local`** CLI flag for localhost / LAN dev servers (clearer than the env var),
+  and the `UnsafeSourceError` now names it.
+- **`--quiet` machine mode**: only the JSON object on stdout (logs on stderr), errors as a
+  JSON `{"error": …}`, stable exit codes (0 pass/warn, 2 fail, 3 error).
+- **Default `render_timeout_s` raised to 60s** and exposed as `--render-timeout`.
+
 ## [0.2.0] — 2026-06-18
 
 ### Added

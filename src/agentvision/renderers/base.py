@@ -18,6 +18,8 @@ class RenderSpec(BaseModel):
     full_page: bool = False
     wait_for: str | None = None  # selector, or 'load'|'domcontentloaded'|'networkidle'
     device_scale: float = 1.0
+    settle_ms: int = 0  # quiet wait after load before extract/capture
+    freeze: bool = False  # pause CSS animations + rAF (canvas/WebGL) before capture
 
 
 class ElementBox(BaseModel):

@@ -41,7 +41,9 @@ def _parse_viewport(s: str | None) -> Viewport | None:
 
 def _settings(backend: str | None = None, full_page: bool | None = None,
               viewport: str | None = None, device_scale: float | None = None,
-              timeout: float | None = None) -> Settings:
+              timeout: float | None = None, nav_wait: str | None = None,
+              settle_ms: int | None = None, freeze: bool | None = None,
+              allow_local: bool = False, render_timeout: float | None = None) -> Settings:
     overrides: dict = {}
     if backend:
         overrides["vision_backend"] = backend
@@ -49,8 +51,16 @@ def _settings(backend: str | None = None, full_page: bool | None = None,
         overrides["full_page"] = full_page
     if device_scale is not None:
         overrides["device_scale"] = device_scale
-    if timeout is not None:
-        overrides["render_timeout_s"] = timeout
+    if (timeout or render_timeout) is not None:
+        overrides["render_timeout_s"] = render_timeout if render_timeout is not None else timeout
+    if nav_wait:
+        overrides["nav_wait"] = nav_wait
+    if settle_ms is not None:
+        overrides["settle_ms"] = settle_ms
+    if freeze is not None:
+        overrides["freeze_animations"] = freeze
+    if allow_local:
+        overrides["block_private_networks"] = False
     vp = _parse_viewport(viewport)
     if vp:
         overrides["default_viewport_width"] = vp.width
@@ -109,6 +119,36 @@ def _emit(report: Report, json_out: bool, handoff: bool = False) -> None:
         _print_report(report, json_out)
 
 
+def _run_report(coro, *, json_out: bool, handoff: bool, quiet: bool) -> None:
+    """Run a report-producing coroutine and emit it.
+
+    In ``--quiet`` (machine) mode ONLY the JSON object is written to stdout (logs stay on
+    stderr), errors become a JSON ``{"error": ...}`` object, and exit codes are stable:
+    0 = pass/warn, 2 = fail, 3 = error.
+    """
+    import json as _json
+
+    from ..errors import AgentVisionError
+
+    if quiet:
+        import logging
+        logging.getLogger("agentvision").setLevel(logging.ERROR)
+        try:
+            report = asyncio.run(coro)
+        except AgentVisionError as e:
+            typer.echo(_json.dumps({"error": str(e), "type": type(e).__name__}))
+            raise typer.Exit(code=3) from e
+        payload = (report.to_handoff().model_dump(mode="json") if handoff
+                   else report.model_dump(mode="json"))
+        typer.echo(_json.dumps(payload, indent=2))
+        if report.verdict == Verdict.FAIL:
+            raise typer.Exit(code=2)
+        return
+    report = asyncio.run(coro)
+    _emit(report, json_out, handoff)
+    _exit_for(report)
+
+
 def _build_brief(brief: str | None, expect: list[str] | None, reference: str | None):
     """Assemble a Brief from CLI inputs, or None if no intent was supplied."""
     from ..models.intent import Brief
@@ -138,10 +178,22 @@ def analyze(
     source_type: str = typer.Option("auto", help="auto|html|file|url|svg|pdf|image"),
     viewport: str = typer.Option(None, help="WxH, e.g. 1280x800"),
     full_page: bool = typer.Option(False, "--full-page/--viewport-only"),
+    wait_for: str = typer.Option(None, "--wait-for", help="CSS selector to wait for before "
+                                 "capture (for client-rendered data)."),
+    settle_ms: int = typer.Option(None, "--settle-ms", help="Quiet wait (ms) after load so "
+                                  "client-rendered data can populate."),
+    freeze: bool = typer.Option(None, "--freeze/--no-freeze", help="Pause animations + rAF "
+                                "before capture (default on; needed for canvas/WebGL)."),
+    nav_wait: str = typer.Option(None, "--nav-wait", help="load|domcontentloaded|networkidle "
+                                 "(default load; networkidle is bounded)."),
+    render_timeout: float = typer.Option(None, "--render-timeout", help="Max render seconds."),
+    allow_local: bool = typer.Option(False, "--allow-local", help="Allow localhost / LAN URLs."),
     no_ocr: bool = typer.Option(False, "--no-ocr", help="Disable OCR grounding."),
     json_out: bool = typer.Option(False, "--json", help="Emit JSON."),
     handoff: bool = typer.Option(False, "--handoff", help="Emit the eyes→brain handoff "
                                  "signal (JSON) for an agent/brain to act on."),
+    quiet: bool = typer.Option(False, "--quiet", help="Machine mode: only JSON on stdout, "
+                               "logs on stderr, stable exit codes (0 pass/warn, 2 fail, 3 error)."),
 ):
     """Render and analyze an artifact with a vision backend (+ DOM/CV grounding).
 
@@ -149,14 +201,14 @@ def analyze(
     """
     from ..core import analyze as do_analyze
 
-    settings = _settings(backend=backend, full_page=full_page, viewport=viewport)
-    report = asyncio.run(do_analyze(
+    settings = _settings(backend=backend, full_page=full_page, viewport=viewport,
+                         nav_wait=nav_wait, settle_ms=settle_ms, freeze=freeze,
+                         allow_local=allow_local, render_timeout=render_timeout)
+    _run_report(do_analyze(
         source, settings=settings, backend=backend, instructions=instructions,
         expected=expected, brief=_build_brief(brief, expect, reference),
-        use_ocr=not no_ocr, source_type=source_type, full_page=full_page,
-    ))
-    _emit(report, json_out, handoff)
-    _exit_for(report)
+        use_ocr=not no_ocr, source_type=source_type, full_page=full_page, wait_for=wait_for,
+    ), json_out=json_out, handoff=handoff, quiet=quiet)
 
 
 @app.command()
@@ -170,9 +222,16 @@ def conform(
     source_type: str = typer.Option("auto"),
     viewport: str = typer.Option(None, help="WxH"),
     full_page: bool = typer.Option(False, "--full-page/--viewport-only"),
+    wait_for: str = typer.Option(None, "--wait-for", help="CSS selector to wait for first."),
+    settle_ms: int = typer.Option(None, "--settle-ms", help="Quiet wait (ms) after load."),
+    freeze: bool = typer.Option(None, "--freeze/--no-freeze", help="Pause animations + rAF."),
+    nav_wait: str = typer.Option(None, "--nav-wait", help="load|domcontentloaded|networkidle."),
+    render_timeout: float = typer.Option(None, "--render-timeout", help="Max render seconds."),
+    allow_local: bool = typer.Option(False, "--allow-local", help="Allow localhost / LAN URLs."),
     json_out: bool = typer.Option(False, "--json"),
     handoff: bool = typer.Option(False, "--handoff", help="Emit the eyes→brain handoff "
                                  "signal (JSON) for an agent/brain to act on."),
+    quiet: bool = typer.Option(False, "--quiet", help="Machine mode: only JSON on stdout."),
 ):
     """Grade an artifact against intent — does it match what you set out to build?"""
     from ..core import analyze as do_analyze
@@ -182,13 +241,13 @@ def conform(
         typer.secho("Provide at least one of --brief / --expect / --reference.",
                     fg=typer.colors.RED)
         raise typer.Exit(code=1)
-    settings = _settings(backend=backend, full_page=full_page, viewport=viewport)
-    report = asyncio.run(do_analyze(
+    settings = _settings(backend=backend, full_page=full_page, viewport=viewport,
+                         nav_wait=nav_wait, settle_ms=settle_ms, freeze=freeze,
+                         allow_local=allow_local, render_timeout=render_timeout)
+    _run_report(do_analyze(
         source, settings=settings, backend=backend, brief=the_brief,
-        source_type=source_type, full_page=full_page,
-    ))
-    _emit(report, json_out, handoff)
-    _exit_for(report)
+        source_type=source_type, full_page=full_page, wait_for=wait_for,
+    ), json_out=json_out, handoff=handoff, quiet=quiet)
 
 
 @app.command()
@@ -197,18 +256,26 @@ def check(
     source_type: str = typer.Option("auto"),
     viewport: str = typer.Option(None, help="WxH"),
     full_page: bool = typer.Option(True, "--full-page/--viewport-only"),
+    wait_for: str = typer.Option(None, "--wait-for", help="CSS selector to wait for first."),
+    settle_ms: int = typer.Option(None, "--settle-ms", help="Quiet wait (ms) after load."),
+    freeze: bool = typer.Option(None, "--freeze/--no-freeze", help="Pause animations + rAF."),
+    nav_wait: str = typer.Option(None, "--nav-wait", help="load|domcontentloaded|networkidle."),
+    render_timeout: float = typer.Option(None, "--render-timeout", help="Max render seconds."),
+    allow_local: bool = typer.Option(False, "--allow-local", help="Allow localhost / LAN URLs."),
     json_out: bool = typer.Option(False, "--json"),
     handoff: bool = typer.Option(False, "--handoff", help="Emit the eyes→brain handoff "
                                  "signal (JSON) for an agent/brain to act on."),
+    quiet: bool = typer.Option(False, "--quiet", help="Machine mode: only JSON on stdout."),
 ):
     """Classic DOM/CV checks only — no LLM, no API key, no egress."""
     from ..core import check as do_check
 
-    settings = _settings(full_page=full_page, viewport=viewport)
-    report = asyncio.run(do_check(source, settings=settings, source_type=source_type,
-                                  full_page=full_page))
-    _emit(report, json_out, handoff)
-    _exit_for(report)
+    settings = _settings(full_page=full_page, viewport=viewport, nav_wait=nav_wait,
+                         settle_ms=settle_ms, freeze=freeze, allow_local=allow_local,
+                         render_timeout=render_timeout)
+    _run_report(do_check(source, settings=settings, source_type=source_type,
+                         full_page=full_page, wait_for=wait_for),
+                json_out=json_out, handoff=handoff, quiet=quiet)
 
 
 @app.command()
@@ -218,13 +285,21 @@ def render(
     source_type: str = typer.Option("auto"),
     viewport: str = typer.Option(None, help="WxH"),
     full_page: bool = typer.Option(True, "--full-page/--viewport-only"),
+    wait_for: str = typer.Option(None, "--wait-for", help="CSS selector to wait for first."),
+    settle_ms: int = typer.Option(None, "--settle-ms", help="Quiet wait (ms) after load."),
+    freeze: bool = typer.Option(None, "--freeze/--no-freeze", help="Pause animations + rAF."),
+    nav_wait: str = typer.Option(None, "--nav-wait", help="load|domcontentloaded|networkidle."),
+    render_timeout: float = typer.Option(None, "--render-timeout", help="Max render seconds."),
+    allow_local: bool = typer.Option(False, "--allow-local", help="Allow localhost / LAN URLs."),
 ):
     """Render an artifact to a PNG."""
     from ..core import render as do_render
 
-    settings = _settings(full_page=full_page, viewport=viewport)
+    settings = _settings(full_page=full_page, viewport=viewport, nav_wait=nav_wait,
+                         settle_ms=settle_ms, freeze=freeze, allow_local=allow_local,
+                         render_timeout=render_timeout)
     result = asyncio.run(do_render(source, settings=settings, source_type=source_type,
-                                   full_page=full_page))
+                                   full_page=full_page, wait_for=wait_for))
     if not result.primary:
         typer.secho("Render produced no image.", fg=typer.colors.RED)
         raise typer.Exit(code=1)
@@ -296,6 +371,11 @@ def loop(
     expect: list[str] = typer.Option(None, "--expect", help="A required visual claim "
                                       "(repeatable; prefix 'should:'/'nice:')."),
     reference: str = typer.Option(None, help="Reference/mockup image the render should match."),
+    nav_wait: str = typer.Option(None, "--nav-wait", help="load|domcontentloaded|networkidle."),
+    settle_ms: int = typer.Option(None, "--settle-ms", help="Quiet wait (ms) after load."),
+    freeze: bool = typer.Option(None, "--freeze/--no-freeze", help="Pause animations + rAF."),
+    render_timeout: float = typer.Option(None, "--render-timeout", help="Max render seconds."),
+    allow_local: bool = typer.Option(False, "--allow-local", help="Allow localhost / LAN URLs."),
     json_out: bool = typer.Option(False, "--json"),
 ):
     """Run the visual feedback loop (re-renders the source up to --max-iter times).
@@ -306,7 +386,9 @@ def loop(
     """
     from ..core.loop import LoopSession
 
-    settings = _settings(backend=backend, full_page=True)
+    settings = _settings(backend=backend, full_page=True, nav_wait=nav_wait,
+                         settle_ms=settle_ms, freeze=freeze, allow_local=allow_local,
+                         render_timeout=render_timeout)
     session = LoopSession(source, settings=settings, backend=backend, instructions=instructions,
                           brief=_build_brief(brief, expect, reference))
     history = asyncio.run(session.run(max_iter=max_iter))

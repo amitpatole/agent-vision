@@ -70,8 +70,13 @@ class Settings(BaseSettings):
     default_viewport_height: int = 800
     device_scale: float = 1.0
     full_page: bool = False
-    render_timeout_s: float = 30.0
-    nav_wait: str = "networkidle"  # load|domcontentloaded|networkidle
+    render_timeout_s: float = 60.0
+    # Default to 'load' (not 'networkidle'): polling/websocket pages never go idle and
+    # would hang. When networkidle IS requested it is bounded (see the renderer).
+    nav_wait: str = "load"  # load|domcontentloaded|networkidle
+    settle_ms: int = 400  # quiet wait after load so client-rendered data can populate
+    freeze_animations: bool = True  # pause CSS animations + rAF before capture
+    vision_max_edge_px: int = 2000  # downscale oversized screenshots before the vision LLM
 
     # Safety
     allow_url_rendering: bool = True
