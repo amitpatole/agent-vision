@@ -23,7 +23,9 @@ theme:
     - navigation.top
     - navigation.tracking
     - navigation.instant
+    - navigation.footer
     - content.code.copy
+    - content.code.annotate
     - toc.follow
     - search.suggest
     - search.highlight
@@ -31,30 +33,55 @@ theme:
 markdown_extensions:
   - admonition
   - attr_list
+  - md_in_html
   - tables
   - toc:
       permalink: true
   - pymdownx.highlight:
       anchor_linenums: true
-  - pymdownx.superfences
   - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
   - pymdownx.tabbed:
       alternate_style: true
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src]
+          options:
+            show_root_heading: true
+            show_root_full_path: false
+            show_source: false
+            heading_level: 3
+            members_order: source
+            separate_signature: true
+            show_signature_annotations: true
+            filters: ["!^_"]
 
 nav:
   - Home: index.md
   - Get started:
       - Quickstart: quickstart.md
       - The loop: the-loop.md
-  - Capabilities:
+  - Guides:
       - Conformance (match intent): conformance.md
-      - Eyes → brain (handoff): handoff.md
       - Streaming / temporal: use-cases/streaming.md
+      - Eyes → brain (handoff): handoff.md
       - Vision backends: backends.md
   - Use it:
       - Adapters (CLI/MCP/REST/Skill): adapters.md
       - Workflows & agents: integrations.md
+      - Recipes: recipes.md
   - Reference:
+      - CLI: cli.md
+      - Configuration: configuration.md
+      - Python API: api.md
+  - Help:
+      - FAQ & troubleshooting: faq.md
+  - About:
       - Design (VISION): VISION.md
 
 extra:

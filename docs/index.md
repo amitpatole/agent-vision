@@ -39,6 +39,8 @@ version and prints *"what changed: 3 issues resolved → PASS."*
 - :material-brain: **[Handoff](handoff.md)** — wire perception into your reasoning/memory.
 - :material-play-circle: **[Streaming / temporal](use-cases/streaming.md)** — `watch` over time.
 - :material-cog: **[Workflows & agents](integrations.md)** — GitHub Action, pre-commit, MCP, the agent contract.
+- :material-console: **[CLI reference](cli.md)** · :material-tune: **[Configuration](configuration.md)** · :material-language-python: **[Python API](api.md)**
+- :material-book-open-variant: **[Recipes](recipes.md)** · :material-help-circle: **[FAQ](faq.md)**
 
 </div>
 
