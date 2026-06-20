@@ -49,8 +49,37 @@ docker run --rm -v "$PWD:/work" agentvision demo
 agentvision demo
 ```
 
-You'll see a broken page get a **FAIL** report (overflow, low contrast, broken image),
-then the fixed version reach **PASS** with a "what changed" narrative.
+The eyes render a deliberately broken page and **mark exactly what's wrong** — low-contrast
+text, a broken image, content overflow — all DOM/CV-grounded, no API key:
+
+![AgentVision marking the real defects on a broken page](img/broken-annotated.png)
+
+That produces a **FAIL** report (this is the actual output):
+
+```text
+  FAIL  (local)
+  Heuristic structural analysis (no semantic critique): found 4 issue(s).
+
+  • [contrast] Low contrast (ratio 1.66, needs 4.5 for AA) on text 'Revenue is up 12%…' @(24,105) (dom/high)
+  • [contrast] Low contrast (ratio 1.70, needs 4.5 for AA) on text 'Click here to view the full report' @(24,283) (dom/high)
+  • [overflow] Page content overflows horizontally by 976px (causes a horizontal scrollbar). (dom/high)
+  • [broken_image] Broken image (failed to load): missing-logo.png @(24,138) (dom/high)
+```
+
+The agent fixes the source and looks again — now **PASS**, with a "what changed" diff:
+
+![The fixed page passing](img/fixed.png)
+
+```text
+  PASS  (local)
+  Structural checks passed (no DOM/CV defects detected).
+
+   what changed: Moderate visual change (SSIM 0.972); 12 region(s) differ.
+
+✓ The agent SAW the problems and fixed them — FAIL → PASS.
+```
+
+That FAIL → PASS arc, in ~60 seconds with no key, *is* the product.
 
 ## Everyday use
 
