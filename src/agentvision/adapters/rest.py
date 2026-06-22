@@ -8,22 +8,94 @@ sessions (documented in docs/adapters.md).
 
 from __future__ import annotations
 
+import asyncio
+import hmac
 import uuid
 from pathlib import Path
 
+from pydantic import BaseModel  # base dependency — always present
+
 from ..config import load_settings
-from ..errors import AgentVisionError, MissingDependencyError
+from ..errors import AgentVisionError, MissingDependencyError, UnsafeSourceError
+from ..logging import get_logger
+from ..models.intent import Brief
 
 try:
-    from fastapi import FastAPI, HTTPException
-    from fastapi.responses import FileResponse
-    from pydantic import BaseModel
+    from fastapi import Depends, FastAPI, HTTPException, Request
+    from fastapi.responses import FileResponse, JSONResponse
 except ImportError:  # pragma: no cover
     FastAPI = None  # type: ignore
 
 
+log = get_logger("rest")
+_LOOPBACK = {"127.0.0.1", "::1", "localhost", "0:0:0:0:0:0:0:1"}
+
 _sessions: dict = {}
 _artifacts: dict[str, str] = {}
+
+
+def _is_loopback(host: str) -> bool:
+    return host in _LOOPBACK
+
+
+# Request bodies must live at module scope: with `from __future__ import annotations`, FastAPI
+# resolves the handler annotations from module globals — models nested in build_app() can't be
+# resolved and the body is mis-read as a query param (422).
+class AnalyzeBody(BaseModel):
+    source: str
+    source_type: str = "auto"
+    backend: str | None = None
+    instructions: str | None = None
+    expected: str | None = None
+    brief: str | None = None
+    expect: list[str] | None = None
+    reference: str | None = None
+    full_page: bool = True
+
+
+class ConformBody(BaseModel):
+    source: str
+    source_type: str = "auto"
+    backend: str | None = None
+    brief: str | None = None
+    expect: list[str] | None = None
+    reference: str | None = None
+    full_page: bool = True
+
+
+class CheckBody(BaseModel):
+    source: str
+    source_type: str = "auto"
+    full_page: bool = True
+
+
+class LoopBody(BaseModel):
+    source: str
+    backend: str | None = None
+    instructions: str | None = None
+    brief: str | None = None
+    expect: list[str] | None = None
+    reference: str | None = None
+
+
+class IterBody(BaseModel):
+    source: str | None = None
+
+
+class BaselineBody(BaseModel):
+    source: str
+    name: str
+    source_type: str = "auto"
+
+
+class WatchBody(BaseModel):
+    source: str
+    backend: str | None = None
+    frames: int | None = None
+    interval_ms: int | None = None
+    brief: str | None = None
+    expect: list[str] | None = None
+    use_vision: bool = True
 
 
 def _register_artifact(path: str | None) -> str | None:
@@ -40,59 +112,53 @@ def build_app():
 
     from .. import __version__
 
-    app = FastAPI(title="AgentVision", version=__version__)
-    settings = load_settings()
+    # Service hardening: a remote caller must not read host files via a bare-path source.
+    settings = load_settings(allow_local_files=False)
 
-    def _brief_from(body) -> object | None:
-        from ..models.intent import Brief
+    def _auth(request: Request):
+        """Bearer-token auth (constant-time). Zero-config on loopback; required once a token
+        is set. Binding a non-loopback host without a token is refused in serve()."""
+        if request.url.path == "/healthz":
+            return
+        token = settings.api_token
+        if not token:
+            return
+        provided = request.headers.get("authorization", "")
+        if not hmac.compare_digest(provided, f"Bearer {token}"):
+            raise HTTPException(status_code=401, detail="Unauthorized")
 
+    app = FastAPI(title="AgentVision", version=__version__, dependencies=[Depends(_auth)])
+
+    # Bound the work an attacker can trigger: cap request bodies and the number of concurrent
+    # renders (each render spawns a browser / heavy decode).
+    _render_sem = asyncio.Semaphore(settings.max_concurrent_renders)
+
+    @app.middleware("http")
+    async def _limit_body(request: Request, call_next):
+        cl = request.headers.get("content-length")
+        if cl and cl.isdigit() and int(cl) > settings.max_request_bytes:
+            return JSONResponse({"detail": "Request body too large."}, status_code=413)
+        return await call_next(request)
+
+    async def _render_slot():
+        async with _render_sem:
+            yield
+
+    def _http_error(e: Exception) -> HTTPException:
+        # Safety messages are intentionally non-sensitive (no IPs/paths) — return them; for
+        # everything else return a generic message and log the detail server-side only.
+        if isinstance(e, UnsafeSourceError):
+            return HTTPException(status_code=400, detail=str(e))
+        log.warning("request failed: %s: %s", type(e).__name__, e)
+        return HTTPException(status_code=400, detail="Could not render or analyze the source.")
+
+    def _brief_from(body) -> Brief | None:
         b = Brief.from_inputs(
             text=getattr(body, "brief", None),
             expect=getattr(body, "expect", None),
             reference_image=getattr(body, "reference", None),
         )
         return None if b.is_empty() else b
-
-    class AnalyzeBody(BaseModel):
-        source: str
-        source_type: str = "auto"
-        backend: str | None = None
-        instructions: str | None = None
-        expected: str | None = None
-        brief: str | None = None
-        expect: list[str] | None = None
-        reference: str | None = None
-        full_page: bool = True
-
-    class ConformBody(BaseModel):
-        source: str
-        source_type: str = "auto"
-        backend: str | None = None
-        brief: str | None = None
-        expect: list[str] | None = None
-        reference: str | None = None
-        full_page: bool = True
-
-    class CheckBody(BaseModel):
-        source: str
-        source_type: str = "auto"
-        full_page: bool = True
-
-    class LoopBody(BaseModel):
-        source: str
-        backend: str | None = None
-        instructions: str | None = None
-        brief: str | None = None
-        expect: list[str] | None = None
-        reference: str | None = None
-
-    class IterBody(BaseModel):
-        source: str | None = None
-
-    class BaselineBody(BaseModel):
-        source: str
-        name: str
-        source_type: str = "auto"
 
     def _check_backend(name: str | None):
         if name and name not in settings.rest_enabled_backends:
@@ -109,7 +175,7 @@ def build_app():
         return {"status": "ok", "version": __version__}
 
     @app.post("/analyze")
-    async def analyze_ep(body: AnalyzeBody):
+    async def analyze_ep(body: AnalyzeBody, _slot=Depends(_render_slot)):
         from ..core import analyze
 
         _check_backend(body.backend)
@@ -119,13 +185,13 @@ def build_app():
                                    brief=_brief_from(body),
                                    source_type=body.source_type, full_page=body.full_page)
         except AgentVisionError as e:
-            raise HTTPException(status_code=400, detail=str(e)) from e
+            raise _http_error(e) from e
         data = report.model_dump(mode="json")
         data["artifact_id"] = _register_artifact(report.image_path)
         return data
 
     @app.post("/conform")
-    async def conform_ep(body: ConformBody):
+    async def conform_ep(body: ConformBody, _slot=Depends(_render_slot)):
         from ..core import analyze
 
         _check_backend(body.backend)
@@ -138,13 +204,13 @@ def build_app():
                                    brief=the_brief, source_type=body.source_type,
                                    full_page=body.full_page)
         except AgentVisionError as e:
-            raise HTTPException(status_code=400, detail=str(e)) from e
+            raise _http_error(e) from e
         data = report.model_dump(mode="json")
         data["artifact_id"] = _register_artifact(report.image_path)
         return data
 
     @app.post("/handoff")
-    async def handoff_ep(body: AnalyzeBody):
+    async def handoff_ep(body: AnalyzeBody, _slot=Depends(_render_slot)):
         """Perceive + return the distilled eyes→brain handoff signal (verdict + next action)."""
         from ..core import analyze
 
@@ -155,22 +221,13 @@ def build_app():
                                    brief=_brief_from(body),
                                    source_type=body.source_type, full_page=body.full_page)
         except AgentVisionError as e:
-            raise HTTPException(status_code=400, detail=str(e)) from e
+            raise _http_error(e) from e
         data = report.to_handoff().model_dump(mode="json")
         data["artifact_id"] = _register_artifact(report.image_path)
         return data
 
-    class WatchBody(BaseModel):
-        source: str
-        backend: str | None = None
-        frames: int | None = None
-        interval_ms: int | None = None
-        brief: str | None = None
-        expect: list[str] | None = None
-        use_vision: bool = True
-
     @app.post("/watch")
-    async def watch_ep(body: WatchBody):
+    async def watch_ep(body: WatchBody, _slot=Depends(_render_slot)):
         from ..core import watch
 
         _check_backend(body.backend)
@@ -179,56 +236,71 @@ def build_app():
                                  frames=body.frames, interval_ms=body.interval_ms,
                                  brief=_brief_from(body), use_vision=body.use_vision)
         except AgentVisionError as e:
-            raise HTTPException(status_code=400, detail=str(e)) from e
+            raise _http_error(e) from e
         data = report.model_dump(mode="json")
         data["artifact_id"] = _register_artifact(report.image_path)
         return data
 
     @app.post("/check")
-    async def check_ep(body: CheckBody):
+    async def check_ep(body: CheckBody, _slot=Depends(_render_slot)):
         from ..core import check
 
-        report = await check(body.source, settings=settings, source_type=body.source_type,
-                             full_page=body.full_page)
+        try:
+            report = await check(body.source, settings=settings, source_type=body.source_type,
+                                 full_page=body.full_page)
+        except AgentVisionError as e:
+            raise _http_error(e) from e
         data = report.model_dump(mode="json")
         data["artifact_id"] = _register_artifact(report.image_path)
         return data
 
     @app.post("/loop")
-    async def loop_ep(body: LoopBody):
+    async def loop_ep(body: LoopBody, _slot=Depends(_render_slot)):
         from ..core.loop import LoopSession
 
         _check_backend(body.backend)
         session = LoopSession(body.source, settings=settings, backend=body.backend,
                              instructions=body.instructions, brief=_brief_from(body))
+        try:
+            result = await session.iterate()
+        except AgentVisionError as e:
+            raise _http_error(e) from e
         _sessions[session.session_id] = session
-        result = await session.iterate()
         return {"session_id": session.session_id,
                 "iteration": result.model_dump(mode="json")}
 
     @app.post("/loop/{session_id}/iterate")
-    async def loop_iter_ep(session_id: str, body: IterBody):
+    async def loop_iter_ep(session_id: str, body: IterBody, _slot=Depends(_render_slot)):
         session = _sessions.get(session_id)
         if session is None:
             raise HTTPException(status_code=404, detail="unknown session_id")
-        result = await session.iterate(body.source)
+        try:
+            result = await session.iterate(body.source)
+        except AgentVisionError as e:
+            raise _http_error(e) from e
         return {"session_id": session_id, "iteration": result.model_dump(mode="json"),
                 "stop_reason": session.stop_reason}
 
     @app.post("/sheet")
-    async def sheet_ep(body: CheckBody):
+    async def sheet_ep(body: CheckBody, _slot=Depends(_render_slot)):
         from ..core.capture import contact_sheet
 
-        path, _ = await contact_sheet(body.source, settings=settings,
-                                      source_type=body.source_type)
+        try:
+            path, _ = await contact_sheet(body.source, settings=settings,
+                                          source_type=body.source_type)
+        except AgentVisionError as e:
+            raise _http_error(e) from e
         return {"artifact_id": _register_artifact(path)}
 
     @app.post("/baseline")
-    async def baseline_ep(body: BaselineBody):
+    async def baseline_ep(body: BaselineBody, _slot=Depends(_render_slot)):
         from ..core import set_baseline
 
-        path = await set_baseline(body.source, body.name, settings=settings,
-                                  source_type=body.source_type)
+        try:
+            path = await set_baseline(body.source, body.name, settings=settings,
+                                      source_type=body.source_type)
+        except AgentVisionError as e:
+            raise _http_error(e) from e
         return {"name": body.name, "path": path}
 
     @app.get("/baseline/{name}")
@@ -251,6 +323,12 @@ def build_app():
 
 
 def serve(host: str = "127.0.0.1", port: int = 8000) -> None:
+    # Fail closed: never expose a routable interface without a token.
+    if not _is_loopback(host) and not load_settings().api_token:
+        raise SystemExit(
+            f"Refusing to bind non-loopback host {host!r} without auth. Set AGENTVISION_API_TOKEN "
+            "to expose the service (clients send 'Authorization: Bearer <token>'), or bind 127.0.0.1."
+        )
     import uvicorn
 
     uvicorn.run(build_app(), host=host, port=port)
