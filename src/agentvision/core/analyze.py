@@ -48,10 +48,10 @@ def _wants_visual_judgment(brief: Brief | None, claims) -> bool:
 
 def _visual_crop_paths(image_path: str, elements, *, max_crops: int) -> list[str]:
     """Save full-res crops of the largest visual elements; return their paths."""
-    from PIL import Image
+    from ..imageguard import open_image_safely
 
     try:
-        im = Image.open(image_path).convert("RGB")
+        im = open_image_safely(image_path).convert("RGB")
     except Exception:  # noqa: BLE001
         return []
     w, h = im.size

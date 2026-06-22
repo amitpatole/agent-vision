@@ -23,9 +23,9 @@ _sessions: dict = {}
 
 
 def _downscaled_png(path: str) -> bytes:
-    from PIL import Image as PILImage
+    from ..imageguard import open_image_safely
 
-    with PILImage.open(path) as im:
+    with open_image_safely(path) as im:  # byte + pixel caps before decode
         im = im.convert("RGB")
         if max(im.size) > _MAX_EDGE:
             scale = _MAX_EDGE / max(im.size)

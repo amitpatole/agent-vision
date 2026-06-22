@@ -28,21 +28,24 @@ _TIME_EPS = 0.05      # seconds of currentTime advance that counts as real playb
 
 def _gray(path: str):
     import numpy as np
-    from PIL import Image
 
-    return np.asarray(Image.open(path).convert("L"), dtype="int16")
+    from ..imageguard import open_image_safely
+
+    return np.asarray(open_image_safely(path).convert("L"), dtype="int16")
 
 
 def changed_ratio(a_path: str, b_path: str, thresh: int = 16) -> float:
     """Fraction of pixels that changed meaningfully between two frames."""
     import numpy as np
-    from PIL import Image
+
+    from ..imageguard import open_image_safely
 
     a = _gray(a_path)
     b = _gray(b_path)
     if a.shape != b.shape:
         b = np.asarray(
-            Image.open(b_path).convert("L").resize((a.shape[1], a.shape[0])), dtype="int16"
+            open_image_safely(b_path).convert("L").resize((a.shape[1], a.shape[0])),
+            dtype="int16",
         )
     return float((np.abs(a - b) > thresh).mean())
 

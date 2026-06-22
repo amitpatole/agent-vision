@@ -17,7 +17,9 @@ def _load_gray_and_rgb(path: str):
     import numpy as np
     from PIL import Image
 
-    with Image.open(path) as im:
+    from ..imageguard import open_image_safely
+
+    with open_image_safely(path) as im:  # byte + pixel caps (visual_diff takes attacker paths)
         rgb = np.asarray(im.convert("RGB"))
     gray = np.asarray(Image.fromarray(rgb).convert("L"), dtype="float64")
     return gray, rgb

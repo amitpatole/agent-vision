@@ -5,8 +5,12 @@ from __future__ import annotations
 import shutil
 
 from ..errors import MissingDependencyError
+from ..imageguard import open_image_safely
 from ..models.geometry import BBox
 from .base import OcrResult, OcrWord
+
+# Hard cap on the tesseract subprocess so an attacker image can't pin a CPU forever.
+_OCR_TIMEOUT_S = 30
 
 
 class TesseractOcr:
@@ -20,7 +24,6 @@ class TesseractOcr:
     def run(self, image_path: str) -> OcrResult:
         try:
             import pytesseract
-            from PIL import Image
         except ImportError as e:
             raise MissingDependencyError(
                 "OCR", pip_extra="ocr",
@@ -31,9 +34,10 @@ class TesseractOcr:
             raise MissingDependencyError(
                 "OCR", system="apt-get install tesseract-ocr tesseract-ocr-eng",
             )
-        with Image.open(image_path) as im:
+        with open_image_safely(image_path) as im:  # byte + pixel caps before decode
             data = pytesseract.image_to_data(
-                im.convert("RGB"), output_type=pytesseract.Output.DICT
+                im.convert("RGB"), output_type=pytesseract.Output.DICT,
+                timeout=_OCR_TIMEOUT_S,
             )
         words: list[OcrWord] = []
         texts: list[str] = []

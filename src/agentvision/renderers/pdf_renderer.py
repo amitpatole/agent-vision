@@ -31,8 +31,27 @@ class PdfRenderer:
         if resolved.path is None:
             raise RenderError("PDF source must be a file path.")
         out_dir.mkdir(parents=True, exist_ok=True)
+        # Cap source bytes before handing untrusted input to poppler (DoS / CVE-surface bound).
+        from ..imageguard import MAX_IMAGE_BYTES
+
         try:
-            pages = convert_from_path(str(resolved.path), dpi=120, first_page=1, last_page=1)
+            nbytes = resolved.path.stat().st_size
+        except OSError as e:
+            raise RenderError(f"Cannot stat PDF: {e}") from e
+        if nbytes > MAX_IMAGE_BYTES:
+            raise RenderError(f"PDF is {nbytes} bytes, over the {MAX_IMAGE_BYTES}-byte cap.")
+        # First page only, width-capped raster, hard subprocess timeout (bounds a
+        # giant-MediaBox / malformed PDF rasterizing to a huge bitmap or hanging poppler).
+        src = str(resolved.path)
+        try:
+            try:
+                pages = convert_from_path(
+                    src, dpi=120, first_page=1, last_page=1, size=(2000, None), timeout=60
+                )
+            except TypeError:  # older pdf2image without timeout support
+                pages = convert_from_path(
+                    src, dpi=120, first_page=1, last_page=1, size=(2000, None)
+                )
         except Exception as e:  # noqa: BLE001
             raise RenderError(
                 f"PDF conversion failed: {e}. Is poppler-utils installed?"

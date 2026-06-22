@@ -31,11 +31,12 @@ def plan_coverage_tiles(
         return []
     try:
         import numpy as np
-        from PIL import Image
+
+        from ..imageguard import open_image_safely
     except Exception:  # noqa: BLE001
         return []
     try:
-        im = Image.open(image_path).convert("RGB")
+        im = open_image_safely(image_path).convert("RGB")
     except Exception:  # noqa: BLE001
         return []
 

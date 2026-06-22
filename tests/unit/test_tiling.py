@@ -29,7 +29,7 @@ def test_large_image_tiled_full_res(tmp_path):
 
 def test_tile_cap_respected(tmp_path):
     p = tmp_path / "huge.png"
-    _noise(p, 2000, 6000)
+    _noise(p, 1200, 3600)  # 3x8 grid of tiles; stays under the image byte cap
     tiles = plan_coverage_tiles(str(p), max_edge=500, max_tiles=4)
     assert len(tiles) == 4
 

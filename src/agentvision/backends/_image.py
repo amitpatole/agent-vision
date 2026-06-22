@@ -6,6 +6,8 @@ import base64
 import io
 from pathlib import Path
 
+from ..imageguard import open_image_safely
+
 
 def load_image_b64(path: str, max_edge: int | None = None) -> tuple[str, str, tuple[int, int]]:
     """Return (base64_data, media_type, (width, height)).
@@ -15,15 +17,13 @@ def load_image_b64(path: str, max_edge: int | None = None) -> tuple[str, str, tu
     (generic, hallucinated critiques); a model-friendly size keeps the critique specific.
     The returned size is the size actually sent (vision bboxes are advisory regardless).
     """
-    from PIL import Image
-
     p = Path(path)
     media = {
         ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
         ".webp": "image/webp", ".gif": "image/gif",
     }.get(p.suffix.lower(), "image/png")
 
-    with Image.open(p) as im:
+    with open_image_safely(p) as im:
         size = im.size
         if max_edge and max(size) > max_edge:
             scale = max_edge / max(size)
