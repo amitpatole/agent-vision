@@ -93,6 +93,13 @@ class Settings(BaseSettings):
     # transitions / liveness — for streaming UIs, video, live dashboards.
     watch_frames: int = 5
     watch_interval_ms: int = 600
+    watch_max_frames: int = 60  # clamp caller-supplied frames (DoS bound)
+    watch_max_interval_ms: int = 10_000
+
+    # Renderer isolation / resource caps (untrusted pages drive Chromium)
+    chromium_sandbox: bool = True  # keep the OS sandbox; disable only in a trusted/contained env
+    max_viewport_px: int = 8000    # clamp viewport width/height (memory bound)
+    max_device_scale: float = 4.0  # clamp device_scale (buffer = w*h*scale^2*4 bytes)
 
     # Safety
     allow_url_rendering: bool = True

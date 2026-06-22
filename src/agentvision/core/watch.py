@@ -73,8 +73,9 @@ async def watch(
 ) -> Report:
     """Watch ``source`` over time and report temporal behavior (playback/loading/liveness)."""
     settings = settings or load_settings()
-    n = frames or settings.watch_frames
-    interval = interval_ms or settings.watch_interval_ms
+    # Clamp caller-supplied values so a single request can't hold a browser for a huge window.
+    n = max(2, min(frames or settings.watch_frames, settings.watch_max_frames))
+    interval = max(0, min(interval_ms or settings.watch_interval_ms, settings.watch_max_interval_ms))
     resolved = resolve_source(source, source_type, settings=settings)
     if out_dir is None:
         out_dir = Workspace(settings).tmp / uuid.uuid4().hex[:12]

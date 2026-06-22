@@ -90,10 +90,10 @@ _MEDIA_JS = """() => {
   });
 }"""
 
-# Headless flags. --no-sandbox is commonly required on bare/CI Linux without user
-# namespaces; the SSRF/file:// guards below are our real safety boundary.
+# Headless flags. The OS sandbox is kept ON by default (it's the real wall against a renderer
+# RCE in attacker HTML/JS); --no-sandbox is added ONLY when chromium_sandbox is explicitly
+# disabled. The SSRF/file guards are defense-in-depth for page *logic*, not a substitute.
 _LAUNCH_ARGS = [
-    "--no-sandbox",
     "--disable-dev-shm-usage",
     "--disable-gpu",
     "--hide-scrollbars",
@@ -120,6 +120,35 @@ class PlaywrightRenderer:
 
     def supports(self, kind: str) -> bool:
         return kind in self.SUPPORTED
+
+    async def _launch(self, pw):
+        """Launch Chromium with the OS sandbox ON by default; fail loudly if it can't and the
+        sandbox wasn't explicitly disabled (never silently run unsandboxed)."""
+        use_sandbox = self.settings.chromium_sandbox
+        args = list(_LAUNCH_ARGS) + ([] if use_sandbox else ["--no-sandbox"])
+        try:
+            return await pw.chromium.launch(headless=True, chromium_sandbox=use_sandbox, args=args)
+        except Exception as e:  # noqa: BLE001
+            if use_sandbox:
+                raise RenderError(
+                    f"Chromium failed to launch with the OS sandbox enabled: {e}\n"
+                    "This is common on bare/CI Linux without user namespaces. Prefer running in "
+                    "a container with proper isolation or enabling user namespaces. As a last "
+                    "resort set AGENTVISION_CHROMIUM_SANDBOX=false to disable the sandbox "
+                    "(reduces isolation — only in a trusted environment). Run `agentvision "
+                    "doctor` to diagnose missing system libraries."
+                ) from e
+            raise RenderError(
+                f"Could not launch Chromium: {e}\nRun `agentvision doctor` to diagnose."
+            ) from e
+
+    def _clamp(self, vp: Viewport, dsf: float) -> tuple[int, int, float]:
+        """Bound viewport + device_scale so an attacker can't request a giant buffer."""
+        cap = self.settings.max_viewport_px
+        w = max(1, min(int(vp.width), cap))
+        h = max(1, min(int(vp.height), cap))
+        scale = max(0.1, min(float(dsf or 1.0), self.settings.max_device_scale))
+        return w, h, scale
 
     async def render(
         self, spec: RenderSpec, resolved: ResolvedSource, out_dir: Path
@@ -154,14 +183,7 @@ class PlaywrightRenderer:
         visual_elements: list[ElementBox] = []
 
         async with async_playwright() as pw:
-            try:
-                browser = await pw.chromium.launch(headless=True, args=_LAUNCH_ARGS)
-            except Exception as e:  # noqa: BLE001
-                raise RenderError(
-                    f"Could not launch Chromium: {e}\nRun `agentvision doctor` to diagnose "
-                    "missing system libraries."
-                ) from e
-
+            browser = await self._launch(pw)
             try:
                 for idx, vp in enumerate(spec.viewports):
                     page_result = await self._render_one(
@@ -190,14 +212,18 @@ class PlaywrightRenderer:
         )
 
     async def _render_one(self, browser, spec, resolved, vp: Viewport, out_dir: Path, idx: int):
-        dsf = spec.device_scale or 1.0
+        vw, vh, dsf = self._clamp(vp, spec.device_scale or 1.0)
+        vp = Viewport(width=vw, height=vh)
         context = await browser.new_context(
-            viewport={"width": vp.width, "height": vp.height},
+            viewport={"width": vw, "height": vh},
             device_scale_factor=dsf,
             reduced_motion="reduce" if spec.freeze else "no-preference",
+            accept_downloads=False,  # untrusted page can't trigger disk-filling downloads
         )
         await self._install_guards(context)
         page = await context.new_page()
+        # Close any EXTRA page (window.open popup) — but never our own main page.
+        context.on("page", lambda pg: asyncio.create_task(pg.close()) if pg is not page else None)
 
         console_errors: list[ConsoleError] = []
         failed: list[FailedResponse] = []
@@ -260,8 +286,25 @@ class PlaywrightRenderer:
         img_path = out_dir / f"vp_{vp.label()}_{idx}.png"
         # animations="disabled" makes Playwright finish CSS animations/transitions and not
         # wait on them — combined with freeze, even WebGL/rAF pages capture deterministically.
-        await page.screenshot(path=str(img_path), full_page=spec.full_page,
-                              animations="disabled")
+        shot_kwargs: dict = {"path": str(img_path), "animations": "disabled"}
+        if spec.full_page:
+            # An attacker controls page height, so a full-page capture is an unbounded buffer.
+            # Cap it: if the document is too tall, clip to a bounded height instead of full_page.
+            from ..imageguard import MAX_IMAGE_PIXELS
+
+            try:
+                doc_h = int(await page.evaluate(
+                    "() => Math.max(document.documentElement.scrollHeight, document.body"
+                    " ? document.body.scrollHeight : 0)"
+                ))
+            except Exception:  # noqa: BLE001
+                doc_h = vw
+            max_h = max(vh, int(MAX_IMAGE_PIXELS / max(1, vw) / (dsf * dsf)))
+            if doc_h > max_h:
+                shot_kwargs["clip"] = {"x": 0, "y": 0, "width": vw, "height": max_h}
+            else:
+                shot_kwargs["full_page"] = True
+        await page.screenshot(**shot_kwargs)
         from PIL import Image  # local import; pillow is a base dep
 
         with Image.open(img_path) as im:
@@ -324,16 +367,17 @@ class PlaywrightRenderer:
         dsf = spec.device_scale or 1.0
         out: list[Frame] = []
         async with async_playwright() as pw:
+            browser = await self._launch(pw)
             try:
-                browser = await pw.chromium.launch(headless=True, args=_LAUNCH_ARGS)
-            except Exception as e:  # noqa: BLE001
-                raise RenderError(f"Could not launch Chromium: {e}") from e
-            try:
+                vw, vh, dsf = self._clamp(vp, dsf)
                 context = await browser.new_context(
-                    viewport={"width": vp.width, "height": vp.height}, device_scale_factor=dsf,
+                    viewport={"width": vw, "height": vh}, device_scale_factor=dsf,
+                    accept_downloads=False,
                 )
                 await self._install_guards(context)
                 page = await context.new_page()
+                context.on("page",
+                           lambda pg: asyncio.create_task(pg.close()) if pg is not page else None)
                 await self._navigate(page, resolved, spec.wait_for or self.settings.nav_wait)
                 if spec.settle_ms and spec.settle_ms > 0:
                     await page.wait_for_timeout(spec.settle_ms)
@@ -395,7 +439,17 @@ class PlaywrightRenderer:
                 await route_obj.continue_()
                 return
             if scheme == "file":
-                await (route_obj.continue_() if allow_file else route_obj.abort())
+                # Decouple navigation from subresources: even with allow_file_scheme, only the
+                # TOP-LEVEL document may be file:// — never an (untrusted) subresource, so a
+                # rendered page can't exfiltrate local files via <img>/<iframe>/fetch/CSS url().
+                top_nav = False
+                if allow_file:
+                    try:
+                        top_nav = (route_obj.request.is_navigation_request()
+                                   and route_obj.request.frame.parent_frame is None)
+                    except Exception:  # noqa: BLE001
+                        top_nav = False
+                await (route_obj.continue_() if top_nav else route_obj.abort())
                 return
             # Default-deny anything that isn't http(s) (gopher/ftp/ws/chrome/etc.).
             if scheme not in ("http", "https"):
