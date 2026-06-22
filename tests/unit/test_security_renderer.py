@@ -18,7 +18,10 @@ def test_clamp_viewport_and_scale():
     assert r._clamp(Viewport(width=1280, height=800), 2.0) == (1280, 800, 2.0)  # untouched
 
 
-def test_sandbox_on_by_default():
+def test_sandbox_on_by_default(monkeypatch):
+    # Pin the secure *code default*, independent of any ambient opt-out (e.g. CI sets
+    # AGENTVISION_CHROMIUM_SANDBOX=false on trusted runners — that must not mask the default).
+    monkeypatch.delenv("AGENTVISION_CHROMIUM_SANDBOX", raising=False)
     assert load_settings().chromium_sandbox is True
 
 
