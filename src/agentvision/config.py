@@ -105,6 +105,15 @@ class Settings(BaseSettings):
     proxy_max_connections: int = 64
     proxy_idle_timeout_s: float = 30.0
 
+    # Documents (PDF + Office/OpenDocument via LibreOffice). Multi-page is rasterized per page,
+    # capped, then stacked into one composite primary image for analysis.
+    document_max_pages: int = 30        # cap pages/slides rasterized (memory + token bound)
+    document_max_page_px: int = 2000    # per-page raster width cap (px)
+    document_raster_dpi: int = 120
+    max_document_bytes: int = 50_000_000  # byte cap before handing a file to poppler/LibreOffice
+    document_convert_timeout_s: float = 120.0  # hard timeout on the LibreOffice subprocess
+    soffice_path: str | None = None     # explicit LibreOffice binary; else auto-detected
+
     # Safety
     allow_url_rendering: bool = True
     block_private_networks: bool = True
@@ -113,6 +122,11 @@ class Settings(BaseSettings):
     # (trusted local user); the REST service sets this False so a remote caller can't read host
     # files via a bare path like "/etc/passwd".
     allow_local_files: bool = True
+    # Rendering Office/OpenDocument files via LibreOffice (docx/pptx/xlsx/odt…). Enabled for
+    # trusted local CLI/library use; the REST service sets this False — LibreOffice is a large
+    # attack surface on untrusted input (macros/DDE/remote-template/OLE), so it is not exposed
+    # to remote callers by default.
+    allow_office_render: bool = True
 
     # HTTP service (REST): bind + auth + DoS bounds
     api_token: str | None = Field(default=None, validation_alias="AGENTVISION_API_TOKEN")

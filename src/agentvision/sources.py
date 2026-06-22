@@ -15,9 +15,10 @@ from urllib.parse import urlparse
 from .config import Settings
 from .errors import UnsafeSourceError
 from .netguard import assert_host_safe
+from .office import OFFICE_EXT
 
 # Logical source kinds. ``html``/``svg`` may be inline (content) or from a file.
-KINDS = ("html", "svg", "url", "pdf", "image", "file")
+KINDS = ("html", "svg", "url", "pdf", "image", "office", "file")
 _IMAGE_EXT = {".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp"}
 
 
@@ -62,6 +63,8 @@ def _detect_type(source: str) -> str:
         return "svg"
     if ext == ".pdf":
         return "pdf"
+    if ext in OFFICE_EXT:
+        return "office"
     if ext in _IMAGE_EXT:
         return "image"
     return "html" if ext in {"", ".txt"} and not p.exists() else "file"
@@ -120,12 +123,14 @@ def resolve_source(source: str, source_type: str = "auto", *, settings: Settings
             kind = "pdf"
         elif ext == ".svg":
             kind = "svg"
+        elif ext in OFFICE_EXT:
+            kind = "office"
         elif ext in _IMAGE_EXT:
             kind = "image"
         else:
             kind = "html"
     else:
-        kind = stype if stype in {"pdf", "image", "svg", "html"} else "html"
+        kind = stype if stype in {"pdf", "image", "svg", "html", "office"} else "html"
 
     if kind in {"svg", "html"} and source_type in {"svg", "html", "auto", "file"}:
         # Inline file content so the renderer can wrap/serve it without file:// access.

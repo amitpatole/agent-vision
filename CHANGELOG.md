@@ -2,6 +2,31 @@
 
 All notable changes to AgentVision are documented here.
 
+## [0.8.0] — 2026-06-22 — Office & multi-page document support
+
+Render and analyze **documents**, not just web pages and images.
+
+- **Office / OpenDocument support**: `.docx .doc .pptx .ppt .xlsx .xls .odt .odp .ods .rtf`
+  are converted to PDF via **LibreOffice headless** and rasterized like a native PDF. Point
+  any command (`render/analyze/check/loop/…`) at one — detection is automatic.
+- **Multi-page rendering**: the PDF renderer is generalized from first-page-only to **up to
+  `document_max_pages` pages** (default 30). Every page is saved (`page_NNN.png`) and stacked
+  into a single composite (`document.png`) that becomes the `primary` image, so the analyze
+  pipeline's tiling sees the *whole* document/deck with no other changes. The composite is
+  scaled to stay under the decompression-bomb pixel cap.
+- **Hardened conversion** (LibreOffice on untrusted input): argv form (no shell), input passed
+  as an absolute path so a `-`-leading filename can't become a flag, byte cap, isolated
+  throwaway user profile per conversion (`--convert-to` doesn't run macros), and a hard
+  timeout with process-group kill. **Gated off by default on the REST service**
+  (`allow_office_render=False`).
+- `agentvision doctor` now reports LibreOffice availability. New settings: `document_max_pages`,
+  `document_max_page_px`, `document_raster_dpi`, `max_document_bytes`,
+  `document_convert_timeout_s`, `soffice_path`, `allow_office_render`.
+- Verel (eyes → brain) integration re-verified — `Report` contract unchanged; a live
+  `perceive()` round-trips an Office document through the new path.
+- +16 office tests (detection, gate, byte cap, missing-dep, argv hardening, multi-page
+  composite, real `.docx`/`.rtf` e2e); 150 tests pass; ruff + mypy clean.
+
 ## [0.7.3] — 2026-06-22 — proxy load test, docs, CI
 
 No runtime code changes (the package is identical to 0.7.2); this release bundles the

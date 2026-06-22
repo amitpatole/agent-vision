@@ -21,6 +21,12 @@ overview; the full policy + reporting is in
   closed; viewport / `device_scale` / full-page capture clamped (OOM bound).
 - **Untrusted bytes** — byte + pixel caps before any image decode (decompression-bomb guard);
   PDF byte/size/timeout bounds; OCR timeout.
+- **Office documents (LibreOffice)** — `.docx/.pptx/.xlsx/…` are converted to PDF via
+  LibreOffice headless, which is hardened: argv form (no shell), the input passed as an
+  **absolute path** so a `-`-leading filename can't become a flag, a byte cap, an isolated
+  throwaway user profile per conversion (and `--convert-to` does not execute document macros),
+  and a hard timeout with **process-group kill**. Gated **off by default on the REST service**
+  (`allow_office_render=False`) — LibreOffice is a large attack surface on untrusted input.
 - **HTTP service** — loopback is zero-config; a non-loopback bind **refuses to start without a
   token**; token auth is constant-time; request bodies are capped (incl. chunked); renders are
   bounded by a semaphore; errors don't leak internals; local-file sources are refused.
@@ -33,7 +39,8 @@ export AGENTVISION_API_TOKEN=$(openssl rand -hex 32)   # required for any non-lo
 ```
 
 - **Restrict the renderer's egress** at the network layer (deny outbound to `169.254.0.0/16`,
-  RFC-1918, CGNAT) — defense in depth around the app controls.
+  RFC-1918, CGNAT) — defense in depth around the app controls. This also backstops LibreOffice,
+  which can attempt to fetch remote templates/images that the conversion step can't fully block.
 - **Containerize** so the Chromium sandbox is available without `--no-sandbox`.
 - Keep `block_private_networks` on (default); only use `--allow-local` against trusted targets.
 

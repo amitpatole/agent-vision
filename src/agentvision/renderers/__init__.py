@@ -15,10 +15,11 @@ from .base import (
 def get_renderer(kind: str, settings):
     """Return a renderer instance for a resolved source kind."""
     from .image_renderer import ImageRenderer
+    from .office_renderer import OfficeRenderer
     from .pdf_renderer import PdfRenderer
     from .playwright_renderer import PlaywrightRenderer
 
-    for cls in (PlaywrightRenderer, PdfRenderer, ImageRenderer):
+    for cls in (PlaywrightRenderer, PdfRenderer, OfficeRenderer, ImageRenderer):
         r = cls(settings)
         if r.supports(kind):
             return r

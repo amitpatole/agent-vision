@@ -27,7 +27,16 @@ Chromium needs OS libraries that `playwright install` does **not** install.
     libXrender pango cairo alsa-lib gtk3
   ```
 
-- **Optional extras:** `tesseract-ocr tesseract-ocr-eng` (OCR), `poppler-utils` (PDF).
+- **Optional extras:** `tesseract-ocr tesseract-ocr-eng` (OCR), `poppler-utils` (PDF),
+  `libreoffice` (Office/OpenDocument: `.docx/.pptx/.xlsx/.odt/.odp/.ods/…`).
+
+!!! info "Documents (PDF + Office)"
+    Point any AgentVision command at a PDF or an Office/OpenDocument file and it just works —
+    the file is rasterized **per page** (up to `document_max_pages`, default 30) and stacked
+    into one composite image that is analyzed like any screenshot, so a deck or multi-page doc
+    is seen in full. Office formats are converted via LibreOffice (`libreoffice` must be
+    installed); this is enabled for local CLI/library use and **off by default on the REST
+    service** (LibreOffice is a large attack surface on untrusted input).
 
 Verify everything:
 

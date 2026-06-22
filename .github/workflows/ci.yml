@@ -40,8 +40,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e ".[all,dev]"
 
-      - name: Install system deps for OCR/PDF
-        run: sudo apt-get update && sudo apt-get install -y tesseract-ocr tesseract-ocr-eng poppler-utils
+      - name: Install system deps for OCR/PDF/Office
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            tesseract-ocr tesseract-ocr-eng poppler-utils \
+            libreoffice-writer libreoffice-impress libreoffice-calc
 
       - name: Install Chromium (browser pinned by the playwright package version)
         run: python -m playwright install --with-deps chromium

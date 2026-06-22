@@ -95,6 +95,12 @@ async def run_doctor(fix: bool = False) -> bool:
     print(f"  {_OK if poppler else _WARN} PDF (poppler): "
           + (poppler or "not found — install poppler-utils (optional)"))
 
+    # Office documents (docx/pptx/xlsx/odf via LibreOffice)
+    from ..office import find_soffice
+    soffice = find_soffice(settings)
+    print(f"  {_OK if soffice else _WARN} Office docs (LibreOffice): "
+          + (soffice or "not found — install libreoffice (optional, for docx/pptx/xlsx)"))
+
     # Backends
     print("\n  Vision backends:")
     any_cloud = False
