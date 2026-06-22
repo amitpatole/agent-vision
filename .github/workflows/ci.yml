@@ -17,6 +17,12 @@ concurrency:
 jobs:
   test:
     runs-on: ubuntu-latest   # --with-deps works on Ubuntu runners
+    # GitHub's bare Ubuntu runners have no usable user namespaces, so Chromium can't launch
+    # with the OS sandbox. The product fails CLOSED there by design; CI is a trusted, ephemeral
+    # VM, so we take the documented opt-out for trusted environments. Real users keep the
+    # secure default (sandbox on) — this only relaxes it inside CI.
+    env:
+      AGENTVISION_CHROMIUM_SANDBOX: "false"
     strategy:
       matrix:
         python-version: ["3.11", "3.12"]
