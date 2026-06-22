@@ -1,13 +1,13 @@
 """Geometry primitives. Pure Pydantic — no numpy/cv2 at import time.
 
-``BBox`` is the shared pixel-grounding primitive (lives in :mod:`agentsense` so the ears can
+``BBox`` is the shared pixel-grounding primitive (lives in :mod:`agentsensory` so the ears can
 ignore it and the brain can read it uniformly); ``Size``/``Viewport`` are render-specific and
 stay here.
 """
 
 from __future__ import annotations
 
-from agentsense import BBox
+from agentsensory import BBox
 from pydantic import BaseModel
 
 __all__ = ["BBox", "Size", "Viewport"]

@@ -1,6 +1,6 @@
 """The Report contract (vision).
 
-Built on the shared :mod:`agentsense` contract: the neutral vocabulary, conformance, intent and
+Built on the shared :mod:`agentsensory` contract: the neutral vocabulary, conformance, intent and
 handoff live there; this module adds the *vision* specialisation — the closed ``IssueKind`` /
 ``IssueSource`` enums and the ``Issue`` / ``Report`` subclasses that re-declare ``kind``/``source``
 as those enums (so every ``i.kind.value`` and ``schema_adapters`` enum reflection keeps working).
@@ -15,7 +15,7 @@ from __future__ import annotations
 from enum import Enum
 
 # Re-export the shared vocabulary so existing ``from .report import X`` imports keep resolving.
-from agentsense import (
+from agentsensory import (
     ClaimResult,
     ClaimStatus,
     Confidence,
