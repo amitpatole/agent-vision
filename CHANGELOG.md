@@ -2,6 +2,17 @@
 
 All notable changes to AgentVision are documented here.
 
+## [0.7.2] — 2026-06-22 — proxy hardening
+
+- The vetting egress proxy now **bounds the work a page can drive through it**: a per-render
+  cap on concurrent upstream connections (`proxy_max_connections`, default 64 → 503 over the
+  cap) and an **idle timeout** on every proxied/tunnelled socket (`proxy_idle_timeout_s`,
+  default 30s) so a slowloris / hung upstream can't pin connections.
+- Added an end-to-end browser test of the full chain (browser → route guard → proxy →
+  upstream): pins to the vetted IP with `Host` preserved, and **backstops a rebinding-fooled
+  route guard** (proxy blocks the internal target even if the in-browser check was tricked).
+- +4 proxy tests (cap, idle, 2 e2e); ruff + mypy clean; 133 tests pass.
+
 ## [0.7.1] — 2026-06-22 — DNS-rebinding closed (vetting egress proxy)
 
 Follow-up to the 0.7.0 security release: the one documented residual (the DNS-rebinding

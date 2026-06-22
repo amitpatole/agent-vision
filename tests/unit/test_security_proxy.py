@@ -84,3 +84,94 @@ async def test_proxy_connect_blocks_internal(monkeypatch):
         proxy.port, b"CONNECT 169.254.169.254:443 HTTP/1.1\r\nHost: 169.254.169.254:443\r\n\r\n")
     await proxy.stop()
     assert b"403" in resp.split(b"\r\n", 1)[0]
+
+
+async def test_proxy_connection_cap(monkeypatch):
+    # cap = 0 → every request is over the cap → 503 (exercises the reject branch deterministically)
+    proxy = VettingProxy(max_connections=0)
+    await proxy.start()
+    resp = await _request_through_proxy(
+        proxy.port, b"GET http://example.test/ HTTP/1.1\r\nHost: example.test\r\n\r\n")
+    await proxy.stop()
+    assert b"503" in resp.split(b"\r\n", 1)[0]
+
+
+async def test_proxy_idle_timeout_configured():
+    # the idle bound is wired through (closes silent/slowloris connections)
+    p = VettingProxy(idle_timeout_s=2.5)
+    assert p._idle == 2.5
+
+
+# --- end-to-end: full browser -> route guard -> proxy -> upstream chain ---
+
+def _http_recorder():
+    import threading
+    from http.server import BaseHTTPRequestHandler, HTTPServer
+
+    seen: dict = {"hits": 0}
+
+    class H(BaseHTTPRequestHandler):
+        def do_GET(self):
+            seen["hits"] += 1
+            seen["path"] = self.path
+            seen["host"] = self.headers.get("Host")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html")
+            self.end_headers()
+            self.wfile.write(b"<html><body>ok</body></html>")
+
+        def log_message(self, *a):
+            pass
+
+    srv = HTTPServer(("127.0.0.1", 0), H)
+    threading.Thread(target=srv.serve_forever, daemon=True).start()
+    return srv, srv.server_address[1], seen
+
+
+async def test_e2e_proxy_pins_and_preserves_host_via_browser(monkeypatch):
+    import agentvision.renderers.playwright_renderer as R
+    from agentvision import load_settings
+    from agentvision.core import render
+
+    srv, uport, seen = _http_recorder()
+
+    async def host_ok(host, port):
+        return True  # route guard sees the (simulated public) host as safe
+
+    async def vet(host, port):
+        return "127.0.0.1"  # proxy pins the connection to our local upstream
+
+    monkeypatch.setattr(R, "host_is_safe", host_ok)
+    monkeypatch.setattr(P, "resolve_safe_ip", vet)
+    html = f'<html><body><img src="http://shop.example.test:{uport}/probe"></body></html>'
+    try:
+        await render(html, settings=load_settings(), full_page=False, settle_ms=700)
+    finally:
+        srv.shutdown()
+    assert seen.get("path") == "/probe"
+    assert seen.get("host") == f"shop.example.test:{uport}"  # Host preserved through the chain
+
+
+async def test_e2e_proxy_backstops_a_fooled_route_guard(monkeypatch):
+    """Even if the route guard is tricked into thinking a host is safe (rebinding), the proxy —
+    which resolves at connect time — blocks the internal target."""
+    import agentvision.renderers.playwright_renderer as R
+    from agentvision import load_settings
+    from agentvision.core import render
+
+    srv, uport, seen = _http_recorder()
+
+    async def host_ok(host, port):
+        return True  # route guard fooled
+
+    async def vet_block(host, port):
+        return None  # proxy resolves it to an internal address -> block
+
+    monkeypatch.setattr(R, "host_is_safe", host_ok)
+    monkeypatch.setattr(P, "resolve_safe_ip", vet_block)
+    html = f'<html><body><img src="http://rebind.evil.test:{uport}/x"></body></html>'
+    try:
+        await render(html, settings=load_settings(), full_page=False, settle_ms=700)
+    finally:
+        srv.shutdown()
+    assert seen["hits"] == 0  # proxy backstopped the fooled route guard

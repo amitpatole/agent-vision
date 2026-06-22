@@ -100,6 +100,10 @@ class Settings(BaseSettings):
     chromium_sandbox: bool = True  # keep the OS sandbox; disable only in a trusted/contained env
     max_viewport_px: int = 8000    # clamp viewport width/height (memory bound)
     max_device_scale: float = 4.0  # clamp device_scale (buffer = w*h*scale^2*4 bytes)
+    # Vetting egress proxy bounds (per render): cap concurrent upstream connections and close
+    # idle ones so a page can't open thousands of slow connections through the proxy.
+    proxy_max_connections: int = 64
+    proxy_idle_timeout_s: float = 30.0
 
     # Safety
     allow_url_rendering: bool = True

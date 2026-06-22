@@ -155,7 +155,8 @@ class PlaywrightRenderer:
             return None
         from ..proxy import VettingProxy
 
-        p = VettingProxy()
+        p = VettingProxy(max_connections=self.settings.proxy_max_connections,
+                         idle_timeout_s=self.settings.proxy_idle_timeout_s)
         await p.start()
         return p
 

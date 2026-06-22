@@ -23,10 +23,14 @@ log = get_logger("proxy")
 
 
 class VettingProxy:
-    def __init__(self, host: str = "127.0.0.1"):
+    def __init__(self, host: str = "127.0.0.1", *, max_connections: int = 64,
+                 idle_timeout_s: float = 30.0):
         self._host = host
         self._server: asyncio.AbstractServer | None = None
         self.port: int = 0
+        self._max_conn = max_connections
+        self._idle = idle_timeout_s
+        self._active = 0  # in-flight connections (single-threaded asyncio → no lock needed)
 
     async def start(self) -> None:
         self._server = await asyncio.start_server(self._handle, self._host, 0)
@@ -42,10 +46,21 @@ class VettingProxy:
             self._server = None
 
     async def _handle(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> None:
+        self._active += 1
+        try:
+            await self._dispatch(reader, writer)
+        finally:
+            self._active -= 1
+
+    async def _dispatch(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> None:
         try:
             head = await asyncio.wait_for(reader.readuntil(b"\r\n\r\n"), timeout=15)
         except Exception:  # noqa: BLE001 (timeout / incomplete / overrun)
             return await _close(writer)
+        # Cap concurrent connections per render (this one is already counted). The request head
+        # is consumed first so the 503 is sent cleanly rather than racing a TCP reset.
+        if self._active > self._max_conn:
+            return await _reply_close(writer, b"503 Service Unavailable")
         first, _, rest = head.partition(b"\r\n")
         try:
             method, target, _version = first.split(b" ", 2)
@@ -79,7 +94,7 @@ class VettingProxy:
             return await _reply_close(writer, b"502 Bad Gateway")
         writer.write(b"HTTP/1.1 200 Connection Established\r\n\r\n")
         await writer.drain()
-        await _pipe(reader, writer, up_r, up_w)
+        await _pipe(reader, writer, up_r, up_w, self._idle)
 
     async def _http(self, reader, writer, host, port, method, path, query, header_block) -> None:
         ip = await self._vet(host, port)
@@ -101,19 +116,20 @@ class VettingProxy:
         out.append(b"Connection: close")
         up_w.write(b"\r\n".join(out) + b"\r\n\r\n")
         await up_w.drain()
-        await _pipe(reader, writer, up_r, up_w)
+        await _pipe(reader, writer, up_r, up_w, self._idle)
 
 
-async def _pipe(c_r, c_w, u_r, u_w) -> None:
+async def _pipe(c_r, c_w, u_r, u_w, idle: float) -> None:
     async def copy(src, dst):
         try:
             while True:
-                data = await src.read(65536)
+                # Idle timeout: drop a connection that goes silent (slowloris / hung upstream).
+                data = await asyncio.wait_for(src.read(65536), timeout=idle)
                 if not data:
                     break
                 dst.write(data)
                 await dst.drain()
-        except Exception:  # noqa: BLE001
+        except Exception:  # noqa: BLE001 (incl. TimeoutError → close)
             pass
         finally:
             try:
