@@ -2,6 +2,25 @@
 
 All notable changes to AgentVision are documented here.
 
+## [0.7.3] — 2026-06-22 — proxy load test, docs, CI
+
+No runtime code changes (the package is identical to 0.7.2); this release bundles the
+verification, documentation, and CI work that landed on top of the 0.7.x security series.
+
+- **Proxy load/stress test**: 120 concurrent requests through the vetting proxy under a
+  connection cap — asserts nothing hangs, every request gets a clean `200`/`503` (no resets),
+  the cap holds, and the proxy keeps serving after the burst.
+- **Docs**: new **Security** page on the docs site (threat model + the full hardening list:
+  SSRF, vetting egress proxy / DNS-rebinding closure, renderer isolation, decompression-bomb
+  caps, HTTP-service hardening, secret scrubbing) plus the egress-deny deployment backstop.
+- **CI**: opt CI runners out of the Chromium OS sandbox via the documented
+  `AGENTVISION_CHROMIUM_SANDBOX=false` trusted-environment escape hatch (bare GitHub runners
+  have no usable user namespaces, and the renderer correctly fails closed there). The secure
+  default (sandbox on, fail-closed) is unchanged for real users.
+- Verel (eyes → brain) integration verified unchanged: `Report` contract intact, Verel's
+  sight-adapter suite passes, and a live `perceive()` round-trips through the hardened renderer.
+- 134 tests pass; ruff clean.
+
 ## [0.7.2] — 2026-06-22 — proxy hardening
 
 - The vetting egress proxy now **bounds the work a page can drive through it**: a per-render
