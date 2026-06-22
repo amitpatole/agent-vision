@@ -63,6 +63,7 @@ plugins:
 
 nav:
   - Home: index.md
+  - Adoption: adoption.md
   - Get started:
       - Quickstart: quickstart.md
       - The loop: the-loop.md
