@@ -21,6 +21,7 @@ classifiers = [
     "Topic :: Software Development :: Testing",
 ]
 dependencies = [
+    "agentsense>=0.1",
     "pydantic>=2.6",
     "pydantic-settings>=2.2",
     "pillow>=10.0",
