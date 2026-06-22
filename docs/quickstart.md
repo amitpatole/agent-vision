@@ -96,3 +96,19 @@ Set a key to enable semantic analysis:
 ```bash
 export ANTHROPIC_API_KEY=sk-ant-...   # or OPENAI_API_KEY / GOOGLE_API_KEY
 ```
+
+## Running securely (production)
+
+AgentVision renders **untrusted** HTML/URLs, so it's hardened by default (SSRF blocked
+incl. DNS-rebinding via a vetting egress proxy, Chromium sandbox on, image-bomb caps). For a
+networked deployment, add these belt-and-suspenders:
+
+- **Restrict the renderer's egress** to a network that denies outbound to `169.254.0.0/16`
+  (metadata), RFC-1918, and CGNAT — a defense-in-depth backstop around the app controls.
+- **Containerize** so the Chromium OS sandbox is available without `--no-sandbox`.
+- **REST service**: it stays loopback-only with zero config; to expose it, set
+  `AGENTVISION_API_TOKEN` (binding a routable host without one is refused) and front it with TLS.
+- Keep `block_private_networks` on (default); only use `--allow-local` against trusted targets.
+
+Full threat model and the complete control list:
+[SECURITY.md](https://github.com/amitpatole/agent-vision/blob/main/SECURITY.md).
