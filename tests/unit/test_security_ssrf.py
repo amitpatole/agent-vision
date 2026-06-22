@@ -15,6 +15,7 @@ BLOCKED = [
     "169.254.169.254", "fd00:ec2::254", "100.100.100.200",   # cloud metadata
     "127.0.0.1", "::1", "10.0.0.5", "192.168.1.1", "172.16.0.1", "0.0.0.0",
     "::ffff:169.254.169.254", "::ffff:127.0.0.1", "::ffff:10.0.0.1",  # IPv4-mapped bypass
+    "100.64.0.1", "100.127.255.255",  # carrier-grade NAT (RFC 6598)
 ]
 PUBLIC = ["8.8.8.8", "1.1.1.1", "93.184.216.34"]
 
@@ -72,6 +73,40 @@ def test_local_file_read_gated_off_service(tmp_path):
     # service context: refused (no host-file read via a bare path)
     with pytest.raises(UnsafeSourceError):
         resolve_source(str(f), settings=load_settings(allow_local_files=False))
+
+
+async def test_websocket_ssrf_blocked():
+    """A page must not reach an internal host via WebSocket (route() doesn't cover WS)."""
+    import socket
+    import threading
+
+    from agentvision import load_settings
+    from agentvision.core import render
+
+    hits = {"n": 0}
+    srv = socket.socket()
+    srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    srv.bind(("127.0.0.1", 0))
+    srv.listen(5)
+    port = srv.getsockname()[1]
+
+    def _accept():
+        srv.settimeout(5)
+        try:
+            conn, _ = srv.accept()
+            hits["n"] += 1
+            conn.close()
+        except OSError:
+            pass
+
+    threading.Thread(target=_accept, daemon=True).start()
+    html = (f'<html><body><script>try{{new WebSocket("ws://127.0.0.1:{port}/x")}}'
+            f'catch(e){{}}</script></body></html>')
+    try:
+        await render(html, settings=load_settings(), full_page=False, settle_ms=900)
+    finally:
+        srv.close()
+    assert hits["n"] == 0  # internal WS connection blocked
 
 
 def test_secret_path_read_blocked_off_service(tmp_path):

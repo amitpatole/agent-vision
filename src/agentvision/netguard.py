@@ -30,6 +30,11 @@ _METADATA = {
     "100.100.100.200",      # Alibaba Cloud
 }
 
+# Ranges not flagged by ipaddress's is_private but routed internally on some fabrics.
+_EXTRA_BLOCKED = [
+    ipaddress.ip_network("100.64.0.0/10"),   # carrier-grade NAT (RFC 6598)
+]
+
 
 def _normalize(ip: ipaddress.IPv4Address | ipaddress.IPv6Address):
     """Collapse IPv4-mapped IPv6 to its IPv4 form so range checks classify it correctly."""
@@ -45,6 +50,8 @@ def ip_is_blocked(addr: str) -> bool:
     except ValueError:
         return True
     if str(ip) in _METADATA or addr in _METADATA:
+        return True
+    if any(ip in net for net in _EXTRA_BLOCKED):
         return True
     return bool(
         ip.is_private or ip.is_loopback or ip.is_link_local
@@ -102,3 +109,22 @@ async def host_is_safe(host: str | None, port: int | None) -> bool:
     except (socket.gaierror, OSError):
         return False
     return all(not ip_is_blocked(str(info[4][0])) for info in infos)
+
+
+async def resolve_safe_ip(host: str | None, port: int | None) -> str | None:
+    """Resolve+vet once and return a safe IP to PIN the connection to (defeats DNS rebinding:
+    the renderer connects to this exact vetted IP rather than re-resolving). Returns the literal
+    host if it is already a safe literal IP, or None if anything is internal/unresolvable."""
+    if not host:
+        return None
+    if _is_literal_ip(host):
+        return None if ip_is_blocked(host) else host
+    try:
+        loop = asyncio.get_running_loop()
+        infos = await loop.getaddrinfo(host, port or 80, proto=socket.IPPROTO_TCP)
+    except (socket.gaierror, OSError):
+        return None
+    ips = [str(info[4][0]) for info in infos]
+    if not ips or any(ip_is_blocked(ip) for ip in ips):
+        return None
+    return ips[0]

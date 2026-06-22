@@ -135,9 +135,26 @@ def build_app():
 
     @app.middleware("http")
     async def _limit_body(request: Request, call_next):
+        cap = settings.max_request_bytes
         cl = request.headers.get("content-length")
-        if cl and cl.isdigit() and int(cl) > settings.max_request_bytes:
+        if cl and cl.isdigit() and int(cl) > cap:
             return JSONResponse({"detail": "Request body too large."}, status_code=413)
+        # Also enforce on the stream itself — a chunked request (no Content-Length) would
+        # otherwise bypass the header check and buffer unbounded.
+        total = 0
+        chunks: list[bytes] = []
+        async for chunk in request.stream():
+            total += len(chunk)
+            if total > cap:
+                return JSONResponse({"detail": "Request body too large."}, status_code=413)
+            chunks.append(chunk)
+        body = b"".join(chunks)
+
+        async def _replay():
+            return {"type": "http.request", "body": body, "more_body": False}
+
+        request._body = body            # cache so downstream .json()/.body() use the read bytes
+        request._receive = _replay      # and so the handler can still receive it
         return await call_next(request)
 
     async def _render_slot():

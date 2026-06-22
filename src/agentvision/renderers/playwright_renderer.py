@@ -9,6 +9,7 @@ device_scale). Every render is bounded by a hard timeout.
 from __future__ import annotations
 
 import asyncio
+import re
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -93,6 +94,8 @@ _MEDIA_JS = """() => {
 # Headless flags. The OS sandbox is kept ON by default (it's the real wall against a renderer
 # RCE in attacker HTML/JS); --no-sandbox is added ONLY when chromium_sandbox is explicitly
 # disabled. The SSRF/file guards are defense-in-depth for page *logic*, not a substitute.
+_WS_ALL = re.compile(r".*")  # match every WebSocket URL for the SSRF route guard
+
 _LAUNCH_ARGS = [
     "--disable-dev-shm-usage",
     "--disable-gpu",
@@ -456,14 +459,36 @@ class PlaywrightRenderer:
                 await route_obj.abort()
                 return
             # Re-resolve the host AT FETCH TIME for every request (navigation, subresource,
-            # redirect target) — this is what defeats DNS rebinding and hostnames that point
-            # at internal/metadata addresses (the resolve-time check only saw a stale answer).
+            # redirect target) — defeats hostnames that point at internal/metadata addresses and
+            # re-validates redirect targets (the resolve-time check only saw a stale answer).
+            # Residual: a sub-millisecond DNS-rebinding race between this lookup and Chromium's
+            # own connect is not fully closed here (full closure needs a vetting egress proxy or
+            # connection pinning, which Playwright can't express without breaking the Host header
+            # / TLS SNI). See SECURITY.md. Run egress-restricted for a hard guarantee.
             if block_private and not await host_is_safe(parsed.hostname, parsed.port):
                 await route_obj.abort()
                 return
             await route_obj.continue_()
 
         await context.route("**/*", route)
+
+        # WebSocket connections are NOT covered by context.route(), so a page could reach an
+        # internal host via `new WebSocket("ws://10.0.0.5/")`. Intercept WS too: block internal
+        # hosts (re-resolved), pass public ones through.
+        if block_private:
+            async def ws_route(ws):
+                u = urlparse(ws.url)
+                if await host_is_safe(u.hostname, u.port):
+                    try:
+                        ws.connect_to_server()
+                    except Exception:  # noqa: BLE001
+                        pass
+                # else: do not connect — the internal WS handshake never happens (blocked)
+
+            try:
+                await context.route_web_socket(_WS_ALL, ws_route)
+            except Exception:  # noqa: BLE001
+                pass  # older Playwright without WS routing — context.route still covers http(s)
 
     @staticmethod
     def _to_box(b: dict, dsf: float) -> ElementBox:

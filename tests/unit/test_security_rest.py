@@ -47,6 +47,17 @@ def test_body_size_cap(monkeypatch):
     assert c.post("/check", json=big).status_code == 413
 
 
+def test_body_cap_not_bypassed_by_chunked(monkeypatch):
+    # no Content-Length (chunked) must still be capped on the stream
+    c = _client(monkeypatch, AGENTVISION_MAX_REQUEST_BYTES="200")
+
+    def gen():
+        yield b"x" * 500
+        yield b"y" * 500
+
+    assert c.post("/check", content=gen()).status_code == 413
+
+
 def test_ssrf_metadata_refused_at_service(monkeypatch):
     monkeypatch.delenv("AGENTVISION_API_TOKEN", raising=False)
     c = TestClient(rest.build_app())
