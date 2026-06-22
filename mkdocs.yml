@@ -81,6 +81,7 @@ nav:
       - Python API: api.md
   - Help:
       - FAQ & troubleshooting: faq.md
+      - Security: security.md
   - About:
       - Design (VISION): VISION.md
 

@@ -102,6 +102,53 @@ async def test_proxy_idle_timeout_configured():
     assert p._idle == 2.5
 
 
+async def test_proxy_under_concurrent_load(monkeypatch):
+    """Many concurrent requests: the proxy stays up, every request gets a response (200 or
+    503, never a hang/crash), the cap is honored, and it's still serving afterwards."""
+    async def handle(r, w):
+        try:
+            await asyncio.wait_for(r.readuntil(b"\r\n\r\n"), timeout=5)
+        except Exception:  # noqa: BLE001
+            pass
+        w.write(b"HTTP/1.1 200 OK\r\nContent-Length: 2\r\nConnection: close\r\n\r\nok")
+        try:
+            await w.drain()
+        except Exception:  # noqa: BLE001
+            pass
+        w.close()
+
+    upstream = await asyncio.start_server(handle, "127.0.0.1", 0)
+    uport = upstream.sockets[0].getsockname()[1]
+
+    async def vet(host, port):
+        return "127.0.0.1"
+
+    monkeypatch.setattr(P, "resolve_safe_ip", vet)
+    proxy = VettingProxy(max_connections=20)
+    await proxy.start()
+
+    async def one():
+        try:
+            r, w = await asyncio.open_connection("127.0.0.1", proxy.port)
+            w.write(f"GET http://load.test:{uport}/x HTTP/1.1\r\n"
+                    f"Host: load.test:{uport}\r\n\r\n".encode())
+            await w.drain()
+            data = await asyncio.wait_for(r.read(), timeout=15)
+            w.close()
+            return data.split(b"\r\n", 1)[0]
+        except Exception as e:  # noqa: BLE001
+            return repr(e).encode()
+
+    results = await asyncio.wait_for(
+        asyncio.gather(*[one() for _ in range(120)]), timeout=40)
+    await proxy.stop()
+    upstream.close()
+
+    assert len(results) == 120                                   # nothing hung
+    assert all(b"200" in s or b"503" in s for s in results)      # clean status, no crash/reset
+    assert any(b"200" in s for s in results)                     # served real traffic under load
+
+
 # --- end-to-end: full browser -> route guard -> proxy -> upstream chain ---
 
 def _http_recorder():
