@@ -124,11 +124,15 @@ class PlaywrightRenderer:
     def supports(self, kind: str) -> bool:
         return kind in self.SUPPORTED
 
-    async def _launch(self, pw):
+    async def _launch(self, pw, proxy_port: int | None = None):
         """Launch Chromium with the OS sandbox ON by default; fail loudly if it can't and the
-        sandbox wasn't explicitly disabled (never silently run unsandboxed)."""
+        sandbox wasn't explicitly disabled (never silently run unsandboxed). When ``proxy_port``
+        is set, route ALL egress (incl. loopback) through the vetting proxy so Chromium never
+        resolves hosts itself — closing the DNS-rebinding race."""
         use_sandbox = self.settings.chromium_sandbox
         args = list(_LAUNCH_ARGS) + ([] if use_sandbox else ["--no-sandbox"])
+        if proxy_port:
+            args += [f"--proxy-server=127.0.0.1:{proxy_port}", "--proxy-bypass-list=<-loopback>"]
         try:
             return await pw.chromium.launch(headless=True, chromium_sandbox=use_sandbox, args=args)
         except Exception as e:  # noqa: BLE001
@@ -144,6 +148,16 @@ class PlaywrightRenderer:
             raise RenderError(
                 f"Could not launch Chromium: {e}\nRun `agentvision doctor` to diagnose."
             ) from e
+
+    async def _start_proxy(self):
+        """Start the vetting egress proxy unless SSRF protection is disabled (--allow-local)."""
+        if not self.settings.block_private_networks:
+            return None
+        from ..proxy import VettingProxy
+
+        p = VettingProxy()
+        await p.start()
+        return p
 
     def _clamp(self, vp: Viewport, dsf: float) -> tuple[int, int, float]:
         """Bound viewport + device_scale so an attacker can't request a giant buffer."""
@@ -185,27 +199,31 @@ class PlaywrightRenderer:
         visual_tags: list[str] = []
         visual_elements: list[ElementBox] = []
 
-        async with async_playwright() as pw:
-            browser = await self._launch(pw)
-            try:
-                for idx, vp in enumerate(spec.viewports):
-                    page_result = await self._render_one(
-                        browser, spec, resolved, vp, out_dir, idx
-                    )
-                    images.append(page_result["image"])
-                    # DOM/CV signals only meaningful for the first (or each) viewport;
-                    # we keep the first viewport's signals as canonical.
-                    if idx == 0:
-                        dom_boxes = page_result["dom_boxes"]
-                        contrast = page_result["contrast"]
-                        broken = page_result["broken"]
-                        console_errors = page_result["console_errors"]
-                        failed = page_result["failed"]
-                        overflow_x = page_result["overflow_x"]
-                        visual_tags = page_result["visual_tags"]
-                        visual_elements = page_result["visual_elements"]
-            finally:
-                await browser.close()
+        proxy = await self._start_proxy()
+        try:
+            async with async_playwright() as pw:
+                browser = await self._launch(pw, proxy.port if proxy else None)
+                try:
+                    for idx, vp in enumerate(spec.viewports):
+                        page_result = await self._render_one(
+                            browser, spec, resolved, vp, out_dir, idx
+                        )
+                        images.append(page_result["image"])
+                        # DOM/CV signals are canonical from the first viewport.
+                        if idx == 0:
+                            dom_boxes = page_result["dom_boxes"]
+                            contrast = page_result["contrast"]
+                            broken = page_result["broken"]
+                            console_errors = page_result["console_errors"]
+                            failed = page_result["failed"]
+                            overflow_x = page_result["overflow_x"]
+                            visual_tags = page_result["visual_tags"]
+                            visual_elements = page_result["visual_elements"]
+                finally:
+                    await browser.close()
+        finally:
+            if proxy:
+                await proxy.stop()
 
         return RenderResult(
             images=images, dom_boxes=dom_boxes, contrast_samples=contrast,
@@ -369,38 +387,43 @@ class PlaywrightRenderer:
         vp = spec.viewports[0]
         dsf = spec.device_scale or 1.0
         out: list[Frame] = []
-        async with async_playwright() as pw:
-            browser = await self._launch(pw)
-            try:
-                vw, vh, dsf = self._clamp(vp, dsf)
-                context = await browser.new_context(
-                    viewport={"width": vw, "height": vh}, device_scale_factor=dsf,
-                    accept_downloads=False,
-                )
-                await self._install_guards(context)
-                page = await context.new_page()
-                context.on("page",
-                           lambda pg: asyncio.create_task(pg.close()) if pg is not page else None)
-                await self._navigate(page, resolved, spec.wait_for or self.settings.nav_wait)
-                if spec.settle_ms and spec.settle_ms > 0:
-                    await page.wait_for_timeout(spec.settle_ms)
-                for i in range(frames):
-                    try:
-                        media_raw = await page.evaluate(_MEDIA_JS) or []
-                    except Exception:  # noqa: BLE001
-                        media_raw = []
-                    img = out_dir / f"frame_{i}.png"
-                    await page.screenshot(path=str(img), full_page=False)  # no freeze: keep motion
-                    with Image.open(img) as im:
-                        iw, ih = im.size
-                    out.append(Frame(
-                        index=i, t_ms=i * interval_ms, image_path=str(img), width=iw, height=ih,
-                        media=[_to_media(m) for m in media_raw],
-                    ))
-                    if i < frames - 1:
-                        await page.wait_for_timeout(interval_ms)
-            finally:
-                await browser.close()
+        proxy = await self._start_proxy()
+        try:
+            async with async_playwright() as pw:
+                browser = await self._launch(pw, proxy.port if proxy else None)
+                try:
+                    vw, vh, dsf = self._clamp(vp, dsf)
+                    context = await browser.new_context(
+                        viewport={"width": vw, "height": vh}, device_scale_factor=dsf,
+                        accept_downloads=False,
+                    )
+                    await self._install_guards(context)
+                    page = await context.new_page()
+                    context.on("page", lambda pg: asyncio.create_task(pg.close())
+                               if pg is not page else None)
+                    await self._navigate(page, resolved, spec.wait_for or self.settings.nav_wait)
+                    if spec.settle_ms and spec.settle_ms > 0:
+                        await page.wait_for_timeout(spec.settle_ms)
+                    for i in range(frames):
+                        try:
+                            media_raw = await page.evaluate(_MEDIA_JS) or []
+                        except Exception:  # noqa: BLE001
+                            media_raw = []
+                        img = out_dir / f"frame_{i}.png"
+                        await page.screenshot(path=str(img), full_page=False)  # keep motion
+                        with Image.open(img) as im:
+                            iw, ih = im.size
+                        out.append(Frame(
+                            index=i, t_ms=i * interval_ms, image_path=str(img),
+                            width=iw, height=ih, media=[_to_media(m) for m in media_raw],
+                        ))
+                        if i < frames - 1:
+                            await page.wait_for_timeout(interval_ms)
+                finally:
+                    await browser.close()
+        finally:
+            if proxy:
+                await proxy.stop()
         return out
 
     async def _navigate(self, page, resolved: ResolvedSource, wait: str):
@@ -458,13 +481,9 @@ class PlaywrightRenderer:
             if scheme not in ("http", "https"):
                 await route_obj.abort()
                 return
-            # Re-resolve the host AT FETCH TIME for every request (navigation, subresource,
-            # redirect target) — defeats hostnames that point at internal/metadata addresses and
-            # re-validates redirect targets (the resolve-time check only saw a stale answer).
-            # Residual: a sub-millisecond DNS-rebinding race between this lookup and Chromium's
-            # own connect is not fully closed here (full closure needs a vetting egress proxy or
-            # connection pinning, which Playwright can't express without breaking the Host header
-            # / TLS SNI). See SECURITY.md. Run egress-restricted for a hard guarantee.
+            # Defense-in-depth in the browser (the vetting egress proxy is the primary control
+            # and closes DNS rebinding): re-resolve the host at fetch time for every request
+            # (navigation, subresource, redirect target) and abort internal/metadata targets.
             if block_private and not await host_is_safe(parsed.hostname, parsed.port):
                 await route_obj.abort()
                 return

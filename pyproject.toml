@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "agentvision"
-version = "0.7.0"
+version = "0.7.1"
 description = "Eyes for AI Agents — a machine-graded visual feedback loop coding agents consume to self-correct before claiming done."
 readme = "README.md"
 requires-python = ">=3.11"

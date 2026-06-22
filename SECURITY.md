@@ -21,6 +21,13 @@ request — navigation, subresource, **and redirect target** — and for **WebSo
 denied for subresources and allowed only for an explicit top-level navigation when
 `allow_file_scheme` is set.
 
+**DNS rebinding is closed by a vetting egress proxy** (`agentvision/proxy.py`): Chromium is
+launched with `--proxy-server` (and `--proxy-bypass-list=<-loopback>`) pointing at a local
+proxy that resolves each host **once**, vets the resolved IP, and connects to **that exact IP**.
+Because Chromium never resolves a host itself, there is no second lookup to rebind, and the
+`Host` header / TLS SNI are preserved. The proxy runs only when SSRF protection is on (it's
+skipped under `--allow-local`).
+
 **Renderer isolation.** Chromium runs with its **OS sandbox enabled by default**
 (`chromium_sandbox`); it is only disabled if you explicitly set
 `AGENTVISION_CHROMIUM_SANDBOX=false`, and a sandbox launch failure is reported loudly rather
@@ -43,17 +50,20 @@ sources, and error responses don't disclose internal detail (resolved IPs, paths
 token are read once, never persisted to cache/reports, and registered for value-based redaction
 so they're scrubbed from any log line.
 
-## Known residual
+## Defense-in-depth deployment (recommended)
 
-**DNS-rebinding sub-millisecond race.** The fetch-time SSRF check re-resolves each host, but
-Chromium then performs its *own* DNS resolution to connect — a tiny window in which an attacker
-controlling a domain with a 0-TTL rebinding resolver could serve a public address to our check
-and an internal one to Chromium's connect. Full closure needs a vetting egress proxy or
-connection-level IP pinning, which Playwright can't express without breaking the `Host` header /
-TLS SNI. Mitigations in place: every other SSRF vector (static internal hostnames, literal IPs,
-redirects, WebSockets, metadata, CGNAT, IPv4-mapped) is closed, and the race window is small.
-**For a hard guarantee, run AgentVision in an egress-restricted network** (deny the renderer
-egress to link-local/metadata/RFC-1918) — defense in depth around the application controls.
+The application controls above close the known SSRF vectors (including DNS rebinding, via the
+vetting proxy). For production, add a network-level backstop so a future bug or a disabled
+control can't reach internal services:
+
+- **Restrict the renderer's egress.** Run AgentVision (or its container) on a network that
+  **denies outbound to link-local `169.254.0.0/16`, the metadata IPs, and RFC-1918 / CGNAT
+  ranges**, allowing only the public destinations you intend to render. (e.g. a container with
+  an egress firewall / NetworkPolicy, or a locked-down VPC egress.)
+- **Keep `block_private_networks` on** (the default). Only use `--allow-local` against trusted
+  local targets.
+- **Containerize** so Chromium's OS sandbox is available (the default) without `--no-sandbox`.
+- **Require a token** for any non-loopback REST bind (enforced) and front it with TLS.
 
 ## Trust boundaries
 
