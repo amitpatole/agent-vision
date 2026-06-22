@@ -98,6 +98,16 @@ class Settings(BaseSettings):
     allow_url_rendering: bool = True
     block_private_networks: bool = True
     allow_file_scheme: bool = False
+    # Reading a local file path as a source (e.g. `analyze ./index.html`). Safe for CLI/library
+    # (trusted local user); the REST service sets this False so a remote caller can't read host
+    # files via a bare path like "/etc/passwd".
+    allow_local_files: bool = True
+
+    # HTTP service (REST): bind + auth + DoS bounds
+    api_token: str | None = Field(default=None, validation_alias="AGENTVISION_API_TOKEN")
+    max_request_bytes: int = 8_000_000  # cap request bodies before buffering/rendering
+    max_concurrent_renders: int = 4  # global semaphore so N requests can't spawn N browsers
+    request_timeout_s: float = 120.0  # hard per-request ceiling above the render timeout
 
     # Workspace
     cache_dir: Path = Field(default_factory=default_cache_dir)

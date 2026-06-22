@@ -9,7 +9,6 @@ device_scale). Every render is bounded by a hard timeout.
 from __future__ import annotations
 
 import asyncio
-import ipaddress
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -17,6 +16,7 @@ from ..config import Settings
 from ..errors import MissingDependencyError, RenderError, RenderTimeout
 from ..logging import get_logger
 from ..models.geometry import BBox, Viewport
+from ..netguard import host_is_safe
 from ..sources import ResolvedSource
 from ._extract_js import EXTRACT_JS
 from .base import (
@@ -388,20 +388,25 @@ class PlaywrightRenderer:
 
         async def route(route_obj):
             url = route_obj.request.url
-            scheme = urlparse(url).scheme
-            if scheme == "file" and not allow_file:
+            parsed = urlparse(url)
+            scheme = parsed.scheme
+            # In-page non-network schemes needed for set_content / inline rendering.
+            if scheme in ("about", "data", "blob"):
+                await route_obj.continue_()
+                return
+            if scheme == "file":
+                await (route_obj.continue_() if allow_file else route_obj.abort())
+                return
+            # Default-deny anything that isn't http(s) (gopher/ftp/ws/chrome/etc.).
+            if scheme not in ("http", "https"):
                 await route_obj.abort()
                 return
-            if block_private and scheme in ("http", "https"):
-                host = urlparse(url).hostname or ""
-                try:
-                    ip = ipaddress.ip_address(host)
-                    if (ip.is_private or ip.is_loopback or ip.is_link_local
-                            or ip.is_reserved):
-                        await route_obj.abort()
-                        return
-                except ValueError:
-                    pass  # hostname, not a literal IP; DNS-level SSRF handled at resolve time
+            # Re-resolve the host AT FETCH TIME for every request (navigation, subresource,
+            # redirect target) — this is what defeats DNS rebinding and hostnames that point
+            # at internal/metadata addresses (the resolve-time check only saw a stale answer).
+            if block_private and not await host_is_safe(parsed.hostname, parsed.port):
+                await route_obj.abort()
+                return
             await route_obj.continue_()
 
         await context.route("**/*", route)

@@ -8,14 +8,13 @@ content in a real browser.
 
 from __future__ import annotations
 
-import ipaddress
-import socket
 from dataclasses import dataclass
 from pathlib import Path
 from urllib.parse import urlparse
 
 from .config import Settings
 from .errors import UnsafeSourceError
+from .netguard import assert_host_safe
 
 # Logical source kinds. ``html``/``svg`` may be inline (content) or from a file.
 KINDS = ("html", "svg", "url", "pdf", "image", "file")
@@ -76,21 +75,8 @@ def _check_url_safety(url: str, settings: Settings) -> None:
         raise UnsafeSourceError(f"Disallowed URL scheme: {parsed.scheme!r}")
     if not settings.block_private_networks:
         return
-    host = parsed.hostname
-    if not host:
-        raise UnsafeSourceError("URL has no host.")
-    try:
-        infos = socket.getaddrinfo(host, parsed.port or (443 if parsed.scheme == "https" else 80))
-    except socket.gaierror as e:
-        raise UnsafeSourceError(f"Could not resolve host {host!r}: {e}") from e
-    for info in infos:
-        ip = ipaddress.ip_address(info[4][0])
-        if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved or ip.is_multicast:
-            raise UnsafeSourceError(
-                f"Refusing to render {host!r}: resolves to non-public address {ip} "
-                "(SSRF protection). To allow a localhost / LAN dev server, pass --allow-local "
-                "(CLI) or set AGENTVISION_BLOCK_PRIVATE_NETWORKS=false."
-            )
+    # Resolve-time SSRF check (re-checked at fetch time in the renderer route guard).
+    assert_host_safe(parsed.hostname, parsed.port or (443 if parsed.scheme == "https" else 80))
 
 
 def resolve_source(source: str, source_type: str = "auto", *, settings: Settings) -> ResolvedSource:
@@ -121,6 +107,12 @@ def resolve_source(source: str, source_type: str = "auto", *, settings: Settings
         if stype in {"html", "svg"}:
             return ResolvedSource(kind=stype, content=source)
         raise UnsafeSourceError(f"Source path does not exist: {path}")
+    # Reading a real local file: trusted for CLI/library; refused on the (untrusted) service so
+    # a remote caller can't read host files via a bare path like "/etc/passwd".
+    if not settings.allow_local_files:
+        raise UnsafeSourceError(
+            "Refusing to read a local file source (not permitted on this service)."
+        )
 
     ext = path.suffix.lower()
     if stype == "file" or source_type == "auto":
