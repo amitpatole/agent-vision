@@ -146,9 +146,19 @@ class Settings(BaseSettings):
                     key = f.read_text().strip() or None
                 except OSError:
                     key = None
+        if key:
+            # Register the resolved value so it is scrubbed from any log line (defense-in-depth).
+            from .logging import register_secret
+
+            register_secret(key)
         return key
 
 
 def load_settings(**overrides) -> Settings:
     """Build a Settings object, applying any explicit overrides last."""
-    return Settings(**{k: v for k, v in overrides.items() if v is not None})
+    s = Settings(**{k: v for k, v in overrides.items() if v is not None})
+    if s.api_token:
+        from .logging import register_secret
+
+        register_secret(s.api_token)
+    return s
