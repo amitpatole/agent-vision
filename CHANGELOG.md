@@ -55,6 +55,54 @@ clean, provider-agnostic handoff — it perceives and hands off, it does not dec
   brain's sense adapter can keep it for provenance yet exclude it from gating (this honors the
   contract Verel's `verel.senses.sight` already documents and tests).
 
+## [0.7.0] — 2026-06-22 — security hardening release
+
+A full audit → fix → verify → red-team pass across three surfaces (network/input, renderer
+sandboxing, image/secret handling). Every fix ships with a regression test and was run as a
+live exploit against the fixed code. See [SECURITY.md](SECURITY.md).
+
+### Fixed — SSRF (the headline surface)
+- The renderer route guard now **re-resolves every request's host at fetch time** (navigation,
+  subresources, redirect targets) and intercepts **WebSocket** connections (`route_web_socket`)
+  — previously only literal-IP hosts were checked and `ws://` wasn't covered, so attacker HTML
+  could reach cloud metadata / LAN by hostname or WebSocket.
+- One policy (`netguard.py`): blocks private/loopback/link-local/reserved/multicast/unspecified
+  + **CGNAT (100.64/10)** + cloud-metadata; normalizes **IPv4-mapped IPv6**; fails closed.
+- Non-`http(s)` schemes default-denied; `file://` allowed only for top-level navigation, never
+  subresources; bare local-file sources gated (`allow_local_files`, off for the service).
+- SSRF errors no longer disclose the resolved IP (oracle).
+
+### Fixed — renderer isolation
+- Chromium **OS sandbox ON by default** (`chromium_sandbox`); `--no-sandbox` only when
+  explicitly disabled, with a loud failure instead of a silent unsandboxed downgrade.
+- Viewport/`device_scale`/full-page capture clamped (OOM bound); downloads disabled; pop-ups
+  closed; `watch` frames/interval clamped.
+
+### Fixed — untrusted bytes
+- Decompression-bomb guard (`imageguard.py`): byte + pixel caps before any decode at every
+  attacker-reachable site; PIL bomb guard armed. PDF byte/size/timeout bounds; OCR timeout.
+
+### Fixed — the HTTP service
+- Token auth (constant-time); **refuses a non-loopback bind without `AGENTVISION_API_TOKEN`**;
+  request-body cap (incl. chunked streams); concurrent-render semaphore; generic (non-leaky)
+  errors; refuses local-file sources. (Also fixed FastAPI 422 from body models nested in
+  `build_app`.)
+
+### Fixed — secrets
+- Value-based log scrubbing (resolved keys/token registered + redacted); no default/hardcoded
+  secret anywhere.
+
+### Changed defaults (action may be required)
+- The Chromium sandbox is now ON — bare/CI hosts without user namespaces must containerize or
+  set `AGENTVISION_CHROMIUM_SANDBOX=false`.
+- `agentvision serve` refuses a non-loopback `--host` unless `AGENTVISION_API_TOKEN` is set.
+- The REST service refuses local-file sources.
+
+### Known residual
+- A sub-millisecond **DNS-rebinding race** between the fetch-time check and Chromium's own
+  connect is not fully closed (needs a vetting egress proxy). Run egress-restricted for a hard
+  guarantee — see SECURITY.md.
+
 ## [0.6.1] — 2026-06-19
 
 ### Added — developer adoption (workflows + agents)
