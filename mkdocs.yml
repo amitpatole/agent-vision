@@ -11,11 +11,10 @@ docs_dir: docs
 theme:
   name: material
   palette:
-    - scheme: slate
-      primary: deep purple
-      accent: cyan
+    scheme: default          # Warm Paper — light, editorial
   font:
     text: Inter
+    code: JetBrains Mono
   icon:
     repo: fontawesome/brands/github
   features:
@@ -29,6 +28,9 @@ theme:
     - toc.follow
     - search.suggest
     - search.highlight
+
+extra_css:
+  - stylesheets/extra.css
 
 markdown_extensions:
   - admonition
@@ -51,7 +53,10 @@ plugins:
       handlers:
         python:
           paths: [src]
+          # agentsensory is an external dep; preload it so griffe can resolve the
+          # re-exported Brief/Issue/Report aliases instead of erroring on api.md.
           options:
+            preload_modules: [agentsensory]
             show_root_heading: true
             show_root_full_path: false
             show_source: false

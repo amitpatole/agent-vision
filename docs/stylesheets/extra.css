@@ -1,0 +1,135 @@
+/* ============================================================================
+   Trio Design System — "Warm Paper" · MkDocs Material override
+   Light-first, printed-document calm. No gradients, no glows. One accent.
+   CANONICAL FILE — copied into each repo's docs/stylesheets/extra.css.
+   Per-repo: change the two --accent lines below (eyes / ears / brain).
+   ============================================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600;8..60,700&display=swap');
+
+:root {
+  /* ---- Warm Paper tokens ---- */
+  --wp-bg:        #f7f5f1;
+  --wp-surface:   #fffdf9;
+  --wp-panel:     #efece4;
+  --wp-ink:       #1b1a17;
+  --wp-ink-muted: #6b6862;
+  --wp-ink-faint: #918d84;
+  --wp-rule:      #e3ded4;
+
+  /* ---- Per-sense accent — EYES / AgentVision ---- */
+  --wp-accent:     #3a8a99;
+  --wp-accent-ink: #256b78;
+
+  --wp-serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+}
+
+/* ---- Map tokens onto Material's light scheme ---- */
+[data-md-color-scheme="default"] {
+  --md-default-bg-color:            var(--wp-bg);
+  --md-default-fg-color:            var(--wp-ink);
+  --md-default-fg-color--light:     var(--wp-ink-muted);
+  --md-default-fg-color--lighter:   var(--wp-ink-faint);
+  --md-default-fg-color--lightest:  var(--wp-rule);
+
+  --md-primary-fg-color:            var(--wp-bg);   /* header = paper, not a color bar */
+  --md-primary-fg-color--light:     var(--wp-bg);
+  --md-primary-fg-color--dark:      var(--wp-bg);
+  --md-primary-bg-color:            var(--wp-ink);  /* header text = ink */
+  --md-primary-bg-color--light:     var(--wp-ink-muted);
+
+  --md-accent-fg-color:             var(--wp-accent-ink);
+  --md-accent-fg-color--transparent: color-mix(in srgb, var(--wp-accent) 12%, transparent);
+
+  --md-typeset-color:               var(--wp-ink);
+  --md-typeset-a-color:             var(--wp-accent-ink);
+
+  --md-code-bg-color:               var(--wp-panel);
+  --md-code-fg-color:               var(--wp-ink);
+  --md-footer-bg-color:             var(--wp-surface);
+  --md-footer-bg-color--dark:       var(--wp-surface);
+  --md-footer-fg-color:             var(--wp-ink-muted);
+  --md-footer-fg-color--light:      var(--wp-ink-faint);
+
+  color-scheme: light;
+}
+
+/* ---- Header: paper with a hairline, no heavy bar ---- */
+.md-header {
+  color: var(--wp-ink);
+  border-bottom: 1px solid var(--wp-rule);
+  box-shadow: none;
+}
+.md-header--shadow { box-shadow: none; }
+.md-tabs {
+  background: var(--wp-bg);
+  color: var(--wp-ink);
+  border-bottom: 1px solid var(--wp-rule);
+}
+
+/* ---- Serif display for headings; tight, never heavy ---- */
+.md-typeset h1, .md-typeset h2, .md-typeset h3,
+.md-content__inner > h1, .md-nav__title {
+  font-family: var(--wp-serif);
+  letter-spacing: -.01em;
+  font-weight: 600;
+  color: var(--wp-ink);
+}
+.md-typeset h1 { font-weight: 600; }
+
+/* The page H1 gets a quiet accent hairline underneath — the single accent gesture */
+.md-typeset h1 {
+  padding-bottom: .35rem;
+  border-bottom: 1px solid var(--wp-rule);
+  position: relative;
+}
+.md-typeset h1::after {
+  content: ""; position: absolute; left: 0; bottom: -1px;
+  width: 2.2rem; height: 1px; background: var(--wp-accent);
+}
+
+/* ---- Links: accent-ink, underline on hover only ---- */
+.md-typeset a { color: var(--wp-accent-ink); text-decoration: none; }
+.md-typeset a:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+/* ---- Code: quiet panel, hairline, no neon ---- */
+.md-typeset pre > code,
+.md-typeset .highlight { border-radius: 8px; }
+.md-typeset pre { border: 1px solid var(--wp-rule); border-radius: 8px; }
+.md-typeset code { background: var(--wp-panel); }
+
+/* ---- Tables & admonitions: hairlines, soft fills ---- */
+.md-typeset table:not([class]) {
+  border: 1px solid var(--wp-rule); border-radius: 8px; overflow: hidden;
+}
+.md-typeset table:not([class]) th {
+  background: var(--wp-panel); color: var(--wp-ink); font-weight: 600;
+}
+.md-typeset .admonition, .md-typeset details {
+  border: 1px solid var(--wp-rule); border-left-width: 2px;
+  border-left-color: var(--wp-accent); box-shadow: none; background: var(--wp-surface);
+}
+
+/* ---- Buttons / primary CTA ---- */
+.md-typeset .md-button--primary {
+  background: var(--wp-accent-ink); border-color: var(--wp-accent-ink); color: var(--wp-surface);
+}
+.md-typeset .md-button--primary:hover {
+  background: var(--wp-ink); border-color: var(--wp-ink);
+}
+
+/* ---- Search ---- */
+.md-search__form { background: var(--wp-surface); border: 1px solid var(--wp-rule); }
+.md-search__input::placeholder { color: var(--wp-ink-faint); }
+
+/* ---- Maker's mark: quiet "— amitpatole" signature in the footer ---- */
+.md-footer-meta { border-top: 1px solid var(--wp-rule); }
+.md-footer-meta__inner::after {
+  content: "— amitpatole";
+  font-family: var(--wp-serif); font-style: italic; font-size: .8rem;
+  color: var(--wp-accent-ink); margin-left: auto; padding: 0 .6rem;
+  align-self: center; white-space: nowrap;
+}
+
+/* ---- Tighten the overall feel ---- */
+.md-grid { max-width: 64rem; }      /* comfortable measure */
+.md-typeset { line-height: 1.62; }

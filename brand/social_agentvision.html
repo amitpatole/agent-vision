@@ -1,0 +1,52 @@
+<!doctype html>
+<html data-sense="eyes"><head><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f7f5f1; --surface:#fffdf9; --panel:#efece4;
+    --ink:#1b1a17; --ink-muted:#6b6862; --ink-faint:#918d84; --rule:#e3ded4;
+    --accent:#3a8a99; --accent-ink:#256b78;
+    --serif:"Source Serif 4",Georgia,serif; --sans:"Inter",system-ui,sans-serif;
+    --mono:ui-monospace,"JetBrains Mono",Menlo,monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{width:1280px;height:640px;overflow:hidden;background:var(--bg);
+       color:var(--ink);font-family:var(--sans);display:flex}
+  .spine{width:8px;height:100%;background:var(--accent)}
+  .pad{flex:1;padding:84px 96px 64px;display:flex;flex-direction:column;justify-content:space-between}
+  .eyebrow{font-size:21px;letter-spacing:.22em;text-transform:uppercase;
+           color:var(--accent-ink);font-weight:600;display:flex;align-items:center;gap:14px}
+  .eyebrow .dot{width:7px;height:7px;border-radius:50%;background:var(--accent);display:inline-block}
+  h1{font-family:var(--serif);font-size:104px;line-height:.96;letter-spacing:-.02em;
+     font-weight:600;margin:26px 0 22px;color:var(--ink)}
+  .rule{width:96px;height:1px;background:var(--rule);margin:0 0 26px}
+  .tag{font-family:var(--serif);font-size:35px;line-height:1.42;color:var(--ink-muted);
+       max-width:800px;font-weight:400}
+  .tag b{color:var(--ink);font-weight:600}
+  .foot{display:flex;align-items:center;justify-content:space-between;margin-top:36px}
+  .chips{display:flex;gap:14px;align-items:center}
+  .chip{font-family:var(--mono);font-size:20px;color:var(--ink);background:var(--panel);
+        border:1px solid var(--rule);border-radius:8px;padding:11px 20px}
+  .chip.q{background:transparent;color:var(--ink-faint);border-color:transparent;padding-left:0}
+  .sig{font-family:var(--serif);font-style:italic;font-size:24px;color:var(--accent-ink)}
+</style></head>
+<body>
+  <div class="spine"></div>
+  <div class="pad">
+    <div>
+      <div class="eyebrow"><span class="dot"></span>Eyes · The visual sense</div>
+      <h1>AgentVision</h1>
+      <div class="rule"></div>
+      <div class="tag">Machine-graded <b>visual feedback</b> a coding agent consumes to see its own
+        output — and self-correct before it claims <b>done</b>.</div>
+    </div>
+    <div class="foot">
+      <div class="chips">
+        <span class="chip">pip install agentvision</span>
+        <span class="chip q">MIT · 150 tests</span>
+      </div>
+      <div class="sig">— amitpatole</div>
+    </div>
+  </div>
+</body></html>
