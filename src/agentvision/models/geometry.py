@@ -1,8 +1,16 @@
-"""Geometry primitives. Pure Pydantic — no numpy/cv2 at import time."""
+"""Geometry primitives. Pure Pydantic — no numpy/cv2 at import time.
+
+``BBox`` is the shared pixel-grounding primitive (lives in :mod:`agentsensory` so the ears can
+ignore it and the brain can read it uniformly); ``Size``/``Viewport`` are render-specific and
+stay here.
+"""
 
 from __future__ import annotations
 
-from pydantic import BaseModel, Field
+from agentsensory import BBox
+from pydantic import BaseModel
+
+__all__ = ["BBox", "Size", "Viewport"]
 
 
 class Size(BaseModel):
@@ -16,27 +24,3 @@ class Viewport(BaseModel):
 
     def label(self) -> str:
         return f"{self.width}x{self.height}"
-
-
-class BBox(BaseModel):
-    """An axis-aligned box. Always in IMAGE pixels once it reaches a Report."""
-
-    x: float = Field(ge=0)
-    y: float = Field(ge=0)
-    width: float = Field(ge=0)
-    height: float = Field(ge=0)
-
-    @property
-    def x2(self) -> float:
-        return self.x + self.width
-
-    @property
-    def y2(self) -> float:
-        return self.y + self.height
-
-    def scaled(self, factor: float) -> BBox:
-        return BBox(x=self.x * factor, y=self.y * factor,
-                    width=self.width * factor, height=self.height * factor)
-
-    def translated(self, dx: float, dy: float) -> BBox:
-        return BBox(x=self.x + dx, y=self.y + dy, width=self.width, height=self.height)

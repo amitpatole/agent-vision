@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "agentvision"
-version = "0.8.0"
+version = "0.9.0"
 description = "Eyes for AI Agents — a machine-graded visual feedback loop coding agents consume to self-correct before claiming done."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -21,6 +21,7 @@ classifiers = [
     "Topic :: Software Development :: Testing",
 ]
 dependencies = [
+    "agentsensory>=0.1",
     "pydantic>=2.6",
     "pydantic-settings>=2.2",
     "pillow>=10.0",
