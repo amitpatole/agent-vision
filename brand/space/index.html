@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script>window.huggingface={variables:{"SPACE_CREATOR_USER_ID":"69a8ab16d8a25438919538eb"}};</script>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>AgentVision — Eyes for AI Agents</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600;8..60,700&family=JetBrains+Mono:wght@400;500&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#f7f5f1;--surface:#fffdf9;--surface2:#fdfbf7;--border:#e3ded4;--panel:#efece4;
+  --accent:#3a8a99;--acc-ink:#256b78;--good:#3f7d52;--warn:#a8741f;--fail:#b0524a;
+  --text:#1b1a17;--muted:#6b6862;--faint:#918d84;--code:#efece4;
+  --serif:"Source Serif 4",Georgia,serif;--mono:"JetBrains Mono",ui-monospace,Menlo,monospace}
+html{scroll-behavior:smooth}
+body{font-family:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.62;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+a{color:var(--acc-ink);text-decoration:none}a:hover{text-decoration:underline;text-underline-offset:3px}
+#pts{display:none}
+.fi,.bgi{display:none}
+nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:.85rem 2.5rem;background:rgba(247,245,241,.86);backdrop-filter:blur(10px);border-bottom:1px solid var(--border)}
+.brand{display:flex;align-items:center;gap:.6rem;font-family:var(--serif);font-size:1.32rem;font-weight:600;letter-spacing:-.01em;color:var(--text)}
+.eye-ball{width:9px;height:9px;border-radius:50%;background:var(--accent);display:inline-block;border:none;animation:none}
+.brand-name{color:var(--text)}
+.nav-links{display:flex;align-items:center;gap:1.6rem;font-size:.9rem}
+.nav-links a{color:var(--muted);transition:color .2s}.nav-links a:hover{color:var(--text);text-decoration:none}
+.vbadge{background:var(--surface);border:1px solid var(--border);color:var(--muted);font-size:.72rem;padding:.2rem .55rem;border-radius:999px}
+.btn-star{background:var(--acc-ink);color:var(--bg)!important;font-weight:600;padding:.45rem 1.1rem;border-radius:8px;font-size:.82rem}
+.btn-star:hover{background:var(--text);text-decoration:none!important}
+.hero{position:relative;text-align:center;padding:6.5rem 2rem 4.5rem;max-width:880px;margin:0 auto;z-index:1}
+.eyebrow{display:inline-flex;align-items:center;gap:.55rem;background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:.4rem 1rem;font-size:.78rem;color:var(--acc-ink);font-weight:600;letter-spacing:.05em;margin-bottom:1.75rem}
+.dot-live{width:7px;height:7px;background:var(--accent);border-radius:50%;display:inline-block}
+h1{font-family:var(--serif);font-size:clamp(2.4rem,5.5vw,3.9rem);font-weight:600;line-height:1.06;letter-spacing:-.02em;margin-bottom:1.25rem;color:var(--text)}
+.w-agents{color:var(--acc-ink)}
+.w-blind{color:var(--fail);text-decoration:line-through;text-decoration-color:rgba(176,82,74,.5)}
+.hero-sub{font-family:var(--serif);font-size:1.25rem;color:var(--muted);max-width:600px;margin:0 auto 2.25rem;line-height:1.5}
+.hero-sub strong{color:var(--text)}
+.hero-btns{display:flex;gap:.9rem;justify-content:center;flex-wrap:wrap;margin-bottom:2.5rem}
+.btn{display:inline-flex;align-items:center;gap:.45rem;padding:.7rem 1.5rem;border-radius:9px;font-size:.9rem;font-weight:600;transition:all .15s;cursor:pointer;border:1px solid var(--border)}
+.btn:hover{transform:translateY(-1px);text-decoration:none}
+.btn-prim{background:var(--acc-ink);color:var(--bg);border-color:var(--acc-ink)}
+.btn-prim:hover{background:var(--text);border-color:var(--text)}
+.btn-ghost{background:var(--surface);color:var(--text);border:1px solid var(--border)}
+.btn-ghost:hover{border-color:var(--accent);color:var(--acc-ink)}
+.pip-box{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:1rem 1.5rem;font-family:var(--mono);font-size:.9rem;display:inline-flex;align-items:center;gap:.75rem;color:var(--text)}
+.dol{color:var(--acc-ink)}.cmd{color:var(--acc-ink)}.pkg{color:var(--warn)}
+.loop-wrap{position:relative;z-index:1;max-width:900px;margin:0 auto 5rem;padding:0 2rem;text-align:center}
+.sec-chip{display:inline-block;font-size:.72rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--acc-ink);background:transparent;border:none;padding:0 0 .2rem;border-radius:0;margin-bottom:.7rem}
+.sec-title{font-family:var(--serif);font-size:1.85rem;font-weight:600;letter-spacing:-.01em;margin-bottom:.55rem;color:var(--text)}
+.sec-sub{color:var(--muted);font-size:.95rem;margin-bottom:2rem}
+.loop-rail{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:.5rem;padding:2rem;background:var(--surface);border:1px solid var(--border);border-radius:14px;margin-bottom:1.5rem;position:relative;overflow:hidden}
+.loop-rail::before{content:none}
+.lnode{background:var(--panel);border:1px solid var(--border);border-radius:9px;padding:.65rem 1.1rem;font-size:.85rem;font-weight:600;white-space:nowrap;position:relative;z-index:1;color:var(--text)}
+.larr{color:var(--accent);opacity:.8;position:relative;z-index:1;font-size:1.1rem}
+.verdicts{display:flex;justify-content:center;gap:1.25rem;flex-wrap:wrap}
+.verd{padding:.4rem 1.1rem;border-radius:999px;font-size:.8rem;font-weight:600;letter-spacing:.04em}
+.v-pass{background:rgba(63,125,82,.08);color:var(--good);border:1.5px solid var(--good)}
+.v-warn{background:rgba(168,116,31,.08);color:var(--warn);border:1.5px solid var(--warn)}
+.v-fail{background:rgba(176,82,74,.08);color:var(--fail);border:1.5px solid var(--fail)}
+.sec{position:relative;z-index:1;max-width:1060px;margin:0 auto 5rem;padding:0 2rem}
+.feat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(275px,1fr));gap:1.1rem}
+.feat{background:var(--surface);border:1px solid var(--border);border-left:2px solid var(--accent);border-radius:12px;padding:1.6rem;transition:all .2s;position:relative;overflow:hidden}
+.feat::before{content:none}
+.feat:hover{transform:translateY(-2px)}
+.feat h3{font-family:var(--serif);font-size:1.12rem;font-weight:600;margin-bottom:.4rem;position:relative}
+.feat p{font-size:.86rem;color:var(--muted);line-height:1.6;position:relative}
+.feat code,.ic{background:var(--code);padding:.1rem .4rem;border-radius:5px;font-size:.8rem;color:var(--acc-ink);font-family:var(--mono)}
+.tbl-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+table{width:100%;border-collapse:collapse;font-size:.9rem}
+th{text-align:left;padding:.8rem 1.25rem;background:var(--panel);color:var(--muted);font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;border-bottom:1px solid var(--border)}
+td{padding:.85rem 1.25rem;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}tr:hover td{background:rgba(0,0,0,.015)}
+.tag{display:inline-block;font-size:.72rem;font-weight:600;padding:.2rem .5rem;border-radius:5px;background:var(--panel);color:var(--acc-ink);border:1px solid var(--border);font-family:var(--mono)}
+.tc{font-size:.8rem;color:var(--faint);font-family:var(--mono)}
+.bg-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem}
+.bg-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1.5rem;text-align:center;transition:all .15s}
+.bg-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.bg-card h4{font-family:var(--serif);font-size:1.05rem;font-weight:600;margin-bottom:.35rem}
+.bg-card p{font-size:.8rem;color:var(--muted);line-height:1.5}
+.ig{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem}
+@media(max-width:680px){.ig{grid-template-columns:1fr}}
+.cc{background:var(--code);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.cc-hdr{display:flex;align-items:center;justify-content:space-between;padding:.6rem 1rem;background:var(--panel);border-bottom:1px solid var(--border)}
+.cc-title{font-size:.72rem;font-weight:600;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.dots{display:flex;gap:.35rem}.dot{width:10px;height:10px;border-radius:50%}
+.d1{background:#e0a39a}.d2{background:#d8c08a}.d3{background:#9ec2a0}
+pre{padding:1.1rem 1.25rem;font-family:var(--mono);font-size:.79rem;line-height:1.75;overflow-x:auto;color:#3a3836}
+.c{color:var(--faint)}.g{color:var(--acc-ink)}.a{color:var(--warn)}.b{color:#6b4a8a}
+.honesty-box{background:var(--surface);border:1px solid var(--border);border-left:2px solid var(--warn);border-radius:12px;padding:1.75rem 2rem;position:relative;overflow:hidden}
+.honesty-box::before{content:none}
+.honesty-box h3{font-family:var(--serif);font-size:1.1rem;font-weight:600;color:var(--warn);margin-bottom:1rem}
+.honesty-box ul{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:.5rem .75rem}
+@media(max-width:580px){.honesty-box ul{grid-template-columns:1fr}}
+.honesty-box li{font-size:.85rem;color:var(--muted);display:flex;align-items:baseline;gap:.5rem}
+.honesty-box li::before{content:" d7";color:var(--fail);font-weight:700;flex-shrink:0}
+footer{position:relative;z-index:1;border-top:1px solid var(--border);padding:2.5rem 2rem;text-align:center;color:var(--muted);font-size:.85rem;margin-top:2rem}
+.ft-links{display:flex;justify-content:center;gap:2rem;margin-bottom:1rem;flex-wrap:wrap}
+.ft-links a{color:var(--muted);transition:color .2s}.ft-links a:hover{color:var(--text);text-decoration:none}
+.sig{font-family:var(--serif);font-style:italic;color:var(--acc-ink);font-size:1.05rem;display:block;margin-top:.7rem}
+@media(max-width:640px){nav{padding:.75rem 1.25rem}.nav-links{gap:1rem}.hero{padding:5rem 1.25rem 3.5rem}.loop-rail{padding:1.25rem}.lnode{font-size:.78rem;padding:.5rem .75rem}.sec{padding:0 1.25rem}.sec-title{font-size:1.5rem}td,th{padding:.65rem .85rem}}
+</style>
+</head>
+<body>
+<div id="pts"></div>
+<script>
+(function(){var p=document.getElementById('pts');for(var i=0;i<55;i++){var d=document.createElement('div');d.className='pt';d.style.cssText='left:'+Math.random()*100+'%;bottom:'+Math.random()*10+'%;--d:'+(6+Math.random()*14)+'s;--delay:'+(-Math.random()*14)+'s';p.appendChild(d);}})();
+</script>
+
+<nav>
+  <div class="brand"><span class="eye-ball"></span><span class="brand-name">AgentVision</span></div>
+  <div class="nav-links">
+    <a href="#features">Features</a>
+    <a href="#surfaces">Surfaces</a>
+    <a href="#install">Install</a>
+    <a href="https://github.com/amitpatole/agent-vision" target="_blank">GitHub</a>
+    <a href="https://pypi.org/project/agentvision/" target="_blank" class="vbadge">v0.9.1</a>
+    <a href="https://github.com/amitpatole/agent-vision" target="_blank" class="btn btn-star">★ Star</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="eyebrow"><span class="dot-live"></span>AgentVision v0.9.1 is live on PyPI</div>
+  <h1>Coding <span class="w-agents">agents</span> are <span class="w-blind">blind</span>.<br>Now they can see.</h1>
+  <p class="hero-sub">Closes the visual feedback loop for AI coding agents:<br><strong>render → perceive → report → fix</strong> — before claiming done.</p>
+  <div class="hero-btns">
+    <a class="btn btn-prim" href="https://github.com/amitpatole/agent-vision" target="_blank">View on GitHub</a>
+    <a class="btn btn-ghost" href="https://pypi.org/project/agentvision/" target="_blank">PyPI Package</a>
+    <a class="btn btn-ghost" href="https://amitpatole.github.io/agent-vision/" target="_blank">Docs</a>
+  </div>
+  <div class="pip-box"><span class="dol">$</span><span class="cmd">pip install</span><span class="pkg">"agentvision[render]"</span></div>
+</section>
+
+<div class="loop-wrap">
+  <div class="sec-chip">How it works</div>
+  <h2 class="sec-title">The Self-Correcting Visual Loop</h2>
+  <p class="sec-sub">A machine-graded cycle the agent consumes to catch and fix visual bugs autonomously.</p>
+  <div class="loop-rail">
+    <div class="lnode">Render</div><div class="larr">→</div>
+    <div class="lnode">Perceive</div><div class="larr">→</div>
+    <div class="lnode">Report</div><div class="larr">→</div>
+    <div class="lnode">Agent Fixes</div><div class="larr">→</div>
+    <div class="lnode">Re-render</div><div class="larr">→</div>
+    <div class="lnode">Diff</div>
+  </div>
+  <div class="verdicts">
+    <span class="verd v-pass">✓ PASS</span>
+    <span class="verd v-warn">⚠ WARN</span>
+    <span class="verd v-fail">✗ FAIL</span>
+  </div>
+</div>
+
+<section class="sec" id="features">
+  <div style="text-align:center;margin-bottom:2.25rem">
+    <div class="sec-chip">Trustworthy by design</div>
+    <h2 class="sec-title">Grounded findings, not guesses</h2>
+    <p class="sec-sub">Every issue is anchored to a real DOM source — no hallucinated pixel boxes.</p>
+  </div>
+  <div class="feat-grid">
+    <div class="feat"><div class="fi">📐</div><h3>DOM Geometry</h3><p>Precise element boxes via <code>getBoundingClientRect</code> + scroll offset. Coordinate-grounded overflow and clip detection.</p></div>
+    <div class="feat"><div class="fi">🎨</div><h3>Real WCAG Contrast</h3><p>Ratios from <code>getComputedStyle</code> — degrades honestly over gradients and images rather than lying.</p></div>
+    <div class="feat"><div class="fi">🔤</div><h3>OCR Word Boxes</h3><p>Tesseract-powered text locations for clipped labels, overflowing content, and garbled rendering.</p></div>
+    <div class="feat"><div class="fi">🌐</div><h3>Network &amp; Console</h3><p>Catches 4xx errors and console warnings — the #1 “looks fine in code, broken live” cause.</p></div>
+    <div class="feat"><div class="fi">🤖</div><h3>Vision LLM Critique</h3><p>Claude / OpenAI / Gemini add semantic critique on top. Pixel boxes flagged <code>bbox_precise:false</code>.</p></div>
+    <div class="feat"><div class="fi">📱</div><h3>Responsive Sheets</h3><p>Contact sheets across 375, 768, 1280, 1920 px breakpoints to surface layout bugs at every viewport.</p></div>
+    <div class="feat"><div class="fi">📸</div><h3>Visual Regression</h3><p>Named baseline snapshots + diff scoring so agents know exactly what regressed between iterations.</p></div>
+    <div class="feat"><div class="fi">🩺</div><h3>Doctor Command</h3><p>Runs a real Chromium launch, checks Tesseract, poppler, and every missing system dependency.</p></div>
+    <div class="feat"><div class="fi">🔌</div><h3>Provider-Agnostic API</h3><p>Swap backends via <code>--backend</code> flag or env var. Uniform API surface across all vision providers.</p></div>
+    <div class="feat"><div class="fi">🎞️</div><h3>Temporal Verification</h3><p><code>watch</code> samples frames over time to verify <strong>playback, loading &amp; liveness</strong> — is the video actually playing, did the spinner clear, are captions on. Deterministic &lt;video&gt; state + pixel liveness. For streaming UIs &amp; live dashboards.</p></div>
+    <div class="feat"><div class="fi">🧩</div><h3>Full-Coverage Vision</h3><p>Large artifacts are tiled at <strong>full resolution</strong> (overview + detail), so no small text or chart data is lost to downscaling. Pixel-based &amp; source-agnostic — HTML, images, PDFs, canvas alike.</p></div>
+  </div>
+</section>
+
+<section class="sec" id="eyes-brain">
+  <div class="sec-chip">Eyes &amp; Brain</div>
+  <h2 class="sec-title">The eyes for a brain that decides</h2>
+  <p class="sec-sub">AgentVision is the <strong>eyes</strong>. Pair it with <a href="https://huggingface.co/spaces/amitpatole/verel" target="_blank">Verel</a> — the <strong>brain</strong> — where nothing is &ldquo;done&rdquo; until a grader returns a verdict. The eyes perceive and grade intent; the brain decides with attestation and compounds <strong>only verified work</strong> into memory. Then the eyes look again.</p>
+  <p style="text-align:center;margin-top:1.5rem"><img src="https://raw.githubusercontent.com/amitpatole/verel/main/media/unified-architecture.png" alt="Eyes and Brain - AgentVision perceives and grades intent; Verel decides and compounds verified work into memory" style="max-width:100%;border-radius:16px;border:1px solid #2a3142"></p>
+  <p class="sec-sub" style="margin-top:1.75rem"><strong>New in v0.9.1:</strong> intent conformance (does it match what you set out to build?), a generative loop for AI images/infographics, and the eyes&rarr;brain <code>Handoff</code> signal. <a href="https://github.com/amitpatole/verel" target="_blank">Verel on GitHub &rarr;</a></p>
+</section>
+
+<section class="sec" id="surfaces">
+  <div style="text-align:center;margin-bottom:2.25rem">
+    <div class="sec-chip">Flexible integration</div>
+    <h2 class="sec-title">Many faces, one core</h2>
+    <p class="sec-sub">Use AgentVision from any surface that fits your workflow.</p>
+  </div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Surface</th><th>Who it’s for</th></tr></thead>
+      <tbody>
+        <tr><td><span class="tag">Library</span> &nbsp;<span class="tc">import agentvision</span></td><td>Python apps and custom agent harnesses</td></tr>
+        <tr><td><span class="tag">CLI</span> &nbsp;<span class="tc">agentvision analyze / loop / sheet</span></td><td>Any agent that can run a shell command; CI pipelines</td></tr>
+        <tr><td><span class="tag">Skill</span> &nbsp;Claude Code Skill</td><td>Claude agents — auto-invokes the loop before claiming done</td></tr>
+        <tr><td><span class="tag">MCP</span> &nbsp;<span class="tc">agentvision-mcp</span></td><td>Cursor, Claude Desktop, any MCP-capable host</td></tr>
+        <tr><td><span class="tag">REST</span> &nbsp;<span class="tc">agentvision-serve</span></td><td>Non-MCP / networked / CI agents via HTTP</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="sec">
+  <div style="text-align:center;margin-bottom:2.25rem">
+    <div class="sec-chip">Vision backends</div>
+    <h2 class="sec-title">Pluggable &amp; provider-agnostic</h2>
+    <p class="sec-sub">Switch via <span class="ic">--backend</span> or <span class="ic">AGENTVISION_VISION_BACKEND</span></p>
+  </div>
+  <div class="bg-grid">
+    <div class="bg-card"><div class="bgi">🟣</div><h4>Anthropic</h4><p>Default: claude-haiku-4-5<br>Upgradable to Sonnet / Opus</p></div>
+    <div class="bg-card"><div class="bgi">🟢</div><h4>OpenAI</h4><p>GPT-4o and compatible vision models</p></div>
+    <div class="bg-card"><div class="bgi">🔵</div><h4>Gemini</h4><p>Google Gemini vision via google-genai</p></div>
+    <div class="bg-card"><div class="bgi">⚫</div><h4>Local (no key)</h4><p>CV + OCR heuristics. No API key, no egress — great for CI &amp; air-gapped envs.</p></div>
+  </div>
+</section>
+
+<section class="sec" id="install">
+  <div style="text-align:center;margin-bottom:2.25rem">
+    <div class="sec-chip">Get started</div>
+    <h2 class="sec-title">Running in 60 seconds</h2>
+    <p class="sec-sub">No API key required for the demo.</p>
+  </div>
+  <div class="ig">
+    <div class="cc"><div class="cc-hdr"><div class="dots"><div class="dot d1"></div><div class="dot d2"></div><div class="dot d3"></div></div><div class="cc-title">Quick start</div></div>
+<pre><span class="c"># install with rendering</span>
+<span class="g">pip install</span> <span class="a">"agentvision[render]"</span>
+
+<span class="c"># install Chromium</span>
+<span class="g">playwright install</span> chromium
+
+<span class="c"># run the demo (no API key)</span>
+<span class="g">agentvision</span> demo
+
+<span class="c"># check system deps</span>
+<span class="g">agentvision</span> doctor</pre></div>
+    <div class="cc"><div class="cc-hdr"><div class="dots"><div class="dot d1"></div><div class="dot d2"></div><div class="dot d3"></div></div><div class="cc-title">CLI usage</div></div>
+<pre><span class="c"># analyze a file / URL</span>
+<span class="g">agentvision analyze</span> <span class="a">./index.html</span> <span class="b">--backend local</span>
+
+<span class="c"># self-correcting loop</span>
+<span class="g">agentvision loop</span> <span class="a">./dashboard.html</span> <span class="b">--max-iter 3</span>
+
+<span class="c"># responsive contact sheet</span>
+<span class="g">agentvision sheet</span> <span class="a">./index.html</span> <span class="b">--breakpoints 375,768,1280</span>
+
+<span class="c"># visual regression</span>
+<span class="g">agentvision baseline</span> <span class="a">./index.html</span> <span class="b">--name home</span>
+<span class="g">agentvision regress</span>  <span class="a">./index.html</span> <span class="b">--name home</span></pre></div>
+    <div class="cc"><div class="cc-hdr"><div class="dots"><div class="dot d1"></div><div class="dot d2"></div><div class="dot d3"></div></div><div class="cc-title">Install extras</div></div>
+<pre><span class="c"># everything</span>
+<span class="g">pip install</span> <span class="a">"agentvision[all]"</span>
+
+<span class="c"># render + Claude</span>
+<span class="g">pip install</span> <span class="a">"agentvision[render,anthropic]"</span>
+
+<span class="c"># MCP server</span>
+<span class="g">pip install</span> <span class="a">"agentvision[render,mcp]"</span>
+
+<span class="c"># REST service</span>
+<span class="g">pip install</span> <span class="a">"agentvision[render,serve]"</span></pre></div>
+    <div class="cc"><div class="cc-hdr"><div class="dots"><div class="dot d1"></div><div class="dot d2"></div><div class="dot d3"></div></div><div class="cc-title">Python API</div></div>
+<pre><span class="b">import</span> asyncio
+<span class="b">from</span> agentvision <span class="b">import</span> load_settings
+<span class="b">from</span> agentvision.core.loop <span class="b">import</span> LoopSession
+
+<span class="b">async def</span> <span class="g">main</span>():
+    settings = load_settings(
+        vision_backend=<span class="a">"local"</span>
+    )
+    session = LoopSession(
+        <span class="a">"examples/broken.html"</span>,
+        settings=settings
+    )
+    result = <span class="b">await</span> session.iterate()
+    <span class="g">print</span>(result.report.verdict)
+
+asyncio.run(main())</pre></div>
+  </div>
+</section>
+
+<section class="sec">
+  <div class="honesty-box">
+    <h3>What we do not claim</h3>
+    <ul>
+      <li>Pixel-accurate vision-model bounding boxes (advisory only)</li>
+      <li>WCAG verdicts on rasterized non-HTML</li>
+      <li>Bit-reproducible screenshots across runs</li>
+      <li>Deterministic LLM reports</li>
+      <li>Uniform behavior across all providers</li>
+      <li>Forcing non-Claude agents into the loop</li>
+    </ul>
+  </div>
+</section>
+
+<section class="sec"><div class="sec-chip">Adopt</div><h2 class="sec-title">Drop it into your workflow &amp; agents</h2><p class="sec-sub">CI gate in one step (<code>uses: amitpatole/agent-vision@v0.9.1</code>), a pre-commit hook, or shell out anywhere (exit codes 0/2/3). For agents: the Claude Code Skill, MCP tools, or a drop-in agent contract.</p></section>
+<footer>
+  <div class="ft-links">
+    <a href="https://github.com/amitpatole/agent-vision" target="_blank">GitHub</a>
+    <a href="https://pypi.org/project/agentvision/" target="_blank">PyPI</a>
+    <a href="https://github.com/amitpatole/agent-vision/blob/main/LICENSE" target="_blank">MIT License</a>
+    <a href="https://github.com/amitpatole/agent-vision/issues" target="_blank">Issues</a>
+    <a href="https://github.com/amitpatole/agent-vision/blob/main/README.md" target="_blank">Docs</a>
+  </div>
+  <p>AgentVision v0.9.1 · MIT © Amit Patole · Eyes for AI Agents</p>
+  <span class="sig">— amitpatole</span>
+</footer>
+</body>
+</html>
