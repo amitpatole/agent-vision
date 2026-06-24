@@ -29,8 +29,7 @@ line. Or use the bundled **Dockerfile**, which bakes the deps in.
 
 Polling and websocket pages never go network-idle. The default `--nav-wait` is already `load`
 (networkidle is bounded), but if you still hit a timeout: add `--settle-ms 800`, keep
-`--freeze` on for canvas/WebGL, and raise `--render-timeout`. See
-[the field report](https://github.com/amitpatole/agent-vision/blob/main/docs/field-report-live-dashboard.md).
+`--freeze` on for canvas/WebGL, and raise `--render-timeout`.
 
 ## Why does a requirement come back "uncertain"?
 

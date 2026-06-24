@@ -2,6 +2,38 @@
 
 All notable changes to AgentVision are documented here.
 
+## [0.9.1] — 2026-06-23 — version-string sync
+
+0.9.0 shipped the agentsensory adoption but the code `__version__` still read `0.8.0`
+(`pyproject`/package metadata were already correct).
+
+- **Fix**: `agentvision.__version__` now reads `0.9.1`, matching `pyproject.toml` and the
+  published wheel metadata.
+- **Drift guard**: a new test pins `importlib.metadata.version("agentvision") == __version__`
+  so the string can never silently fall out of sync with the release metadata again.
+- No runtime/behavior change; the package is otherwise identical to 0.9.0. 151 tests pass;
+  ruff + mypy clean.
+
+## [0.9.0] — 2026-06-23 — built on the shared agentsensory contract
+
+AgentVision is the **eyes** of the eyes/ears/brain trio, and this release makes that literal:
+the verdict/report/intent models are no longer a bundled copy — they come from the shared
+**`agentsensory`** contract (now on PyPI), so every organ speaks one `Report`/`Handoff` language.
+
+- **Adopt `agentsensory>=0.1`** as the single source of truth for the contract. `Report`,
+  `Issue`, `IssueKind`, `IssueSource`, `Severity`, `Confidence`, `Verdict`, `Brief`,
+  `IntentClaim`, `Conformance`, `ClaimResult`, `Handoff`, `NextAction`, `BBox`, `Viewport`
+  are now **re-exported** from `agentvision` — the public import surface is byte-for-byte
+  identical, so existing `from agentvision import Report` code keeps working unchanged.
+- **Why it matters**: a `Report` graded by the eyes drops straight onto the same verdict bus
+  the brain (Verel) and the other senses consume — no per-organ translation, no contract drift.
+  This is the eyes half of the trio standardizing on the shared sensing contract.
+- Models that were AgentVision-local (`report.py`, `intent.py`, `handoff.py`, `geometry.py`)
+  shrink to thin re-export shims over `agentsensory` (~354 lines of duplicated model code
+  removed). Vision-specific grounding (bbox/span) is unchanged.
+- Verel (eyes → brain) integration re-verified against the shared contract: `Report`
+  round-trips and the sight-adapter suite passes. 151 tests pass; ruff + mypy clean.
+
 ## [0.8.0] — 2026-06-22 — Office & multi-page document support
 
 Render and analyze **documents**, not just web pages and images.
@@ -218,7 +250,7 @@ Two residual findings from re-grading the live WebGL dashboard, both on the visi
 
 ## [0.3.1] — 2026-06-19
 
-### Fixed / changed — live-dashboard field report (live-dashboard)
+### Fixed / changed — live-dashboard field report
 Hardening from grading a live, continuously-polling WebGL dashboard. The biggest wins:
 don't default to `networkidle`, settle/freeze before capture, and never let a vision
 "missing" claim survive when DOM/OCR proves the element is present.

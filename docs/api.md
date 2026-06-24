@@ -34,6 +34,13 @@ asyncio.run(main())
 
 ## The report contract
 
+The verdict/report/intent types — `Report`, `Issue`, `Brief`, `Conformance`, `Handoff`,
+`BBox` and friends — are the shared **[`agentsensory`](https://pypi.org/project/agentsensory/)**
+contract, re-exported from `agentvision` since `0.9.0`. Every organ in the eyes/ears/brain
+trio speaks this one language, so a `Report` the eyes grade drops straight onto the same
+verdict bus the brain (Verel) consumes — no per-organ translation. `from agentvision import
+Report` keeps working unchanged; the import surface is identical.
+
 ::: agentvision.models.report.Report
 ::: agentvision.models.report.Issue
 ::: agentvision.models.report.Conformance

@@ -122,8 +122,10 @@ verified work** into memory; then the eyes look again.
 They ship and version independently (`pip install agentvision`, `pip install verel`) yet work
 in sync: AgentVision plugs into Verel as its `verel.senses` perception organ — mapped onto a
 unified verdict bus (vision *alongside* tests, lint and types), with intent conformance
-recorded in the brain's memory each iteration. AgentVision stays brain-agnostic; Verel is the
-reference brain. See [docs/handoff.md](docs/handoff.md).
+recorded in the brain's memory each iteration. Since `0.9.0` both speak one language: the
+`Report`/`Handoff` types come from the shared [`agentsensory`](https://pypi.org/project/agentsensory/)
+contract, so a graded `Report` drops onto that bus with no per-organ translation. AgentVision
+stays brain-agnostic; Verel is the reference brain. See [docs/handoff.md](docs/handoff.md).
 
 ## Many faces, one core
 
@@ -229,7 +231,7 @@ asyncio.run(main())
 
 ```yaml
 # CI gate (GitHub Action): fails the build on a visual FAIL verdict
-- uses: amitpatole/agent-vision@v0.6.1
+- uses: amitpatole/agent-vision@v0.9.1
   with: { source: dist/index.html, command: check, args: --full-page }
 ```
 
