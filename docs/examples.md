@@ -97,9 +97,11 @@ Or from the CLI: `agentvision sheet ./index.html`.
 ## 5. A swarm grading against shared eyes
 
 Run the eyes once as a service and have many agents grade concurrently — the topology behind a
-multi-agent fleet. Start the service:
+multi-agent fleet. The token is a secret **you** generate (there's no default; required for any
+non-loopback bind) — export it on the server and hand the same value to clients:
 
 ```bash
+export TOKEN=$(openssl rand -hex 32)        # any high-entropy string; keep it out of the repo
 AGENTVISION_API_TOKEN=$TOKEN agentvision serve --host 0.0.0.0 --port 8000
 ```
 
@@ -124,8 +126,8 @@ asyncio.run(main([...]))
 ```
 
 For loop sessions across multiple workers, mind the [multi-worker
-caveat](scaling.md#the-multi-worker-loop-caveat) — keep loops client-side or sticky-routed. Full
-treatment: **[Swarms & scaling](scaling.md)**.
+caveat](scaling.md#three-ways-to-handle-loop-state) — keep loops client-side or sticky-routed.
+Full treatment: **[Swarms & scaling](scaling.md)**.
 
 ---
 

@@ -23,16 +23,28 @@ about.
 
 === "Eyes as a service (REST) — one fleet, many callers"
 
-    Run `agentvision serve` (FastAPI) and point N agents at it:
+    Run `agentvision serve` (FastAPI) and point N agents at it.
+
+    **First, the auth token.** It's a **shared secret you choose** — AgentVision doesn't issue
+    one, and there's no default (the server refuses to bind a non-loopback host without it). Any
+    high-entropy string works; generate one and export it on the server:
 
     ```bash
+    export TOKEN=$(openssl rand -hex 32)        # or: python -c "import secrets; print(secrets.token_urlsafe(32))"
     AGENTVISION_API_TOKEN=$TOKEN agentvision serve --host 0.0.0.0 --port 8000
     ```
+
+    Give the **same** value to each client; it's sent as a bearer token (compared in constant
+    time server-side):
 
     ```bash
     curl -s localhost:8000/check -H "Authorization: Bearer $TOKEN" \
       -H 'content-type: application/json' -d '{"source":"<html>…</html>"}'
     ```
+
+    Loopback (`127.0.0.1`) needs no token — zero-config for local dev. Keep the token in your
+    secret manager / env, never in the repo. See [Security](security.md#deploy-securely-recommended-backstops)
+    for the full model.
 
     Central upgrades, one place to put GPUs/keys, language-agnostic clients. This is where the
     **stateless/stateful split** below matters.

@@ -238,8 +238,21 @@ Start the REST service.
 
 | Option | Description | Default |
 |---|---|---|
-| `--host` |  | `127.0.0.1` |
-| `--port` |  | `8000` |
+| `--host` | Interface to bind | `127.0.0.1` |
+| `--port` | Port to listen on | `8000` |
+
+**Auth token.** Loopback (`127.0.0.1`) is zero-config. Binding any other host **requires** a
+token — the server refuses to start without one — which is a secret *you* generate (there's no
+default):
+
+```bash
+export AGENTVISION_API_TOKEN=$(openssl rand -hex 32)   # any high-entropy string
+agentvision serve --host 0.0.0.0 --port 8000
+```
+
+Clients send it as `Authorization: Bearer <token>` (compared in constant time). See
+[Swarms & scaling](scaling.md) for multi-agent deployment and [Security](security.md) for the
+full model.
 
 ## `agentvision version`
 
