@@ -58,6 +58,19 @@ def test_body_cap_not_bypassed_by_chunked(monkeypatch):
     assert c.post("/check", content=gen()).status_code == 413
 
 
+def test_unknown_loop_session_gives_swarm_guidance(monkeypatch):
+    """The multi-worker trap must fail loud: an unknown session_id 404s with actionable
+    guidance (sticky sessions / single replica / client-side loop), not a bare message."""
+    monkeypatch.delenv("AGENTVISION_API_TOKEN", raising=False)
+    c = TestClient(rest.build_app())
+    r = c.post("/loop/does-not-exist/iterate", json={})
+    assert r.status_code == 404
+    detail = r.json()["detail"].lower()
+    assert "session_id" in detail
+    assert "sticky" in detail and "replica" in detail  # names the cause + a fix
+    assert "/scaling" in detail  # points at the scaling docs
+
+
 def test_ssrf_metadata_refused_at_service(monkeypatch):
     monkeypatch.delenv("AGENTVISION_API_TOKEN", raising=False)
     c = TestClient(rest.build_app())

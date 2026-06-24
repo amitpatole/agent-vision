@@ -68,10 +68,14 @@ plugins:
 
 nav:
   - Home: index.md
-  - Adoption: adoption.md
   - Get started:
       - Quickstart: quickstart.md
+      - Try it yourself: try-it.md
+      - 5-minute tutorial: tutorial.md
       - The loop: the-loop.md
+  - Use cases: use-cases.md
+  - Real-world scenarios: examples.md
+  - Adoption: adoption.md
   - Guides:
       - Conformance (match intent): conformance.md
       - Streaming / temporal: use-cases/streaming.md
@@ -79,6 +83,7 @@ nav:
       - Vision backends: backends.md
   - Use it:
       - Adapters (CLI/MCP/REST/Skill): adapters.md
+      - Swarms & scaling: scaling.md
       - Workflows & agents: integrations.md
       - Recipes: recipes.md
   - Reference:

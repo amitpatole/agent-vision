@@ -59,4 +59,6 @@ default `["local"]`).
 
 **Multi-worker caveat:** loop sessions are kept in-process. Behind multiple workers you
 need sticky sessions or a shared session store; for single-shot `analyze`/`check` there is
-no such constraint.
+no such constraint. The `/loop/{id}/iterate` endpoint **fails loud** on a cross-worker miss —
+the 404 names the cause and the fixes. Full guidance, topologies, and the stateless/stateful
+split: **[Swarms & scaling](scaling.md)**.

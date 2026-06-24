@@ -34,15 +34,29 @@ version and prints *"what changed: 3 issues resolved → PASS."*
 <div class="grid cards" markdown>
 
 - :material-rocket-launch: **[Quickstart](quickstart.md)** — install, system deps, first run.
+- :material-hand-wave: **[Try it yourself](try-it.md)** — a key-free, copy-paste FAIL→PASS in minutes.
+- :material-school: **[5-minute tutorial](tutorial.md)** — check → analyze → conform → loop.
+- :material-lightbulb-on: **[Use cases](use-cases.md)** · :material-play-box: **[Real-world scenarios](examples.md)** — runnable demos, real output.
 - :material-sync: **[The loop](the-loop.md)** — render → perceive → report → fix → diff.
 - :material-target: **[Conformance](conformance.md)** — grade against intent.
+- :material-server-network: **[Swarms & scaling](scaling.md)** — eyes as a service for a fleet of agents.
 - :material-brain: **[Handoff](handoff.md)** — wire perception into your reasoning/memory.
-- :material-play-circle: **[Streaming / temporal](use-cases/streaming.md)** — `watch` over time.
 - :material-cog: **[Workflows & agents](integrations.md)** — GitHub Action, pre-commit, MCP, the agent contract.
 - :material-console: **[CLI reference](cli.md)** · :material-tune: **[Configuration](configuration.md)** · :material-language-python: **[Python API](api.md)**
 - :material-book-open-variant: **[Recipes](recipes.md)** · :material-help-circle: **[FAQ](faq.md)**
 
 </div>
+
+## Many agents, one set of eyes
+
+One agent with eyes self-corrects. A **swarm** of agents sharing one set of eyes is the real
+prize — dozens of workers each rendering UIs, charts, decks or PDFs, every output graded against
+the same contract before it counts as done. Run the eyes as a horizontally-scaled
+**[service](scaling.md)** (or embed the library per worker); single-shot grading scales with zero
+coordination, and because every worker returns the same
+[`agentsensory`](https://pypi.org/project/agentsensory/) `Report`, a coordinator or a brain like
+[Verel](handoff.md) aggregates all the verdicts on **one bus**. See **[Swarms &
+scaling](scaling.md)**.
 
 ## Eyes & brain
 

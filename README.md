@@ -143,6 +143,21 @@ stays brain-agnostic; Verel is the reference brain. See [docs/handoff.md](docs/h
 > Code Skill is the one surface that makes an agent use it proactively; MCP is the
 > first-class cross-host path; the recipes cover the rest.
 
+## Many agents, one set of eyes
+
+One agent with eyes self-corrects. A **swarm** of agents sharing one set of eyes is the real
+prize — dozens of workers each rendering UIs, charts, decks or PDFs, every output graded against
+the same contract before it counts as done. Run the eyes as a horizontally-scaled **service**
+(`agentvision serve`) or embed the library per worker; the single-shot endpoints
+(`analyze`/`check`/`conform`) are stateless and scale with zero coordination. The one piece of
+state to mind is the **loop session** — kept in-process, so behind multiple workers keep loops
+client-side or sticky-route them. And because every worker returns the same `agentsensory`
+`Report`/`Handoff`, a coordinator (or a brain like [Verel](https://github.com/amitpatole/verel))
+aggregates all the verdicts on **one bus** — vision graded alongside tests, lint and types.
+
+See **[Swarms & scaling](https://amitpatole.github.io/agent-vision/scaling/)** for the
+topologies, the stateless/stateful split, and a fan-out example.
+
 ## Vision backends
 
 Pluggable and selectable via `--backend` / `AGENTVISION_VISION_BACKEND`:

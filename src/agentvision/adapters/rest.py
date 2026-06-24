@@ -291,7 +291,20 @@ def build_app():
     async def loop_iter_ep(session_id: str, body: IterBody, _slot=Depends(_render_slot)):
         session = _sessions.get(session_id)
         if session is None:
-            raise HTTPException(status_code=404, detail="unknown session_id")
+            # Fail loud, not silent: behind multiple workers/replicas a loop started on one
+            # worker 404s here unless requests are sticky-routed by session_id. Name the cause
+            # and the fixes rather than leaving a swarm to debug a bare "unknown session_id".
+            raise HTTPException(
+                status_code=404,
+                detail=(
+                    "Unknown session_id. Loop sessions live in the worker process that "
+                    "created them; behind multiple workers/replicas this 404s unless requests "
+                    "are sticky-routed by session_id. Fixes: run loops on a single replica, "
+                    "enable sticky sessions, or keep the loop client-side (library LoopSession) "
+                    "and call only the stateless endpoints. "
+                    "See https://amitpatole.github.io/agent-vision/scaling/."
+                ),
+            )
         try:
             result = await session.iterate(body.source)
         except AgentVisionError as e:
