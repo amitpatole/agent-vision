@@ -100,7 +100,7 @@ def _print_report(report: Report, as_json: bool) -> None:
             sym, col = _mark.get(c.status.value, ("·", typer.colors.WHITE))
             typer.secho(f"    {sym} ", fg=col, nl=False)
             typer.secho(f"[{c.importance.value}] {c.text}", nl=False)
-            typer.secho(f"  ({c.source.value})", fg=typer.colors.BRIGHT_BLACK)
+            typer.secho(f"  ({c.source})", fg=typer.colors.BRIGHT_BLACK)
     if report.image_path:
         typer.secho(f"\n  image: {report.image_path}", fg=typer.colors.BRIGHT_BLACK)
     typer.echo()
