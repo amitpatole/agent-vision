@@ -16,6 +16,7 @@ from .config import Settings
 from .errors import UnsafeSourceError
 from .netguard import assert_host_safe
 from .office import OFFICE_EXT
+from .pathsafe import resolve_local
 
 # Logical source kinds. ``html``/``svg`` may be inline (content) or from a file.
 KINDS = ("html", "svg", "url", "pdf", "image", "office", "file")
@@ -45,7 +46,7 @@ def _looks_like_markup(s: str) -> bool:
     return head.startswith("<") and ("<" in head and ">" in s)
 
 
-def _detect_type(source: str) -> str:
+def _detect_type(source: str, settings: Settings) -> str:
     s = source.strip()
     low = s.lower()
     if low.startswith(("http://", "https://")):
@@ -55,8 +56,7 @@ def _detect_type(source: str) -> str:
     if _looks_like_markup(s):
         return "svg" if "<svg" in low[:512] and "<html" not in low[:512] else "html"
     # Treat as a path; classify by extension.
-    p = Path(s)
-    ext = p.suffix.lower()
+    ext = Path(s).suffix.lower()
     if ext in {".html", ".htm"}:
         return "html"
     if ext == ".svg":
@@ -67,7 +67,15 @@ def _detect_type(source: str) -> str:
         return "office"
     if ext in _IMAGE_EXT:
         return "image"
-    return "html" if ext in {"", ".txt"} and not p.exists() else "file"
+    # Ambiguous (no/.txt extension): a bare string is inline HTML unless it names an existing
+    # file. The existence probe is confined (commonpath barrier) so it can't be a traversal sink.
+    if ext in {"", ".txt"}:
+        try:
+            exists = resolve_local(s, settings).exists()
+        except (UnsafeSourceError, OSError):
+            exists = False
+        return "file" if exists else "html"
+    return "file"
 
 
 def _check_url_safety(url: str, settings: Settings) -> None:
@@ -84,7 +92,7 @@ def _check_url_safety(url: str, settings: Settings) -> None:
 
 def resolve_source(source: str, source_type: str = "auto", *, settings: Settings) -> ResolvedSource:
     """Normalize ``source`` into a :class:`ResolvedSource`, enforcing the safety policy."""
-    stype = source_type if source_type != "auto" else _detect_type(source)
+    stype = source_type if source_type != "auto" else _detect_type(source, settings)
 
     if stype == "url":
         url = source.strip()
@@ -104,7 +112,9 @@ def resolve_source(source: str, source_type: str = "auto", *, settings: Settings
             )
         raw = urlparse(raw).path
 
-    path = Path(raw).expanduser()
+    # Resolve under the configured confinement root (commonpath barrier) — blocks traversal
+    # via a bare path or a file:// URL escaping settings.file_root.
+    path = resolve_local(raw, settings)
     if not path.exists():
         # A bare HTML/SVG string with no recognizable markup that isn't a real file.
         if stype in {"html", "svg"}:

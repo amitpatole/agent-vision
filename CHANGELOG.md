@@ -4,6 +4,15 @@ All notable changes to AgentVision are documented here.
 
 ## [Unreleased]
 
+### Security — fix path traversal (CodeQL `py/path-injection`, 5 HIGH)
+
+Untrusted data (REST URL path params, agent-supplied source specs) could widen a filesystem
+path beyond its intended directory. New `agentvision.pathsafe` confines every sink via
+`os.path.commonpath`: `GET /baseline/{name}` and `/artifacts/{id}` validate the segment and
+fail closed to 404; baseline writes validate+confine the name and copy source; `sources.py`
+file:// and bare-path reads resolve under an optional `file_root` (default: unrestricted for
+trusted CLI). Regression tests per sink; e.g. `GET /baseline/..%2f..%2fetc%2fpasswd` → 404.
+
 ### Added — clipped/truncated-text check (deterministic, no LLM)
 
 A new structural check (`IssueKind.CLIPPED`) catches text that is **cut off** — the class of

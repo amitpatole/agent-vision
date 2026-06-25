@@ -7,18 +7,16 @@ revision with animations disabled and a fixed device_scale/viewport.
 
 from __future__ import annotations
 
-import re
 import uuid
 from pathlib import Path
 
 from ..config import Settings, load_settings
 from ..errors import AgentVisionError
 from ..models.diff import DiffResult
+from ..pathsafe import confine, under
 from ..workspace import Workspace
 from .diff import compute_diff
 from .render import render
-
-_SAFE = re.compile(r"[^a-zA-Z0-9_.-]")
 
 
 def _baselines_dir(settings: Settings) -> Path:
@@ -28,8 +26,9 @@ def _baselines_dir(settings: Settings) -> Path:
 
 
 def _baseline_path(settings: Settings, name: str) -> Path:
-    safe = _SAFE.sub("_", name)
-    return _baselines_dir(settings) / f"{safe}.png"
+    # Validate `name` as a single component and confine under the baselines dir: a name like
+    # "../../etc/passwd" is rejected (traversal blocked), not silently rewritten.
+    return under(_baselines_dir(settings), name, suffix=".png")
 
 
 async def set_baseline(
@@ -40,7 +39,7 @@ async def set_baseline(
     if not result.primary:
         raise AgentVisionError("Render produced no image; cannot set baseline.")
     dest = _baseline_path(settings, name)
-    _copy(result.primary.path, dest)
+    _copy(result.primary.path, dest, settings=settings)
     return str(dest)
 
 
@@ -63,7 +62,11 @@ async def regress(
     return compute_diff(baseline, result.primary.path, out_path)
 
 
-def _copy(src: str | Path, dest: Path) -> None:
+def _copy(src: str | Path, dest: Path, *, settings: Settings) -> None:
     import shutil
 
-    shutil.copyfile(src, dest)
+    # Confine the source under the workspace cache (where renders are written) before copying,
+    # so a tainted src can't read an arbitrary host file. dest is already confined by
+    # _baseline_path.
+    safe_src = confine(settings.cache_dir, src)
+    shutil.copyfile(safe_src, dest)
