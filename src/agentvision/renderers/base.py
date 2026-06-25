@@ -31,6 +31,22 @@ class ElementBox(BaseModel):
     selector: str = ""
 
 
+class ClippedText(BaseModel):
+    """Text cut off by a clip boundary — an SVG viewport or a DOM container's hard overflow.
+
+    ``kind`` is ``svg_clipped`` (a ``<text>`` extending beyond its SVG viewport, which clips by
+    default) or ``truncated`` (a DOM element whose content overflows its box under
+    ``overflow:hidden/clip`` with no ellipsis). Geometry is in IMAGE pixels.
+    """
+
+    bbox: BBox
+    text: str = ""
+    selector: str = ""
+    tag: str = ""
+    kind: str = "clipped"  # svg_clipped | truncated
+    overflow_px: float = 0.0  # how far the content exceeds the clip boundary (image px)
+
+
 class ContrastSample(BaseModel):
     """A computed-style WCAG contrast measurement, in IMAGE pixels."""
 
@@ -100,6 +116,10 @@ class RenderResult(BaseModel):
     console_errors: list[ConsoleError] = Field(default_factory=list)
     failed_responses: list[FailedResponse] = Field(default_factory=list)
     broken_images: list[ElementBox] = Field(default_factory=list)
+    clipped_text: list[ClippedText] = Field(
+        default_factory=list,
+        description="Text cut off by an SVG viewport or a DOM hard-overflow boundary.",
+    )
     overflow_x: float = Field(default=0.0, description="Horizontal layout overflow in image px.")
     visual_tags: list[str] = Field(
         default_factory=list,

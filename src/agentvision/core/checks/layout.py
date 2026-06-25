@@ -48,6 +48,28 @@ def check_broken_images(render: RenderResult) -> list[Issue]:
     return issues
 
 
+def check_clipped_text(render: RenderResult) -> list[Issue]:
+    """Flag text cut off by a clip boundary — an SVG viewport (high confidence) or a DOM
+    container's hard overflow with no ellipsis (advisory). Both DOM-grounded, no LLM."""
+    issues: list[Issue] = []
+    for el in render.clipped_text:
+        if el.kind == "svg_clipped":
+            msg = (f"Text clipped by its SVG viewport: {el.text!r} extends ~{el.overflow_px:.0f}px "
+                   "beyond the chart bounds and is cut off.")
+            sev, conf = Severity.ERROR, Confidence.HIGH
+        else:
+            msg = (f"Text truncated by its container: {el.text!r} overflows its box by "
+                   f"~{el.overflow_px:.0f}px under a hard clip (no ellipsis).")
+            sev, conf = Severity.WARNING, Confidence.MEDIUM
+        issues.append(Issue.make(
+            IssueKind.CLIPPED, sev, msg,
+            bbox=el.bbox, bbox_precise=True, source=IssueSource.DOM, confidence=conf,
+            detail={"text": el.text, "selector": el.selector, "kind": el.kind,
+                    "overflow_px": el.overflow_px},
+        ))
+    return issues
+
+
 def check_console(render: RenderResult) -> list[Issue]:
     issues: list[Issue] = []
     for c in render.console_errors:
@@ -90,6 +112,7 @@ def run_structural_checks(render: RenderResult, image_path: str | Path | None) -
     issues: list[Issue] = []
     issues += check_overflow(render)
     issues += check_broken_images(render)
+    issues += check_clipped_text(render)
     issues += check_console(render)
     if image_path:
         issues += check_blank(str(image_path))

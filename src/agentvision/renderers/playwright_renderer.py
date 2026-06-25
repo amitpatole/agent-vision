@@ -21,6 +21,7 @@ from ..netguard import host_is_safe
 from ..sources import ResolvedSource
 from ._extract_js import EXTRACT_JS
 from .base import (
+    ClippedText,
     ConsoleError,
     ContrastSample,
     ElementBox,
@@ -196,6 +197,7 @@ class PlaywrightRenderer:
         dom_boxes: list[ElementBox] = []
         contrast: list[ContrastSample] = []
         broken: list[ElementBox] = []
+        clipped: list[ClippedText] = []
         overflow_x = 0.0
         visual_tags: list[str] = []
         visual_elements: list[ElementBox] = []
@@ -215,6 +217,7 @@ class PlaywrightRenderer:
                             dom_boxes = page_result["dom_boxes"]
                             contrast = page_result["contrast"]
                             broken = page_result["broken"]
+                            clipped = page_result["clipped"]
                             console_errors = page_result["console_errors"]
                             failed = page_result["failed"]
                             overflow_x = page_result["overflow_x"]
@@ -229,7 +232,8 @@ class PlaywrightRenderer:
         return RenderResult(
             images=images, dom_boxes=dom_boxes, contrast_samples=contrast,
             console_errors=console_errors, failed_responses=failed,
-            broken_images=broken, overflow_x=overflow_x, visual_tags=visual_tags,
+            broken_images=broken, clipped_text=clipped, overflow_x=overflow_x,
+            visual_tags=visual_tags,
             visual_elements=visual_elements, source_type=resolved.kind,
         )
 
@@ -303,7 +307,7 @@ class PlaywrightRenderer:
             data = await page.evaluate(EXTRACT_JS)
         except Exception as e:  # noqa: BLE001
             log.warning("DOM extraction failed: %s", e)
-            data = {"domBoxes": [], "contrast": [], "broken": [], "overflowX": 0}
+            data = {"domBoxes": [], "contrast": [], "broken": [], "clipped": [], "overflowX": 0}
 
         img_path = out_dir / f"vp_{vp.label()}_{idx}.png"
         # animations="disabled" makes Playwright finish CSS animations/transitions and not
@@ -347,11 +351,13 @@ class PlaywrightRenderer:
         dom_boxes = [self._to_box(b, dsf) for b in data.get("domBoxes", [])]
         broken = [self._to_box(b, dsf) for b in data.get("broken", [])]
         contrast = [self._to_contrast(c, dsf) for c in data.get("contrast", [])]
+        clipped = [self._to_clip(c, dsf) for c in data.get("clipped", [])]
         # Stash overflow signal on the result via a synthetic dom box list is messy;
         # we attach it through the page result dict for the checks layer.
         result = {
             "image": RenderedImage(path=str(img_path), viewport=vp, width=iw, height=ih),
             "dom_boxes": dom_boxes, "contrast": contrast, "broken": broken,
+            "clipped": clipped,
             "console_errors": console_errors, "failed": _dedupe_failed(failed),
             "overflow_x": float(data.get("overflowX", 0) or 0) * dsf,
             "visual_tags": list(visual_tags), "visual_elements": visual_elements,
@@ -513,19 +519,35 @@ class PlaywrightRenderer:
     @staticmethod
     def _to_box(b: dict, dsf: float) -> ElementBox:
         return ElementBox(
-            tag=b.get("tag", ""),
-            bbox=BBox(x=b["x"] * dsf, y=b["y"] * dsf, width=b["w"] * dsf, height=b["h"] * dsf),
+            tag=b.get("tag", ""), bbox=_img_bbox(b["x"], b["y"], b["w"], b["h"], dsf),
             text=b.get("text", ""), selector=b.get("selector", ""),
+        )
+
+    @staticmethod
+    def _to_clip(c: dict, dsf: float) -> ClippedText:
+        return ClippedText(
+            bbox=_img_bbox(c["x"], c["y"], c["w"], c["h"], dsf),
+            text=c.get("text", ""), selector=c.get("selector", ""), tag=c.get("tag", ""),
+            kind=c.get("kind", "clipped"), overflow_px=float(c.get("overflow", 0) or 0) * dsf,
         )
 
     @staticmethod
     def _to_contrast(c: dict, dsf: float) -> ContrastSample:
         return ContrastSample(
-            bbox=BBox(x=c["x"] * dsf, y=c["y"] * dsf, width=c["w"] * dsf, height=c["h"] * dsf),
+            bbox=_img_bbox(c["x"], c["y"], c["w"], c["h"], dsf),
             ratio=c["ratio"], fg=c["fg"], bg=c["bg"], font_px=c["fontPx"],
             large_text=c["large"], passes_aa=c["aa"], passes_aaa=c["aaa"],
             confidence=c["confidence"], text=c.get("text", ""), selector=c.get("selector", ""),
         )
+
+
+def _img_bbox(x: float, y: float, w: float, h: float, dsf: float) -> BBox:
+    """Scale a doc-space rect to image px and clamp to the visible region. An element can sit
+    partly off-screen (e.g. SVG text at negative x); the contract requires non-negative
+    coordinates, so clip the off-screen left/top portion and keep the visible remainder."""
+    x, y, w, h = x * dsf, y * dsf, w * dsf, h * dsf
+    nx, ny = max(0.0, x), max(0.0, y)
+    return BBox(x=nx, y=ny, width=max(1.0, w - (nx - x)), height=max(1.0, h - (ny - y)))
 
 
 def _to_media(m: dict) -> MediaState:

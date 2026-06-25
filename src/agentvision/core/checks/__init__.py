@@ -15,6 +15,7 @@ from .contrast import check_contrast_dom
 from .layout import (
     check_blank,
     check_broken_images,
+    check_clipped_text,
     check_console,
     check_overflow,
     run_structural_checks,
@@ -23,7 +24,7 @@ from .spelling import check_spelling_from_ocr
 
 # IssueKinds the classic-checks layer (and thus the local backend) can emit.
 CLASSIC_CAPABILITIES = [
-    "contrast", "overflow", "broken_image", "error_text", "typo", "blank", "other",
+    "contrast", "overflow", "clipped", "broken_image", "error_text", "typo", "blank", "other",
 ]
 
 
@@ -40,6 +41,6 @@ def run_all_checks(
 
 __all__ = [
     "run_all_checks", "run_structural_checks", "check_contrast_dom",
-    "check_overflow", "check_broken_images", "check_console", "check_blank",
-    "check_spelling_from_ocr", "CLASSIC_CAPABILITIES",
+    "check_overflow", "check_broken_images", "check_clipped_text", "check_console",
+    "check_blank", "check_spelling_from_ocr", "CLASSIC_CAPABILITIES",
 ]

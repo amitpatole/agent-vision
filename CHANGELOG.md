@@ -2,6 +2,41 @@
 
 All notable changes to AgentVision are documented here.
 
+## [Unreleased]
+
+### Added — clipped/truncated-text check (deterministic, no LLM)
+
+A new structural check (`IssueKind.CLIPPED`) catches text that is **cut off** — the class of
+defect a real-world dogfood (a skill-radar SVG chart) showed the eyes were missing:
+
+- **SVG `<text>` clipped by its viewport** (ERROR/high): a label whose rendered rect extends
+  beyond the `<svg>` it lives in is cut off (the outermost SVG clips by default). Catches both
+  "truncated mid-word" (overflows the right edge) and a leading glyph at negative x (clipped on
+  the left). Detected in-page via `getBoundingClientRect` vs the viewport element — no LLM, no
+  egress, precise and DOM-grounded.
+- **DOM text truncated by a hard clip** (WARNING/medium): an element whose content overflows its
+  box under `overflow:hidden/clip` with **no ellipsis** (an ellipsis is treated as intentional).
+- **Bug fix:** an element positioned partly off-screen (e.g. SVG text at negative x) previously
+  crashed `check` on the contract's non-negative `BBox`; geometry is now clamped to the visible
+  region in all converters.
+- New `ClippedText` render signal + `clipped` added to the local backend's capabilities.
+  Regression tests pin the check, the bbox clamp, and an end-to-end render of an
+  overflowing-`viewBox` SVG. 159 tests pass; ruff clean.
+
+### Fixed
+- `agentvision conform` crashed (`AttributeError: 'str' object has no attribute 'value'`) after
+  the 0.9.0 agentsensory migration — `ClaimResult.source` is a plain `str` now. Renders cleanly;
+  regression-pinned.
+
+### Docs
+- New front-door pages mirroring the Verel docs set: **Try it yourself**, **5-minute tutorial**,
+  **Use cases**, **Real-world scenarios** (all with real captured output).
+- New **Swarms & scaling** page — "eyes as a service" topologies, the stateless/stateful split,
+  the in-process loop-session caveat + mitigations; `/loop/{id}/iterate` now fails loud on a
+  cross-worker session miss. Foregrounded the multi-agent story in the README + index.
+- Documented the REST **auth token** (generate/export/use) across scaling/examples/cli/config —
+  it was referenced as `$TOKEN` but never explained.
+
 ## [0.9.1] — 2026-06-23 — version-string sync
 
 0.9.0 shipped the agentsensory adoption but the code `__version__` still read `0.8.0`

@@ -43,7 +43,7 @@ EXTRACT_JS = r"""
     return t.trim();
   };
 
-  const domBoxes = [], contrast = [], broken = [];
+  const domBoxes = [], contrast = [], broken = [], clipped = [];
   const all = document.querySelectorAll('body *');
   let count = 0;
   for (const el of all) {
@@ -61,6 +61,19 @@ EXTRACT_JS = r"""
     if (tag === 'img') {
       if (el.complete && el.naturalWidth === 0) {
         broken.push({ tag, ...rectOf(el), text: el.getAttribute('src') || '', selector: selectorOf(el) });
+      }
+    }
+
+    // Truncated DOM text: content wider than its box under a HARD clip with no ellipsis
+    // (an ellipsis is usually intentional; a mid-word hard cut usually isn't).
+    if (txt && txt.length >= 2 && clipped.length < 200) {
+      const ox = st.overflowX !== 'visible' ? st.overflowX : st.overflow;
+      const hardClip = (ox === 'hidden' || ox === 'clip');
+      const ellipsis = (st.textOverflow === 'ellipsis');
+      const overW = el.scrollWidth - el.clientWidth;
+      if (hardClip && !ellipsis && overW > 2) {
+        clipped.push({ ...rectOf(el), tag, text: txt.slice(0, 60),
+                       selector: selectorOf(el), kind: 'truncated', overflow: overW });
       }
     }
 
@@ -95,11 +108,38 @@ EXTRACT_JS = r"""
     }
   }
 
+  // SVG <text> clipped by its viewport. The outermost <svg> clips to its bounds by default,
+  // so a label whose rendered rect extends past the viewport element is cut off — the exact
+  // "truncated mid-word" / "leading glyph at negative x" defect. getBoundingClientRect reports
+  // full geometry regardless of clipping, so the overflow is measurable from the snapshot.
+  const svgTexts = document.querySelectorAll('svg text');
+  let sc = 0;
+  for (const t of svgTexts) {
+    if (sc > 500 || clipped.length >= 200) break; sc++;
+    const vp = t.viewportElement;        // nearest ancestor establishing the SVG viewport
+    if (!vp) continue;
+    const vst = getComputedStyle(vp);
+    // overflow:visible means the text is drawn (not cut) — a different defect, skip.
+    if (vst.overflow === 'visible' || vst.overflowX === 'visible') continue;
+    let tr, vr;
+    try { tr = t.getBoundingClientRect(); vr = vp.getBoundingClientRect(); } catch (e) { continue; }
+    if (tr.width < 1 && tr.height < 1) continue;
+    const label = (t.textContent || '').trim();
+    if (!label) continue;
+    const over = Math.max(vr.left - tr.left, tr.right - vr.right,
+                          vr.top - tr.top, tr.bottom - vr.bottom);
+    if (over > 1.0) {
+      clipped.push({ x: tr.left + docX, y: tr.top + docY, w: tr.width, h: tr.height,
+                     tag: 'text', text: label.slice(0, 60), selector: selectorOf(t),
+                     kind: 'svg_clipped', overflow: over });
+    }
+  }
+
   // Document overflow signal (horizontal scrollbar = layout overflow)
   const de = document.documentElement;
   const overflowX = de.scrollWidth - de.clientWidth;
   return {
-    domBoxes, contrast, broken,
+    domBoxes, contrast, broken, clipped,
     docWidth: de.scrollWidth, docHeight: de.scrollHeight,
     clientWidth: de.clientWidth, overflowX
   };

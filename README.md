@@ -11,7 +11,7 @@
 </p>
 
 > **Problem:** AI coding agents are *blind* — they write a UI, chart, SVG or PDF and never *see* the result, shipping breakage they can't perceive.  
-> **Result:** AgentVision gives them eyes — render → see → report → fix — catching overflow, low contrast, broken images and typos.  
+> **Result:** AgentVision gives them eyes — render → see → report → fix — catching overflow, low contrast, clipped/truncated text (incl. SVG labels), broken images and typos.  
 > So your agent **self-corrects before it claims done.**
 
 AgentVision is a provider-agnostic framework that closes the visual feedback loop for AI

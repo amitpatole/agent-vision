@@ -1,7 +1,7 @@
 # Intent conformance — match the thought, not just avoid defects
 
 By default AgentVision is a **defect detector**: it asks *"is anything broken?"* (overflow,
-low contrast, broken images, typos). That's necessary but not sufficient. An artifact can be
+low contrast, clipped/truncated text, broken images, typos). That's necessary but not sufficient. An artifact can be
 flawless *and still be the wrong thing* — a clean infographic that shows the wrong stages, a
 dashboard missing the panel you asked for, a generated image that ignored half the prompt.
 
