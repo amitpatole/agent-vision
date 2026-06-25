@@ -11,7 +11,6 @@ from __future__ import annotations
 import asyncio
 import hmac
 import uuid
-from pathlib import Path
 
 from pydantic import BaseModel  # base dependency — always present
 
@@ -337,18 +336,35 @@ def build_app():
     @app.get("/baseline/{name}")
     async def get_baseline(name: str):
         from ..core.baseline import _baseline_path
+        from ..errors import UnsafeSourceError
 
-        p = _baseline_path(settings, name)
+        # `name` is attacker-controlled; _baseline_path validates + confines it. Fail closed
+        # to 404 on a traversal attempt (don't leak whether a path exists).
+        try:
+            p = _baseline_path(settings, name)
+        except UnsafeSourceError:
+            raise HTTPException(status_code=404, detail="no such baseline") from None
         if not p.exists():
             raise HTTPException(status_code=404, detail="no such baseline")
         return FileResponse(str(p))
 
     @app.get("/artifacts/{artifact_id}")
     def get_artifact(artifact_id: str):
-        path = _artifacts.get(artifact_id)
-        if not path or not Path(path).exists():
+        from ..errors import UnsafeSourceError
+        from ..pathsafe import confine, safe_segment
+
+        # Validate the id, look it up, and re-confine the stored path under the cache dir
+        # before serving — defense in depth even though values are server-generated.
+        try:
+            stored = _artifacts.get(safe_segment(artifact_id))
+            if not stored:
+                raise HTTPException(status_code=404, detail="no such artifact")
+            p = confine(settings.cache_dir, stored)
+        except UnsafeSourceError:
+            raise HTTPException(status_code=404, detail="no such artifact") from None
+        if not p.exists():
             raise HTTPException(status_code=404, detail="no such artifact")
-        return FileResponse(path)
+        return FileResponse(str(p))
 
     return app
 

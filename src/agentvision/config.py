@@ -122,6 +122,10 @@ class Settings(BaseSettings):
     # (trusted local user); the REST service sets this False so a remote caller can't read host
     # files via a bare path like "/etc/passwd".
     allow_local_files: bool = True
+    # Optional confinement root for local file sources. None = no restriction (trusted
+    # CLI/library use). Set to a directory to confine all local file reads beneath it
+    # (path-traversal hardening); reads that escape it are refused.
+    file_root: Path | None = None
     # Rendering Office/OpenDocument files via LibreOffice (docx/pptx/xlsx/odt…). Enabled for
     # trusted local CLI/library use; the REST service sets this False — LibreOffice is a large
     # attack surface on untrusted input (macros/DDE/remote-template/OLE), so it is not exposed
