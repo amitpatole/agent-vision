@@ -39,13 +39,14 @@ def test_resolve_local_unconfined_for_cli(tmp_path):
     f = tmp_path / "x.html"
     f.write_text("<html></html>")
     s = load_settings()  # file_root is None -> trusted CLI, no restriction
-    assert resolve_local(str(f), s) == f.resolve()
+    assert resolve_local(str(f), s).samefile(f)
 
 
 def test_resolve_local_confined_to_file_root(tmp_path):
-    (tmp_path / "ok.html").write_text("<html></html>")
+    ok = tmp_path / "ok.html"
+    ok.write_text("<html></html>")
     s = load_settings(file_root=tmp_path)
-    assert resolve_local(str(tmp_path / "ok.html"), s) == (tmp_path / "ok.html").resolve()
+    assert resolve_local(str(ok), s).samefile(ok)
     with pytest.raises(UnsafeSourceError):
         resolve_local("/etc/passwd", s)
     with pytest.raises(UnsafeSourceError):

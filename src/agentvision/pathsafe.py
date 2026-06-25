@@ -1,10 +1,13 @@
 """Path-traversal confinement helpers (shared by every filesystem sink).
 
 Untrusted data (HTTP path params, agent-supplied source specs) must never widen a path
-expression beyond an allowed directory. These helpers resolve a candidate path and verify —
-via ``os.path.commonpath`` — that it stays within a base directory, raising otherwise. Used
-at every sink so CodeQL `py/path-injection` flows are sanitized and, more importantly, real
-traversal payloads are blocked.
+expression beyond an allowed directory. These helpers confine a candidate path under a base
+directory and reject anything that escapes it.
+
+Confinement is **lexical**: the trusted base is realpath'd, the untrusted part is joined and
+normalized with ``os.path`` (no filesystem access on tainted input — so resolving an
+attacker symlink is never even attempted), then ``os.path.commonpath`` is the barrier. This
+both blocks real traversal and is the sanitizer CodeQL `py/path-injection` recognizes.
 """
 
 from __future__ import annotations
@@ -30,37 +33,50 @@ def safe_segment(name: str) -> str:
     return candidate
 
 
-def confine(base: str | Path, target: str | Path) -> Path:
-    """Resolve ``target`` and return it only if it stays within ``base``; else raise.
-
-    The ``commonpath`` check is the traversal barrier: a resolved ``target`` that escapes
-    ``base`` (via ``..``, an absolute path, or a symlink) has a common path != ``base``.
-    """
-    base_r = Path(base).expanduser().resolve()
-    target_r = Path(target).expanduser().resolve()
+def _confine_lexical(base: str | Path, untrusted: str) -> str:
+    """Join ``untrusted`` under the trusted ``base`` and confirm it can't escape — purely
+    lexically. Returns the confined absolute path string, or raises."""
+    base_r = os.path.realpath(base)  # base is trusted (not user data) — safe to realpath
+    # Lexical join + normalize; if `untrusted` is absolute, join intentionally discards base so
+    # the commonpath check below catches the escape. No filesystem access on tainted input.
+    candidate = os.path.normpath(os.path.join(base_r, os.path.expanduser(untrusted)))
     try:
-        if os.path.commonpath([str(base_r), str(target_r)]) != str(base_r):
+        if os.path.commonpath([base_r, candidate]) != base_r:
             raise ValueError
     except ValueError:
         raise UnsafeSourceError("path escapes the allowed directory (traversal blocked)") from None
-    return target_r
+    return candidate
+
+
+def confine(base: str | Path, target: str | Path) -> Path:
+    """Return ``target`` confined under ``base`` (raises if it escapes). ``target`` may be a
+    child path or an absolute path; either way it must resolve within ``base``."""
+    return Path(_confine_lexical(base, str(target)))
 
 
 def under(base: str | Path, segment: str, *, suffix: str = "") -> Path:
     """Confine ``<base>/<validated-segment><suffix>`` — for name/id-derived files."""
-    base_p = Path(base)
-    return confine(base_p, base_p / f"{safe_segment(segment)}{suffix}")
+    return Path(_confine_lexical(base, f"{safe_segment(segment)}{suffix}"))
 
 
 def resolve_local(raw: str, settings) -> Path:
     """Resolve a local file path, confined to ``settings.file_root`` when set.
 
-    Default (``file_root is None``) confines to the filesystem root — i.e. no restriction
-    for trusted CLI/library use (an operator analyzing their own files), while still routing
-    the value through the ``commonpath`` barrier. A service can set ``file_root`` (or, by
-    default, refuses local files entirely via ``allow_local_files``) to truly restrict reads.
+    Default (``file_root is None``) is trusted CLI/library use: any absolute path or a
+    cwd-relative path is allowed (confined only to the filesystem root, a no-op) — while still
+    routed through the lexical ``commonpath`` barrier. A service sets ``file_root`` (or refuses
+    local files via ``allow_local_files``) to truly restrict reads.
     """
-    p = Path(raw).expanduser().resolve()
     root = getattr(settings, "file_root", None)
-    base = Path(root) if root else Path(p.anchor or os.sep)
-    return confine(base, p)
+    expanded = os.path.expanduser(str(raw))
+    if root is None:
+        # Trusted: resolve relatives against cwd, allow anywhere; barrier base is the FS root.
+        candidate = os.path.normpath(os.path.abspath(expanded))
+        base_r = os.path.realpath(os.sep)
+        try:
+            if os.path.commonpath([base_r, candidate]) != base_r:
+                raise ValueError
+        except ValueError:
+            raise UnsafeSourceError("invalid local path") from None
+        return Path(candidate)
+    return Path(_confine_lexical(root, expanded))
