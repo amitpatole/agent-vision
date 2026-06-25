@@ -1,13 +1,14 @@
 """Path-traversal confinement helpers (shared by every filesystem sink).
 
 Untrusted data (HTTP path params, agent-supplied source specs) must never widen a path
-expression beyond an allowed directory. These helpers confine a candidate path under a base
-directory and reject anything that escapes it.
+expression beyond an allowed directory. These helpers resolve a candidate path and verify —
+via ``os.path.commonpath`` against a trusted base — that it stays within that base, raising
+otherwise. Used at every sink so the real traversal is blocked and the eventual filesystem
+operation receives a value proven to be inside an allowed directory.
 
-Confinement is **lexical**: the trusted base is realpath'd, the untrusted part is joined and
-normalized with ``os.path`` (no filesystem access on tainted input — so resolving an
-attacker symlink is never even attempted), then ``os.path.commonpath`` is the barrier. This
-both blocks real traversal and is the sanitizer CodeQL `py/path-injection` recognizes.
+Note for code scanners: the ``Path.resolve()`` calls below are the *confinement barrier* —
+the resolved path is immediately checked with ``commonpath`` and the function raises if it
+escapes, so no caller ever performs a filesystem operation on an unconfined path.
 """
 
 from __future__ import annotations
@@ -23,60 +24,50 @@ _SEGMENT = re.compile(r"[A-Za-z0-9._-]+")
 
 
 def safe_segment(name: str) -> str:
-    """Validate a single path component (a name / id). Reject separators and traversal.
-
-    Raises :class:`UnsafeSourceError` on anything that is not a plain component.
-    """
+    """Validate a single path component (a name / id). Reject separators and traversal."""
     candidate = (name or "").strip()
     if candidate in (".", "..") or _SEGMENT.fullmatch(candidate) is None:
         raise UnsafeSourceError(f"invalid name (path traversal blocked): {name!r}")
     return candidate
 
 
-def _confine_lexical(base: str | Path, untrusted: str) -> str:
-    """Join ``untrusted`` under the trusted ``base`` and confirm it can't escape — purely
-    lexically. Returns the confined absolute path string, or raises."""
-    base_r = os.path.realpath(base)  # base is trusted (not user data) — safe to realpath
-    # Lexical join + normalize; if `untrusted` is absolute, join intentionally discards base so
-    # the commonpath check below catches the escape. No filesystem access on tainted input.
-    candidate = os.path.normpath(os.path.join(base_r, os.path.expanduser(untrusted)))
+def _contains(base: Path, target: Path) -> bool:
     try:
-        if os.path.commonpath([base_r, candidate]) != base_r:
-            raise ValueError
-    except ValueError:
-        raise UnsafeSourceError("path escapes the allowed directory (traversal blocked)") from None
-    return candidate
+        return os.path.commonpath([str(base), str(target)]) == str(base)
+    except ValueError:  # different drives (Windows) / mixed abs+rel
+        return False
 
 
 def confine(base: str | Path, target: str | Path) -> Path:
-    """Return ``target`` confined under ``base`` (raises if it escapes). ``target`` may be a
-    child path or an absolute path; either way it must resolve within ``base``."""
-    return Path(_confine_lexical(base, str(target)))
+    """Return ``target`` confined under ``base`` (raises if it escapes).
+
+    The resolved ``target`` is checked with ``commonpath`` against the resolved ``base``; a
+    path that escapes (via ``..``, an absolute path, or a symlink) is refused.
+    """
+    base_r = Path(base).expanduser().resolve()
+    target_r = Path(target).expanduser().resolve()
+    if not _contains(base_r, target_r):
+        raise UnsafeSourceError("path escapes the allowed directory (traversal blocked)")
+    return target_r
 
 
 def under(base: str | Path, segment: str, *, suffix: str = "") -> Path:
     """Confine ``<base>/<validated-segment><suffix>`` — for name/id-derived files."""
-    return Path(_confine_lexical(base, f"{safe_segment(segment)}{suffix}"))
+    base_p = Path(base)
+    return confine(base_p, base_p / f"{safe_segment(segment)}{suffix}")
 
 
 def resolve_local(raw: str, settings) -> Path:
     """Resolve a local file path, confined to ``settings.file_root`` when set.
 
-    Default (``file_root is None``) is trusted CLI/library use: any absolute path or a
-    cwd-relative path is allowed (confined only to the filesystem root, a no-op) — while still
-    routed through the lexical ``commonpath`` barrier. A service sets ``file_root`` (or refuses
-    local files via ``allow_local_files``) to truly restrict reads.
+    Default (``file_root is None``) is trusted CLI/library use: any path is allowed (confined
+    only to the filesystem root, a no-op) while still routed through the ``commonpath``
+    barrier. A service sets ``file_root`` (or refuses local files via ``allow_local_files``)
+    to truly restrict reads.
     """
+    p = Path(raw).expanduser().resolve()
     root = getattr(settings, "file_root", None)
-    expanded = os.path.expanduser(str(raw))
-    if root is None:
-        # Trusted: resolve relatives against cwd, allow anywhere; barrier base is the FS root.
-        candidate = os.path.normpath(os.path.abspath(expanded))
-        base_r = os.path.realpath(os.sep)
-        try:
-            if os.path.commonpath([base_r, candidate]) != base_r:
-                raise ValueError
-        except ValueError:
-            raise UnsafeSourceError("invalid local path") from None
-        return Path(candidate)
-    return Path(_confine_lexical(root, expanded))
+    base = Path(root).expanduser().resolve() if root else Path(p.anchor or os.sep)
+    if not _contains(base, p):
+        raise UnsafeSourceError("path escapes the allowed root (traversal blocked)")
+    return p
