@@ -141,6 +141,10 @@ class Settings(BaseSettings):
     # Workspace
     cache_dir: Path = Field(default_factory=default_cache_dir)
     session_ttl_s: float = 60 * 60 * 24 * 7  # 7 days
+    # Ephemeral mode: render into a throwaway temp dir wiped at the end of the run, so a
+    # confidential input is never persisted to the on-disk cache. Set via --no-cache (CLI),
+    # AGENTVISION_EPHEMERAL=true, or the ephemeral_cache() context manager (library).
+    ephemeral: bool = False
 
     # REST: only these backends may be selected per-request (allowlist)
     rest_enabled_backends: list[str] = Field(default_factory=lambda: ["local"])

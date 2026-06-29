@@ -41,12 +41,13 @@ from .models import (
     Verdict,
     Viewport,
 )
+from .workspace import ephemeral_cache
 
 __version__ = "0.9.1"
 
 __all__ = [
     "__version__",
-    "Settings", "load_settings",
+    "Settings", "load_settings", "ephemeral_cache",
     "AgentVisionError", "MissingDependencyError", "RenderError", "RenderTimeout",
     "UnsafeSourceError", "BackendError", "BackendAuthError", "ConfigError",
     "BBox", "Viewport", "Issue", "IssueKind", "IssueSource", "Severity", "Confidence",
