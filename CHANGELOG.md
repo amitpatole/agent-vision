@@ -4,6 +4,14 @@ All notable changes to AgentVision are documented here.
 
 ## [Unreleased]
 
+### Added — ephemeral `--no-cache` mode (confidential inputs)
+
+Render/analyze without persisting anything to the on-disk cache: a throwaway temp dir
+(0700, wiped on exit) holds all renders/sessions, so a confidential file is never written
+to `~/.cache/agentvision`. Available as the `--no-cache` flag on source commands (analyze,
+conform, check, render, ocr, loop, sheet, watch), `AGENTVISION_EPHEMERAL=true`, or the
+`agentvision.ephemeral_cache(settings)` context manager for library use.
+
 ### Added — offline PPTX slide inspection (deterministic, no LLM, no egress)
 
 PowerPoint decks were rasterized to a flat image, so offline AgentVision was blind to

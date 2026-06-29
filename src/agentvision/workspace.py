@@ -18,8 +18,11 @@ from __future__ import annotations
 import hashlib
 import json
 import shutil
+import tempfile
 import time
 import uuid
+from collections.abc import Iterator
+from contextlib import contextmanager
 from pathlib import Path
 
 from filelock import FileLock, Timeout
@@ -28,6 +31,24 @@ from .config import Settings
 from .logging import get_logger
 
 log = get_logger("workspace")
+
+
+@contextmanager
+def ephemeral_cache(settings: Settings) -> Iterator[Settings]:
+    """Yield a copy of ``settings`` whose cache lives in a throwaway temp dir, wiped on exit.
+
+    Use for confidential inputs so renders/sessions are never written to the persistent
+    on-disk cache. The temp dir is created with private (0700) permissions and removed in a
+    ``finally`` so it's cleaned up even on error.
+
+        with ephemeral_cache(load_settings()) as s:
+            report = await analyze("/path/to/confidential.pptx", settings=s)
+    """
+    tmp = Path(tempfile.mkdtemp(prefix="agentvision-ephemeral-"))
+    try:
+        yield settings.model_copy(update={"cache_dir": tmp, "ephemeral": True})
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
 
 # Bump when the on-disk session layout / Report schema changes incompatibly.
 SCHEMA_VERSION = "1.0"

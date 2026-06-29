@@ -43,8 +43,20 @@ def _settings(backend: str | None = None, full_page: bool | None = None,
               viewport: str | None = None, device_scale: float | None = None,
               timeout: float | None = None, nav_wait: str | None = None,
               settle_ms: int | None = None, freeze: bool | None = None,
-              allow_local: bool = False, render_timeout: float | None = None) -> Settings:
+              allow_local: bool = False, render_timeout: float | None = None,
+              no_cache: bool = False) -> Settings:
     overrides: dict = {}
+    if no_cache:
+        # Ephemeral: render into a throwaway temp dir, wiped when this CLI process exits, so a
+        # confidential input is never persisted to the on-disk cache.
+        import atexit
+        import shutil
+        import tempfile
+
+        tmp = tempfile.mkdtemp(prefix="agentvision-ephemeral-")
+        overrides["cache_dir"] = tmp
+        overrides["ephemeral"] = True
+        atexit.register(shutil.rmtree, tmp, True)
     if backend:
         overrides["vision_backend"] = backend
     if full_page is not None:
@@ -188,6 +200,9 @@ def analyze(
                                  "(default load; networkidle is bounded)."),
     render_timeout: float = typer.Option(None, "--render-timeout", help="Max render seconds."),
     allow_local: bool = typer.Option(False, "--allow-local", help="Allow localhost / LAN URLs."),
+    no_cache: bool = typer.Option(False, "--no-cache", help="Ephemeral: render in a throwaway "
+                                  "temp dir wiped on exit; nothing persisted to the cache "
+                                  "(use for confidential inputs)."),
     no_ocr: bool = typer.Option(False, "--no-ocr", help="Disable OCR grounding."),
     json_out: bool = typer.Option(False, "--json", help="Emit JSON."),
     handoff: bool = typer.Option(False, "--handoff", help="Emit the eyes→brain handoff "
@@ -203,7 +218,7 @@ def analyze(
 
     settings = _settings(backend=backend, full_page=full_page, viewport=viewport,
                          nav_wait=nav_wait, settle_ms=settle_ms, freeze=freeze,
-                         allow_local=allow_local, render_timeout=render_timeout)
+                         allow_local=allow_local, render_timeout=render_timeout, no_cache=no_cache)
     _run_report(do_analyze(
         source, settings=settings, backend=backend, instructions=instructions,
         expected=expected, brief=_build_brief(brief, expect, reference),
@@ -228,6 +243,8 @@ def conform(
     nav_wait: str = typer.Option(None, "--nav-wait", help="load|domcontentloaded|networkidle."),
     render_timeout: float = typer.Option(None, "--render-timeout", help="Max render seconds."),
     allow_local: bool = typer.Option(False, "--allow-local", help="Allow localhost / LAN URLs."),
+    no_cache: bool = typer.Option(False, "--no-cache", help="Ephemeral: nothing persisted to "
+                                  "the cache (wiped on exit); use for confidential inputs."),
     json_out: bool = typer.Option(False, "--json"),
     handoff: bool = typer.Option(False, "--handoff", help="Emit the eyes→brain handoff "
                                  "signal (JSON) for an agent/brain to act on."),
@@ -243,7 +260,7 @@ def conform(
         raise typer.Exit(code=1)
     settings = _settings(backend=backend, full_page=full_page, viewport=viewport,
                          nav_wait=nav_wait, settle_ms=settle_ms, freeze=freeze,
-                         allow_local=allow_local, render_timeout=render_timeout)
+                         allow_local=allow_local, render_timeout=render_timeout, no_cache=no_cache)
     _run_report(do_analyze(
         source, settings=settings, backend=backend, brief=the_brief,
         source_type=source_type, full_page=full_page, wait_for=wait_for,
@@ -262,6 +279,8 @@ def check(
     nav_wait: str = typer.Option(None, "--nav-wait", help="load|domcontentloaded|networkidle."),
     render_timeout: float = typer.Option(None, "--render-timeout", help="Max render seconds."),
     allow_local: bool = typer.Option(False, "--allow-local", help="Allow localhost / LAN URLs."),
+    no_cache: bool = typer.Option(False, "--no-cache", help="Ephemeral: nothing persisted to "
+                                  "the cache (wiped on exit); use for confidential inputs."),
     json_out: bool = typer.Option(False, "--json"),
     handoff: bool = typer.Option(False, "--handoff", help="Emit the eyes→brain handoff "
                                  "signal (JSON) for an agent/brain to act on."),
@@ -272,7 +291,7 @@ def check(
 
     settings = _settings(full_page=full_page, viewport=viewport, nav_wait=nav_wait,
                          settle_ms=settle_ms, freeze=freeze, allow_local=allow_local,
-                         render_timeout=render_timeout)
+                         render_timeout=render_timeout, no_cache=no_cache)
     _run_report(do_check(source, settings=settings, source_type=source_type,
                          full_page=full_page, wait_for=wait_for),
                 json_out=json_out, handoff=handoff, quiet=quiet)
@@ -291,13 +310,15 @@ def render(
     nav_wait: str = typer.Option(None, "--nav-wait", help="load|domcontentloaded|networkidle."),
     render_timeout: float = typer.Option(None, "--render-timeout", help="Max render seconds."),
     allow_local: bool = typer.Option(False, "--allow-local", help="Allow localhost / LAN URLs."),
+    no_cache: bool = typer.Option(False, "--no-cache", help="Ephemeral: nothing persisted to "
+                                  "the cache (wiped on exit); use for confidential inputs."),
 ):
     """Render an artifact to a PNG."""
     from ..core import render as do_render
 
     settings = _settings(full_page=full_page, viewport=viewport, nav_wait=nav_wait,
                          settle_ms=settle_ms, freeze=freeze, allow_local=allow_local,
-                         render_timeout=render_timeout)
+                         render_timeout=render_timeout, no_cache=no_cache)
     result = asyncio.run(do_render(source, settings=settings, source_type=source_type,
                                    full_page=full_page, wait_for=wait_for))
     if not result.primary:
@@ -338,6 +359,8 @@ def diff(
 def ocr(
     source: str = typer.Argument(...),
     source_type: str = typer.Option("auto"),
+    no_cache: bool = typer.Option(False, "--no-cache", help="Ephemeral: nothing persisted to "
+                                  "the cache (wiped on exit); use for confidential inputs."),
     json_out: bool = typer.Option(False, "--json"),
 ):
     """Extract text (+ word boxes) from an artifact via Tesseract."""
@@ -349,7 +372,7 @@ def ocr(
         typer.secho("Tesseract not available. Install: tesseract-ocr + tesseract-ocr-eng",
                     fg=typer.colors.RED)
         raise typer.Exit(code=1)
-    settings = _settings(full_page=True)
+    settings = _settings(full_page=True, no_cache=no_cache)
     result = asyncio.run(do_render(source, settings=settings, source_type=source_type,
                                    full_page=True))
     if not result.primary:
@@ -376,6 +399,8 @@ def loop(
     freeze: bool = typer.Option(None, "--freeze/--no-freeze", help="Pause animations + rAF."),
     render_timeout: float = typer.Option(None, "--render-timeout", help="Max render seconds."),
     allow_local: bool = typer.Option(False, "--allow-local", help="Allow localhost / LAN URLs."),
+    no_cache: bool = typer.Option(False, "--no-cache", help="Ephemeral: nothing persisted to "
+                                  "the cache (wiped on exit); use for confidential inputs."),
     json_out: bool = typer.Option(False, "--json"),
 ):
     """Run the visual feedback loop (re-renders the source up to --max-iter times).
@@ -388,7 +413,7 @@ def loop(
 
     settings = _settings(backend=backend, full_page=True, nav_wait=nav_wait,
                          settle_ms=settle_ms, freeze=freeze, allow_local=allow_local,
-                         render_timeout=render_timeout)
+                         render_timeout=render_timeout, no_cache=no_cache)
     session = LoopSession(source, settings=settings, backend=backend, instructions=instructions,
                           brief=_build_brief(brief, expect, reference))
     history = asyncio.run(session.run(max_iter=max_iter))
@@ -484,6 +509,8 @@ def watch(
     allow_local: bool = typer.Option(False, "--allow-local", help="Allow localhost / LAN URLs."),
     nav_wait: str = typer.Option(None, "--nav-wait", help="load|domcontentloaded|networkidle."),
     render_timeout: float = typer.Option(None, "--render-timeout", help="Max seconds."),
+    no_cache: bool = typer.Option(False, "--no-cache", help="Ephemeral: nothing persisted to "
+                                  "the cache (wiped on exit); use for confidential inputs."),
     json_out: bool = typer.Option(False, "--json"),
     handoff: bool = typer.Option(False, "--handoff", help="Emit the eyes→brain handoff signal."),
     quiet: bool = typer.Option(False, "--quiet", help="Machine mode: only JSON on stdout."),
@@ -497,7 +524,7 @@ def watch(
     from ..core import watch as do_watch
 
     settings = _settings(backend=backend, allow_local=allow_local, nav_wait=nav_wait,
-                         render_timeout=render_timeout)
+                         render_timeout=render_timeout, no_cache=no_cache)
     _run_report(do_watch(
         source, settings=settings, backend=backend, frames=frames, interval_ms=interval_ms,
         brief=_build_brief(brief, expect, None), use_vision=not no_vision,
@@ -509,12 +536,14 @@ def sheet(
     source: str = typer.Argument(...),
     breakpoints: str = typer.Option("375,768,1280,1920", help="Comma-separated widths."),
     out: str = typer.Option("agentvision-sheet.png", "-o", "--out"),
+    no_cache: bool = typer.Option(False, "--no-cache", help="Ephemeral: nothing persisted to "
+                                  "the cache (wiped on exit); use for confidential inputs."),
 ):
     """Render a responsive contact sheet across breakpoints."""
     from ..core.capture import contact_sheet
 
     bps = [int(x) for x in breakpoints.split(",") if x.strip()]
-    settings = _settings()
+    settings = _settings(no_cache=no_cache)
     path, _ = asyncio.run(contact_sheet(source, settings=settings, breakpoints=bps, out_path=out))
     typer.secho(f"Contact sheet -> {path}", fg=typer.colors.GREEN)
 
