@@ -4,6 +4,21 @@ All notable changes to AgentVision are documented here.
 
 ## [Unreleased]
 
+### Added — offline PPTX slide inspection (deterministic, no LLM, no egress)
+
+PowerPoint decks were rasterized to a flat image, so offline AgentVision was blind to
+slide-structure defects. New `core/checks/slides.py` reads the OOXML for *where* text and
+tables are, then reads the *rendered pixels* in those regions:
+
+- **Unreadable text** — bimodal (Otsu) pixel contrast inside each text box catches
+  dark-on-dark / stacked-background cases that XML colors get wrong (`< 3:1` → error,
+  `3–4.5:1` → warning). Runs in `agentvision check` (no key, no upload).
+- **Off-slide / clipped** content and **overlapping** text boxes (OOXML geometry).
+
+Honest limits offline: text over a *photo* and render-time table overflow still need the
+vision backend on the slide image (egress); this is the no-key floor. Confidential decks
+can be inspected fully locally.
+
 ### Security — fix path traversal (CodeQL `py/path-injection`, 5 HIGH)
 
 Untrusted data (REST URL path params, agent-supplied source specs) could widen a filesystem

@@ -99,6 +99,27 @@ async def _render_and_ground(
             log.debug("OCR skipped: %s", e)
 
     grounded = run_all_checks(render_result, image_path, ocr_result)
+
+    # Offline, deterministic PPTX slide inspection (unreadable contrast / off-slide / overlap)
+    # using the OOXML geometry + the rendered per-slide pixels. No LLM, no egress.
+    if render_result.source_type == "office":
+        try:
+            import os
+            import re as _re
+
+            from ..sources import resolve_source
+            from .checks.slides import check_pptx
+
+            resolved = resolve_source(source, source_type, settings=settings)
+            if resolved.path and str(resolved.path).lower().endswith(".pptx"):
+                pages = [im.path for im in render_result.images
+                         if _re.search(r"page_\d+\.\w+$", os.path.basename(im.path))]
+                if not pages:  # single slide (no composite prepended)
+                    pages = [im.path for im in render_result.images]
+                grounded += check_pptx(resolved.path, sorted(pages), settings)
+        except Exception as e:  # noqa: BLE001
+            log.debug("pptx inspection skipped: %s", e)
+
     ocr_text = ocr_result.text or None if ocr_result else None
     return render_result, grounded, ocr_text
 

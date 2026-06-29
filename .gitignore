@@ -41,3 +41,8 @@ media/
 # mkdocs build output
 site/
 .cache/
+
+# Confidential / local-only documents (never commit)
+*.pptx
+*.ppt
+PAAS-*

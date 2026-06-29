@@ -24,7 +24,8 @@ from .spelling import check_spelling_from_ocr
 
 # IssueKinds the classic-checks layer (and thus the local backend) can emit.
 CLASSIC_CAPABILITIES = [
-    "contrast", "overflow", "clipped", "broken_image", "error_text", "typo", "blank", "other",
+    "contrast", "overflow", "clipped", "overlap", "broken_image", "error_text", "typo",
+    "blank", "other",
 ]
 
 
