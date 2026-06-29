@@ -65,5 +65,7 @@ whether the result actually looks right.
 ## Capabilities matrix
 
 `Report.capabilities` lists which `IssueKind`s the producing backend can emit. The `local`
-backend emits `contrast, overflow, broken_image, error_text, blank, other`; LLM backends
-can emit any kind (layout, missing_element, overlap, clipped, …).
+backend emits `contrast, overflow, broken_image, error_text, blank, overlap, other` — and for
+PowerPoint sources also detects clipped/truncated text, off-slide shapes, and overlapping boxes
+**offline** (no key, no egress; see [the `check` command](cli.md#offline-powerpoint-slide-inspection)).
+LLM backends can emit any kind (layout, missing_element, overlap, clipped, …).

@@ -15,13 +15,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: amitpatole/agent-vision@v0.9.1
+      - uses: amitpatole/agent-vision@v0.10.0
         with:
           source: dist/index.html
           command: check            # check (no key) | analyze | conform | watch
           args: --full-page
       # Intent gate with a vision backend:
-      - uses: amitpatole/agent-vision@v0.9.1
+      - uses: amitpatole/agent-vision@v0.10.0
         with:
           command: conform
           source: dist/index.html
@@ -38,7 +38,7 @@ jobs:
 ```yaml
 # .pre-commit-config.yaml
 - repo: https://github.com/amitpatole/agent-vision
-  rev: v0.9.1
+  rev: v0.10.0
   hooks:
     - id: agentvision-check
       args: ["dist/index.html", "--quiet"]

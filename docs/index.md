@@ -23,7 +23,7 @@ version and prints *"what changed: 3 issues resolved → PASS."*
 
 | Capability | What you get |
 |---|---|
-| **See & report** | A machine verdict (`pass`/`warn`/`fail`) + coordinate-grounded issues — DOM geometry, computed-style WCAG contrast, clipped/truncated text (incl. SVG chart labels), OCR/typos, broken-image & console/4xx capture. |
+| **See & report** | A machine verdict (`pass`/`warn`/`fail`) + coordinate-grounded issues — DOM geometry, computed-style WCAG contrast, clipped/truncated text (incl. SVG chart labels & PPTX text boxes), OCR/typos, broken-image & console/4xx capture. |
 | **[Match intent](conformance.md)** | Grade a render against a brief / checklist / reference — PASS means *"it's what I set out to build,"* not just *"defect-free."* |
 | **[Full-coverage vision](backends.md)** | Large artifacts get a downscaled overview **plus full-res tiles** — pixel-based & source-agnostic (HTML, image, PDF, canvas). |
 | **[Streaming / temporal](use-cases/streaming.md)** | `watch` verifies behavior over time — playback, loading, liveness — not just a single glance. |

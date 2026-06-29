@@ -57,6 +57,24 @@ full-resolution tiles covering it, so fine detail and small text aren't lost to 
 It's pixel-based and source-agnostic — the same coverage applies to HTML, a flat image, or a
 PDF page, not just elements the DOM enumerates.
 
+## Documents, decks & confidential inputs
+
+Point any command at a PDF or Office/OpenDocument file (`.docx/.pptx/.xlsx/.odt/…`) and it's
+rasterized per page and graded like a screenshot. PowerPoint decks also get an **offline slide
+inspector** — `agentvision check deck.pptx` runs key-free and no-egress, flagging unreadable
+text (low / dark-on-dark contrast), clipped/truncated text, off-slide shapes and overlapping
+boxes, each tagged `[slide N]`.
+
+Processing something confidential? Add **`--no-cache`** to any source command to render in a
+throwaway temp dir that's wiped on exit — nothing touches `~/.cache/agentvision`:
+
+```bash
+agentvision check confidential-deck.pptx --no-cache --backend local   # nothing cached, nothing leaves the box
+```
+
+See [docs/security.md](docs/security.md) for the full model (path confinement, `file_root`, the
+ephemeral cache, and the renderer trust boundary).
+
 ## Match the intent, not just avoid defects
 
 A typo-free, well-laid-out artifact can still be **the wrong thing** — an infographic that
@@ -246,7 +264,7 @@ asyncio.run(main())
 
 ```yaml
 # CI gate (GitHub Action): fails the build on a visual FAIL verdict
-- uses: amitpatole/agent-vision@v0.9.1
+- uses: amitpatole/agent-vision@v0.10.0
   with: { source: dist/index.html, command: check, args: --full-page }
 ```
 

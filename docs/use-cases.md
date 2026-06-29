@@ -49,6 +49,12 @@ it's rasterized **per page** and graded like a screenshot — so a generated rep
 gets the same FAIL/PASS treatment as a web page. (Office conversion is on for local use, off by
 default on the REST service — it's a large attack surface.)
 
+**PowerPoint decks get an offline slide inspector** — `agentvision check deck.pptx` runs
+key-free and no-egress, flagging **unreadable text** (low / dark-on-dark contrast on the rendered
+pixels), **clipped/truncated text**, **off-slide shapes**, and **overlapping boxes**, each tagged
+`[slide N]`. Add `--no-cache` for a confidential deck (nothing is written to disk). See
+[the `check` command](cli.md#offline-powerpoint-slide-inspection).
+
 ## Streaming, loading, and liveness
 
 A glance can't tell a chart that's still loading from one that's broken. `watch` verifies an

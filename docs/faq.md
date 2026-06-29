@@ -54,6 +54,26 @@ Only the cloud backends send anything: a screenshot (base64) to the chosen provi
 sends nothing. API keys are read once and never logged or written to any cache/report. See
 [Configuration](configuration.md).
 
+## How do I check a confidential / sensitive artifact?
+
+Add `--no-cache` so the render goes to a throwaway temp dir that's wiped on exit — nothing is
+written to `~/.cache/agentvision`:
+
+```bash
+agentvision check confidential.pptx --no-cache --backend local
+```
+
+`--backend local` (or plain `check`) keeps everything on-box; `--no-cache` keeps it off the
+disk. In the library, use the `ephemeral_cache()` context manager. See
+[Configuration → Confidential inputs](configuration.md#confidential-inputs-ephemeral-cache).
+
+## Can it check a PowerPoint deck offline?
+
+Yes. `agentvision check deck.pptx` runs a key-free, no-egress inspector over the slides that
+flags **unreadable text** (low/dark-on-dark contrast on the rendered pixels), **clipped/truncated
+text**, **off-slide shapes**, and **overlapping boxes** — each tagged `[slide N]`. Combine with
+`--no-cache` for confidential decks. See [the `check` command](cli.md#offline-powerpoint-slide-inspection).
+
 ## How is this different from Percy / Playwright / Applitools?
 
 It's **not** human-reviewed visual regression and **not** browser automation. It's a

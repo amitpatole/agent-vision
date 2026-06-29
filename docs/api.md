@@ -13,6 +13,21 @@ async def main():
 asyncio.run(main())
 ```
 
+### Confidential inputs (ephemeral cache)
+
+Wrap any call in `ephemeral_cache()` so renders/sessions go to a throwaway temp dir that's
+wiped on exit — nothing touches the on-disk cache. Use it for confidential artifacts:
+
+```python
+from agentvision import analyze, ephemeral_cache, load_settings
+
+async def main():
+    with ephemeral_cache(load_settings()) as settings:
+        report = await analyze("confidential.pptx", settings=settings)
+        # ... use report ...
+    # temp cache dir is removed here, even on error
+```
+
 ## Core functions
 
 ::: agentvision.core.analyze.analyze
@@ -59,3 +74,4 @@ Report` keeps working unchanged; the import surface is identical.
 
 ::: agentvision.config.Settings
 ::: agentvision.config.load_settings
+::: agentvision.workspace.ephemeral_cache

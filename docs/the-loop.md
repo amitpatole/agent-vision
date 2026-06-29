@@ -21,7 +21,9 @@ Every analysis returns a `Report`:
   - issue kinds include `layout`, `overflow`, `clipped`, `contrast`, `missing_element`,
     `broken_image`, `overlap`, `blank`, `error_text`, **`typo`** (spelling/garbled text),
     `other`. The `typo` check is OCR + dictionary based (deterministic, offline) and is the
-    reliable way to catch misspellings — a weak vision model can miss them.
+    reliable way to catch misspellings — a weak vision model can miss them. For **PowerPoint**
+    sources, `contrast`, `clipped`, `overflow` and `overlap` are also produced **offline** (no
+    key, no egress) by the [slide inspector](cli.md#offline-powerpoint-slide-inspection).
 - `capabilities[]` — which issue kinds the producing backend can emit (the `local`
   backend emits fewer than the LLM backends — it does structural checks only)
 
