@@ -2,7 +2,7 @@
 
 All notable changes to AgentVision are documented here.
 
-## [Unreleased]
+## [0.10.0] — 2026-06-29
 
 ### Added — ephemeral `--no-cache` mode (confidential inputs)
 
