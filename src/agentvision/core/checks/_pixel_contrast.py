@@ -12,6 +12,19 @@ pixels, a single average would hide the unreadable region.
 from __future__ import annotations
 
 
+def crop_bbox(img, bbox, min_side: int = 8):
+    """Crop ``img`` to ``bbox`` (image px), clamped to the image bounds. ``None`` if the
+    clamped region is smaller than ``min_side`` on either axis (too small to grade)."""
+    iw, ih = img.size
+    x0 = max(0, int(bbox.x))
+    y0 = max(0, int(bbox.y))
+    x1 = min(iw, int(bbox.x + bbox.width))
+    y1 = min(ih, int(bbox.y + bbox.height))
+    if x1 - x0 < min_side or y1 - y0 < min_side:
+        return None
+    return img.crop((x0, y0, x1, y1))
+
+
 def relative_luminance(rgb) -> float:
     """WCAG relative luminance of an sRGB triple (0–255)."""
     def f(v: float) -> float:

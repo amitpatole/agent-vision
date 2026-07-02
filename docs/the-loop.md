@@ -23,7 +23,9 @@ Every analysis returns a `Report`:
     `other`. The `typo` check is OCR + dictionary based (deterministic, offline) and is the
     reliable way to catch misspellings — a weak vision model can miss them. `contrast` also
     covers text over a **non-solid background** (a `<canvas>`/raster map/gradient) — graded from
-    the rendered pixels (worst-case sampling), not a computed-style guess. For **PowerPoint**
+    the rendered pixels (worst-case sampling), not a computed-style guess — and text painted
+    *into* a `<canvas>` (via OCR + pixels, advisory) that has no DOM node to restyle. For
+    **PowerPoint**
     sources, `contrast`, `clipped`, `overflow` and `overlap` are also produced **offline** (no
     key, no egress) by the [slide inspector](cli.md#offline-powerpoint-slide-inspection).
 - `capabilities[]` — which issue kinds the producing backend can emit (the `local`

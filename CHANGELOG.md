@@ -4,6 +4,26 @@ All notable changes to AgentVision are documented here.
 
 ## [Unreleased]
 
+### Added — canvas-baked text legibility + origin-scoped auth (Phase 3)
+
+- **OCR-driven contrast for text painted *into* a `<canvas>`** — a chart/map library often
+  paints labels straight onto the canvas bitmap (axis ticks, a legend, a metric on a heat
+  tile), so there's no DOM element and every DOM check is blind to it. `check_contrast_ocr`
+  reads OCR words that fall inside a canvas region and aren't backed by any DOM text, measures
+  their real pixel contrast (worst-case sampling), and flags the clearly-unreadable ones —
+  honestly, at **warning**/low-confidence with no selector to offer (the fix is at the
+  chart/colormap layer). OCR word-confidence is recorded as evidence only, never a verdict input.
+- **Origin-scoped Bearer/Basic auth for URL sources** — `--auth-header-env NAME` sends an
+  `Authorization` header **only to same-origin requests** (injected at the route layer, so a
+  token can never leak to a third-party subresource host — the exact cross-origin leak that kept
+  `extra_http_headers` out of Phase 1). `--http-credentials-env NAME` supplies `user:password`
+  for HTTP Basic, scoped to the target origin. Both take an **env-var name, never an inline
+  secret**, register the value with the log scrubber, and force ephemeral mode.
+
+Deferred: the lat/lng→pixel map-projection click helper (it needs a page accessor, i.e. an
+eval-surface, to locate the map instance — `click_at` with fractional coords already covers the
+canvas-click need without that risk).
+
 ### Added — pixel-graded contrast over non-solid backgrounds (Phase 2)
 
 Text over a `<canvas>` / raster map tile / gradient / image has no CSS `background-color` to

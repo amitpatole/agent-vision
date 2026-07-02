@@ -42,9 +42,10 @@ async def render(
     # Authenticated renders carry live session cookies + real user data. Guarantee they never
     # persist to the shared on-disk cache: require ephemeral mode (the CLI forces --no-cache
     # when a session is supplied; a library caller must opt in). Fail loud rather than leak.
-    if settings.storage_state and not settings.ephemeral:
+    _auth = settings.storage_state or settings.auth_header_env or settings.http_credentials_env
+    if _auth and not settings.ephemeral:
         log.warning(
-            "storage_state is set but ephemeral mode is off — authenticated captures could "
+            "an auth credential is set but ephemeral mode is off — authenticated captures could "
             "persist to the cache. Wrap with ephemeral_cache(settings) (or pass --no-cache)."
         )
     interactions = list(settings.interactions[: settings.max_interactions])
@@ -61,6 +62,8 @@ async def render(
         settle_ms=settings.settle_ms if settle_ms is None else settle_ms,
         freeze=settings.freeze_animations if freeze is None else freeze,
         storage_state_path=str(settings.storage_state) if settings.storage_state else None,
+        auth_header_env=settings.auth_header_env,
+        http_credentials_env=settings.http_credentials_env,
         interactions=interactions,
         allow_mutations=settings.allow_mutations,
         step_timeout_ms=settings.interaction_step_timeout_ms,

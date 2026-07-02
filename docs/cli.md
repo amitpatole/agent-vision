@@ -49,6 +49,8 @@ Render and analyze an artifact with a vision backend (+ DOM/CV grounding).
 | `--no-ocr` | Disable OCR grounding. |  |
 | `--no-cache` | Ephemeral: render in a throwaway temp dir wiped on exit — nothing persists to the on-disk cache (use for confidential inputs). |  |
 | `--storage-state` | Path to a Playwright `storage_state` JSON — render **authenticated** (get past a login wall). Forces ephemeral mode. See [auth & interaction](configuration.md#authenticated-interactive-rendering). |  |
+| `--auth-header-env` | Name of an env var holding an `Authorization` header value (e.g. `Bearer …`); attached to **same-origin requests only**. URL sources; forces ephemeral. |  |
+| `--http-credentials-env` | Name of an env var holding `user:password` for HTTP Basic, scoped to the target origin. URL sources; forces ephemeral. |  |
 | `--interactions` | Pre-capture steps (JSON array or a path to one) — `click`/`hover`/`fill`/`click_at`/… — to reveal a popup/panel before grading. |  |
 | `--allow-mutations` | Permit non-GET requests during interactions (default: blocked, read-only). |  |
 | `--json` | Emit JSON. |  |
@@ -94,6 +96,8 @@ overlapping shapes — see below).
 | `--source-type` |  | `auto` |
 | `--no-cache` | Ephemeral: throwaway temp dir wiped on exit; nothing persists to the cache (confidential inputs). |  |
 | `--storage-state` | Path to a Playwright `storage_state` JSON — render authenticated (get past a login wall). Forces ephemeral mode. |  |
+| `--auth-header-env` | Env var holding an `Authorization` header value; same-origin requests only. URL sources; forces ephemeral. |  |
+| `--http-credentials-env` | Env var holding `user:password` for HTTP Basic, scoped to the target origin. URL sources; forces ephemeral. |  |
 | `--interactions` | Pre-capture steps (JSON array or a path) — `click`/`hover`/`fill`/`click_at`/… — to reveal a popup/panel before the offline checks. |  |
 | `--allow-mutations` | Permit non-GET requests during interactions (default: blocked, read-only). |  |
 | `--viewport` | WxH |  |
@@ -213,6 +217,8 @@ Render an artifact to a PNG.
 | `--allow-local` | Allow localhost / LAN URLs. |  |
 | `--no-cache` | Ephemeral: throwaway temp dir wiped on exit; nothing persists to the cache (confidential inputs). |  |
 | `--storage-state` | Path to a Playwright `storage_state` JSON — render authenticated. Forces ephemeral mode. |  |
+| `--auth-header-env` | Env var holding an `Authorization` header value; same-origin only. URL sources. |  |
+| `--http-credentials-env` | Env var holding `user:password` for HTTP Basic, scoped to the target origin. URL sources. |  |
 | `--interactions` | Pre-capture steps (JSON array or a path) — `click`/`hover`/`fill`/`click_at`/…. |  |
 | `--allow-mutations` | Permit non-GET requests during interactions (default: blocked, read-only). |  |
 

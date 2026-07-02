@@ -76,16 +76,23 @@ def _settings(backend: str | None = None, full_page: bool | None = None,
               settle_ms: int | None = None, freeze: bool | None = None,
               allow_local: bool = False, render_timeout: float | None = None,
               no_cache: bool = False, storage_state: str | None = None,
-              interactions: str | None = None, allow_mutations: bool = False) -> Settings:
+              interactions: str | None = None, allow_mutations: bool = False,
+              auth_header_env: str | None = None,
+              http_credentials_env: str | None = None) -> Settings:
     overrides: dict = {}
     steps = _parse_interactions(interactions)
     if steps:
         overrides["interactions"] = steps
         overrides["allow_mutations"] = allow_mutations
-    if storage_state:
-        overrides["storage_state"] = storage_state
-        # An authenticated capture carries live cookies + real user data — force ephemeral so
-        # nothing persists to the shared cache (the same guarantee as --no-cache).
+    if auth_header_env:
+        overrides["auth_header_env"] = auth_header_env
+    if http_credentials_env:
+        overrides["http_credentials_env"] = http_credentials_env
+    if storage_state or auth_header_env or http_credentials_env:
+        if storage_state:
+            overrides["storage_state"] = storage_state
+        # An authenticated capture carries live cookies/tokens + real user data — force ephemeral
+        # so nothing persists to the shared cache (the same guarantee as --no-cache).
         no_cache = True
     if no_cache:
         # Ephemeral: render into a throwaway temp dir, wiped when this CLI process exits, so a
@@ -247,6 +254,12 @@ def analyze(
     storage_state: str = typer.Option(None, "--storage-state", help="Path to a Playwright "
                                       "storage_state JSON to render authenticated (get past a "
                                       "login wall). Forces ephemeral mode."),
+    auth_header_env: str = typer.Option(None, "--auth-header-env", help="Name of an env var "
+                                        "holding an Authorization header value (e.g. 'Bearer …'); "
+                                        "attached to same-origin requests only. Forces ephemeral."),
+    http_credentials_env: str = typer.Option(None, "--http-credentials-env", help="Name of an "
+                                             "env var holding 'user:password' for HTTP Basic "
+                                             "(scoped to the target origin). Forces ephemeral."),
     interactions: str = typer.Option(None, "--interactions", help="Pre-capture steps: a JSON "
                                      "array (or a path to one) of click/hover/fill/click_at/… "
                                      "to reveal a popup/panel before grading."),
@@ -269,7 +282,8 @@ def analyze(
                          nav_wait=nav_wait, settle_ms=settle_ms, freeze=freeze,
                          allow_local=allow_local, render_timeout=render_timeout, no_cache=no_cache,
                          storage_state=storage_state, interactions=interactions,
-                         allow_mutations=allow_mutations)
+                         allow_mutations=allow_mutations, auth_header_env=auth_header_env,
+                         http_credentials_env=http_credentials_env)
     _run_report(do_analyze(
         source, settings=settings, backend=backend, instructions=instructions,
         expected=expected, brief=_build_brief(brief, expect, reference),
@@ -335,6 +349,12 @@ def check(
     storage_state: str = typer.Option(None, "--storage-state", help="Path to a Playwright "
                                       "storage_state JSON to render authenticated (get past a "
                                       "login wall). Forces ephemeral mode."),
+    auth_header_env: str = typer.Option(None, "--auth-header-env", help="Name of an env var "
+                                        "holding an Authorization header value; same-origin only. "
+                                        "Forces ephemeral."),
+    http_credentials_env: str = typer.Option(None, "--http-credentials-env", help="Name of an "
+                                             "env var holding 'user:password' for HTTP Basic "
+                                             "(scoped to the target origin). Forces ephemeral."),
     interactions: str = typer.Option(None, "--interactions", help="Pre-capture steps: a JSON "
                                      "array (or a path to one) of click/hover/fill/click_at/… "
                                      "to reveal a popup/panel before grading."),
@@ -352,7 +372,8 @@ def check(
                          settle_ms=settle_ms, freeze=freeze, allow_local=allow_local,
                          render_timeout=render_timeout, no_cache=no_cache,
                          storage_state=storage_state, interactions=interactions,
-                         allow_mutations=allow_mutations)
+                         allow_mutations=allow_mutations, auth_header_env=auth_header_env,
+                         http_credentials_env=http_credentials_env)
     _run_report(do_check(source, settings=settings, source_type=source_type,
                          full_page=full_page, wait_for=wait_for),
                 json_out=json_out, handoff=handoff, quiet=quiet)
@@ -376,6 +397,10 @@ def render(
     storage_state: str = typer.Option(None, "--storage-state", help="Path to a Playwright "
                                       "storage_state JSON to render authenticated. Forces "
                                       "ephemeral mode."),
+    auth_header_env: str = typer.Option(None, "--auth-header-env", help="Env var holding an "
+                                        "Authorization header value; same-origin only."),
+    http_credentials_env: str = typer.Option(None, "--http-credentials-env", help="Env var "
+                                             "holding 'user:password' for HTTP Basic (scoped)."),
     interactions: str = typer.Option(None, "--interactions", help="Pre-capture steps: a JSON "
                                      "array (or a path to one) of click/hover/fill/click_at/…."),
     allow_mutations: bool = typer.Option(False, "--allow-mutations", help="Permit non-GET "
@@ -388,7 +413,8 @@ def render(
                          settle_ms=settle_ms, freeze=freeze, allow_local=allow_local,
                          render_timeout=render_timeout, no_cache=no_cache,
                          storage_state=storage_state, interactions=interactions,
-                         allow_mutations=allow_mutations)
+                         allow_mutations=allow_mutations, auth_header_env=auth_header_env,
+                         http_credentials_env=http_credentials_env)
     result = asyncio.run(do_render(source, settings=settings, source_type=source_type,
                                    full_page=full_page, wait_for=wait_for))
     if not result.primary:

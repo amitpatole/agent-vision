@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 import re
 import time
 from pathlib import Path
@@ -47,6 +48,35 @@ from .base import (
 # avoid false positives on app routes that merely contain "auth" (a visible password field is
 # the stronger, primary signal — see _looks_like_login).
 _LOGIN_URL_HINTS = ("/login", "/signin", "/sign-in", "/sso/", "/oauth/", "/session/new")
+
+_DEFAULT_PORTS = {"http": 80, "https": 443}
+
+
+def _origin_of(url: str | None) -> str | None:
+    """Normalised ``scheme://host:port`` origin (default ports filled in) or None. Used for our
+    own same-origin comparison, so an explicit vs implicit default port can't cause a mismatch."""
+    if not url:
+        return None
+    p = urlparse(url)
+    if not p.scheme or not p.hostname:
+        return None
+    port = p.port or _DEFAULT_PORTS.get(p.scheme)
+    return f"{p.scheme}://{p.hostname.lower()}:{port}"
+
+
+def _web_origin(url: str | None) -> str | None:
+    """Browser-style origin (``scheme://host[:non-default-port]``) for Playwright's
+    ``http_credentials.origin`` matching, which omits default ports."""
+    if not url:
+        return None
+    p = urlparse(url)
+    if not p.scheme or not p.hostname:
+        return None
+    host = p.hostname.lower()
+    port = p.port
+    if port and port != _DEFAULT_PORTS.get(p.scheme):
+        return f"{p.scheme}://{host}:{port}"
+    return f"{p.scheme}://{host}"
 
 log = get_logger("playwright")
 
@@ -269,11 +299,15 @@ class PlaywrightRenderer:
             # In-memory dict form: AgentVision consumes the session read-only and never
             # re-serializes it, so no fresh credential file is written as a side effect.
             context_kwargs["storage_state"] = state
+        http_credentials, auth_header, auth_origin = self._resolve_auth(spec, resolved)
+        if http_credentials is not None:
+            context_kwargs["http_credentials"] = http_credentials
         context = await browser.new_context(**context_kwargs)
         # Toggled ON only while interaction steps run: aborts non-GET requests so clicking
         # around a live authenticated app can't submit/delete/send by default.
         mutation_state = {"block_mutations": False, "blocked_count": 0}
-        await self._install_guards(context, mutation_state)
+        await self._install_guards(context, mutation_state,
+                                   auth_header=auth_header, auth_origin=auth_origin)
         page = await context.new_page()
         # Close any EXTRA page (window.open popup) — but never our own main page.
         context.on("page", lambda pg: asyncio.create_task(pg.close()) if pg is not page else None)
@@ -538,6 +572,44 @@ class PlaywrightRenderer:
         log.info("storage_state loaded: %d cookie(s), %d origin(s)", len(cookies), len(origins))
         return state
 
+    def _resolve_auth(self, spec: RenderSpec, resolved: ResolvedSource):
+        """Resolve origin-scoped auth from env vars (never inline). Returns
+        ``(http_credentials_dict | None, auth_header | None, target_origin | None)``.
+
+        Both secrets are read from the named env var, registered with the log scrubber, and
+        never logged. Auth only applies to URL sources (there's no origin for inline HTML); the
+        header is scoped to ``target_origin`` at the route layer so a Bearer token can't leak to
+        a third-party subresource host.
+        """
+        header = creds = None
+        origin = _origin_of(resolved.url) if resolved.kind == "url" else None
+        if origin is None:
+            if spec.auth_header_env or spec.http_credentials_env:
+                log.warning("auth header/credentials ignored: they apply only to URL sources.")
+            return None, None, None
+        if spec.auth_header_env:
+            val = os.environ.get(spec.auth_header_env)
+            if not val:
+                raise RenderError(
+                    f"auth header env var '{spec.auth_header_env}' is not set.")
+            register_secret(val)
+            header = val
+            log.info("auth header loaded from env; scoped to origin %s", origin)
+        if spec.http_credentials_env:
+            raw = os.environ.get(spec.http_credentials_env)
+            if not raw or ":" not in raw:
+                raise RenderError(
+                    f"http credentials env var '{spec.http_credentials_env}' must be set to "
+                    "'username:password'.")
+            user, pw = raw.split(":", 1)
+            register_secret(pw)
+            # Playwright matches http_credentials.origin using a browser-style origin (default
+            # ports omitted), so pass that form — else Basic auth would silently not be sent.
+            creds = {"username": user, "password": pw,
+                     "origin": _web_origin(resolved.url) or origin}
+            log.info("http basic credentials loaded from env; scoped to origin %s", origin)
+        return creds, header, origin
+
     async def _looks_like_login(self, page) -> bool:
         """Best-effort detection that a supplied session bounced to a login wall: a login-ish
         final URL, or a visible password field on the page."""
@@ -597,8 +669,6 @@ class PlaywrightRenderer:
             await page.fill(step.selector, step.value or "", timeout=cap_ms)
             return f"{step.selector} = <literal>"
         if t == "fill_env":
-            import os
-
             secret = os.environ.get(step.value or "")
             if secret is None:
                 raise InteractionError(
@@ -627,10 +697,12 @@ class PlaywrightRenderer:
             return f"{ms}ms"
         raise InteractionError(f"unknown interaction type: {t}")
 
-    async def _install_guards(self, context, mutation_state: dict | None = None):
-        """Browser-level defense-in-depth: block file:// and private-network subrequests, and
-        (while ``mutation_state['block_mutations']`` is set, during interaction steps) abort
-        non-GET requests so a click/fill on a live app can't cause a write by default."""
+    async def _install_guards(self, context, mutation_state: dict | None = None, *,
+                              auth_header: str | None = None, auth_origin: str | None = None):
+        """Browser-level defense-in-depth: block file:// and private-network subrequests, abort
+        non-GET requests during interaction steps (read-only default), and — when an
+        ``auth_header`` is supplied — inject it as ``Authorization`` **only on same-origin
+        requests**, so a Bearer token can never leak to a third-party subresource host."""
         block_private = self.settings.block_private_networks
         allow_file = self.settings.allow_file_scheme
 
@@ -672,6 +744,12 @@ class PlaywrightRenderer:
                     mutation_state["blocked_count"] = mutation_state.get("blocked_count", 0) + 1
                     await route_obj.abort()
                     return
+            # Origin-scoped bearer/custom auth: attach the header ONLY to same-origin requests
+            # so a token for the target app can't be exfiltrated to a third-party subresource.
+            if auth_header and _origin_of(url) == auth_origin:
+                headers = {**route_obj.request.headers, "authorization": auth_header}
+                await route_obj.continue_(headers=headers)
+                return
             await route_obj.continue_()
 
         await context.route("**/*", route)

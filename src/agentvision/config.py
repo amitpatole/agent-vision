@@ -139,6 +139,13 @@ class Settings(BaseSettings):
     # the renderer starts already logged in and grades the app, not the login wall. Accepts only
     # a PATH — never inline credentials. The file IS a live credential; keep it out of VCS.
     storage_state: Path | None = None
+    # Origin-scoped auth for URL sources (Phase 3). Both hold the NAME of an env var, never the
+    # secret itself. auth_header_env → the value becomes the `Authorization` header, attached
+    # ONLY to same-origin requests (never leaked cross-origin to a CDN/analytics host).
+    # http_credentials_env → an env var holding "user:password" for HTTP Basic, scoped to the
+    # target origin. Setting either forces ephemeral mode.
+    auth_header_env: str | None = None
+    http_credentials_env: str | None = None
     # Ordered pre-capture steps (closed vocabulary; see models.interaction). Empty = none.
     interactions: list[Interaction] = Field(default_factory=list)
     # While interactions run, block non-GET requests (POST/PUT/PATCH/DELETE) unless enabled, so

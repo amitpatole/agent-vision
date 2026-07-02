@@ -23,6 +23,8 @@ class RenderSpec(BaseModel):
     freeze: bool = False  # pause CSS animations + rAF (canvas/WebGL) before capture
     # --- Authenticated rendering (get past a login wall) ---
     storage_state_path: str | None = None  # Playwright storage_state JSON (cookies+localStorage)
+    auth_header_env: str | None = None      # env var NAME → Authorization header (same-origin only)
+    http_credentials_env: str | None = None  # env var NAME → "user:pass" for HTTP Basic (scoped)
     # --- Pre-capture interaction (reach state that only appears after click/hover/zoom) ---
     interactions: list[Interaction] = Field(default_factory=list)
     allow_mutations: bool = False  # if False, non-GET requests are blocked while steps run

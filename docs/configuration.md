@@ -45,6 +45,8 @@ settings = load_settings(vision_backend='anthropic', settle_ms=800)
 | `session_ttl_s` | `AGENTVISION_SESSION_TTL_S` | `604800` |  |
 | `ephemeral` | `AGENTVISION_EPHEMERAL` | `False` | Render into a throwaway temp dir wiped at the end of the run — nothing persists to the on-disk cache. For confidential inputs. The CLI `--no-cache` flag and the `ephemeral_cache()` context manager both turn this on. |
 | `storage_state` | `AGENTVISION_STORAGE_STATE` | `None` | Path to a Playwright `storage_state` JSON (cookies + localStorage) so the renderer starts **authenticated** and grades the app, not the login wall. Accepts only a **path** — never inline credentials. Setting it **forces ephemeral mode** (the CLI passes `--no-cache`). The file *is* a live credential — keep it out of version control. |
+| `auth_header_env` | `AGENTVISION_AUTH_HEADER_ENV` | `None` | **Name** of an env var holding an `Authorization` header value (e.g. `Bearer …`). Attached to **same-origin requests only** (never leaked to a cross-origin CDN/analytics host). URL sources only; forces ephemeral. |
+| `http_credentials_env` | `AGENTVISION_HTTP_CREDENTIALS_ENV` | `None` | **Name** of an env var holding `user:password` for HTTP Basic, scoped to the target origin. URL sources only; forces ephemeral. |
 | `interactions` | _(library / CLI only)_ | `[]` | Ordered pre-capture steps (closed vocabulary — click / hover / fill / click_at / …) to reveal a popup/panel/tooltip before grading. Requires a single viewport. **Not** settable by a remote REST/MCP caller. |
 | `allow_mutations` | `AGENTVISION_ALLOW_MUTATIONS` | `False` | While interactions run, non-GET requests (POST/PUT/PATCH/DELETE) are **blocked** so clicking a live app can't write. Set `True` only when a step legitimately needs a write (e.g. a popup whose data loads via POST). |
 | `max_interactions` | `AGENTVISION_MAX_INTERACTIONS` | `20` | Cap on the number of interaction steps (runaway/DoS bound). |
@@ -98,6 +100,18 @@ agentvision check https://app.example.com/dashboard --storage-state ./state.json
 
 > The state file **is** a live credential. Keep it out of version control
 > (`echo 'state.json' >> .gitignore`) — see [Security](security.md#authenticated-rendering).
+
+For a **token- or header-gated** app (URL sources), skip the session file and pass the secret by
+env-var name — the value is attached only to same-origin requests, so it can't leak to a
+third-party subresource host:
+
+```bash
+export APP_TOKEN="Bearer $(cat ~/.config/myapp/token)"
+agentvision check https://app.example.com/dashboard --auth-header-env APP_TOKEN
+# HTTP Basic instead:
+export APP_BASIC="alice:$(cat ~/.config/myapp/pw)"
+agentvision check https://app.example.com/ --http-credentials-env APP_BASIC
+```
 
 **Reach state behind an interaction** — pass an ordered list of steps (a closed vocabulary:
 `click`, `hover`, `fill`, `fill_env`, `press`, `scroll_into_view`, `wait_for`, `wait_timeout`,

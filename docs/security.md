@@ -92,6 +92,26 @@ of version control (`echo 'state.json' >> .gitignore`; verify with `git check-ig
 state.json`). An authenticated screenshot also contains real user data; treat the output the same
 way (the analyze/check path keeps it in the ephemeral temp dir and wipes it).
 
+### Origin-scoped header / Basic auth
+
+For token- or header-gated URL sources, `--auth-header-env NAME` and `--http-credentials-env
+NAME` supply auth **by env-var name** (never inline), forcing ephemeral mode and registering the
+value with the log scrubber. The key property is **origin scoping**:
+
+- The `Authorization` header is injected at the **route layer, only on requests whose origin
+  matches the target page's origin** — so a Bearer token can *never* be attached to a
+  third-party subresource (a CDN, analytics, fonts). This is why Phase 1 deliberately did **not**
+  ship Playwright's `extra_http_headers`, which attaches a header to *every* request the context
+  makes, to every origin — a cross-origin token leak. A regression test proves the header reaches
+  the same-origin requests and is absent from a cross-origin fetch.
+- HTTP Basic is scoped to the target origin via Playwright's `http_credentials.origin`.
+
+**Residual limits (honest).** Scoping is by request origin, evaluated per request (a redirect to
+another origin gets no token). It covers HTTP requests the route sees; a header isn't injected on
+a WebSocket handshake. The header value comes from your own environment, not an untrusted caller —
+like `storage_state` and `--interactions`, header/Basic auth is **not** settable by a remote
+REST/MCP caller.
+
 ## Pre-capture interactions
 
 `--interactions` drives the page (click/hover/fill/…) before grading, so it can act inside a live
