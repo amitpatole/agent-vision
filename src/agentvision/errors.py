@@ -36,6 +36,23 @@ class RenderTimeout(RenderError):
     """A render exceeded its hard timeout (likely a hanging page)."""
 
 
+class InteractionError(RenderError):
+    """A pre-capture interaction step failed (missing selector / timeout).
+
+    Raised fail-closed: the renderer never captures and grades the wrong (pre-interaction)
+    state, so a broken step surfaces as an error verdict rather than a confident PASS on a
+    page that never reached the intended state.
+    """
+
+
+class AuthExpiredError(RenderError):
+    """A storage-state session was supplied but the page landed on a login wall.
+
+    Raised instead of silently grading the login page — the distinct signal tells the caller
+    to refresh the session, not to trust a verdict about the app.
+    """
+
+
 class UnsafeSourceError(AgentVisionError):
     """A source was blocked by the safety policy (SSRF / file:// / disallowed scheme)."""
 

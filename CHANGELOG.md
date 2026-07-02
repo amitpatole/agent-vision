@@ -2,6 +2,31 @@
 
 All notable changes to AgentVision are documented here.
 
+## [Unreleased]
+
+### Added — authenticated & interactive rendering (Phase 1)
+
+Grade apps that live *behind a login* and state that only appears *after an interaction* (a
+popup, a tooltip, a map heat-bin detail):
+
+- **`--storage-state PATH`** — render with a Playwright session (cookies + localStorage) so the
+  eyes grade the app, not the login wall. Credentials by reference only (a path, never inline);
+  the session is consumed read-only and never re-serialized; every cookie/localStorage value is
+  redaction-registered so it can't be logged; supplying a session **forces ephemeral mode**. If
+  the session expired and the page is a login wall, AgentVision errors (`AuthExpiredError`)
+  instead of silently grading the login page.
+- **`--interactions JSON`** — an ordered, **closed** step vocabulary (`click`, `hover`, `fill`,
+  `fill_env`, `press`, `scroll_into_view`, `wait_for`, `wait_timeout`, and `click_at` with
+  fractional coordinates for `<canvas>` maps) run before capture. **No `eval`/raw-JS step** — a
+  steps file can't execute arbitrary code. **Read-only by default**: non-GET requests are blocked
+  while steps run (opt in with `--allow-mutations`). **Fail-closed**: a missing selector/timeout
+  aborts rather than grading the wrong state. Bounded by `max_interactions` + per-step + render
+  timeouts. Requires a single viewport; **not** exposed to remote REST/MCP callers.
+
+On `analyze`, `check`, and `render`. See [Configuration → Authenticated & interactive
+rendering](configuration.md#authenticated--interactive-rendering) and
+[Security](security.md#authenticated-rendering).
+
 ## [0.10.0] — 2026-06-29
 
 ### Added — ephemeral `--no-cache` mode (confidential inputs)

@@ -44,6 +44,11 @@ settings = load_settings(vision_backend='anthropic', settle_ms=800)
 | `cache_dir` | `AGENTVISION_CACHE_DIR` | `/home/amitpatole/.cache/agentvision` |  |
 | `session_ttl_s` | `AGENTVISION_SESSION_TTL_S` | `604800` |  |
 | `ephemeral` | `AGENTVISION_EPHEMERAL` | `False` | Render into a throwaway temp dir wiped at the end of the run — nothing persists to the on-disk cache. For confidential inputs. The CLI `--no-cache` flag and the `ephemeral_cache()` context manager both turn this on. |
+| `storage_state` | `AGENTVISION_STORAGE_STATE` | `None` | Path to a Playwright `storage_state` JSON (cookies + localStorage) so the renderer starts **authenticated** and grades the app, not the login wall. Accepts only a **path** — never inline credentials. Setting it **forces ephemeral mode** (the CLI passes `--no-cache`). The file *is* a live credential — keep it out of version control. |
+| `interactions` | _(library / CLI only)_ | `[]` | Ordered pre-capture steps (closed vocabulary — click / hover / fill / click_at / …) to reveal a popup/panel/tooltip before grading. Requires a single viewport. **Not** settable by a remote REST/MCP caller. |
+| `allow_mutations` | `AGENTVISION_ALLOW_MUTATIONS` | `False` | While interactions run, non-GET requests (POST/PUT/PATCH/DELETE) are **blocked** so clicking a live app can't write. Set `True` only when a step legitimately needs a write (e.g. a popup whose data loads via POST). |
+| `max_interactions` | `AGENTVISION_MAX_INTERACTIONS` | `20` | Cap on the number of interaction steps (runaway/DoS bound). |
+| `interaction_step_timeout_ms` | `AGENTVISION_INTERACTION_STEP_TIMEOUT_MS` | `8000` | Per-step ceiling (hard-clamped to 30 s). |
 | `rest_enabled_backends` | `AGENTVISION_REST_ENABLED_BACKENDS` | `['local']` |  |
 
 ## API keys & key files
@@ -73,6 +78,47 @@ with ephemeral_cache(load_settings()) as settings:
 Ephemeral mode keeps bytes off the persistent cache; it does **not** stop a cloud vision
 backend from sending the render to a provider. For fully on-box processing, combine `--no-cache`
 with `--backend local` (or just `check`).
+
+## Authenticated & interactive rendering
+
+Two knobs let the eyes grade an app that lives *behind a login* and *state that only appears
+after you click* — e.g. a metrics popup that opens when you click a map heat-bin.
+
+**Get past a login wall** — capture a Playwright `storage_state` once (out of band), then point
+AgentVision at it. The renderer starts already authenticated and grades the app, not the login
+page. If the session has expired (the page bounces to a login wall) AgentVision **refuses to
+grade it** and errors, rather than returning a confident verdict about the login screen.
+
+```bash
+# 1) capture a session once (your own script, not committed — it holds live tokens):
+#    context.storage_state(path="state.json") after logging in.
+# 2) grade the authenticated app (storage_state forces ephemeral — nothing is cached):
+agentvision check https://app.example.com/dashboard --storage-state ./state.json
+```
+
+> The state file **is** a live credential. Keep it out of version control
+> (`echo 'state.json' >> .gitignore`) — see [Security](security.md#authenticated-rendering).
+
+**Reach state behind an interaction** — pass an ordered list of steps (a closed vocabulary:
+`click`, `hover`, `fill`, `fill_env`, `press`, `scroll_into_view`, `wait_for`, `wait_timeout`,
+and `click_at` for `<canvas>` maps). Steps run **before** capture, so the revealed popup/panel is
+what gets graded.
+
+```bash
+# open a popup, wait for it, then grade the result:
+agentvision analyze https://app.example.com/map \
+  --storage-state ./state.json \
+  --interactions '[{"type":"click_at","selector":"#map","x":0.62,"y":0.40},
+                   {"type":"wait_for","selector":".metrics-popup"}]'
+```
+
+`click_at` takes **fractional** coordinates (0–1) inside an element's box, so a canvas click
+survives a layout shift. Interactions are **read-only by default**: while they run, non-GET
+requests are blocked so clicking a live app can't submit or delete — pass `--allow-mutations`
+only when a step legitimately needs a write. A step whose selector is missing or that times out
+**fails closed** (errors) rather than grading the wrong, pre-interaction state. Interactions
+require a single viewport and are **not** exposed to remote REST/MCP callers. Use `fill_env`
+(never `fill`) for a password, so no secret is written into the steps JSON.
 
 ## REST service & auth
 

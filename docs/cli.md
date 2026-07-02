@@ -48,6 +48,9 @@ Render and analyze an artifact with a vision backend (+ DOM/CV grounding).
 | `--allow-local` | Allow localhost / LAN URLs. |  |
 | `--no-ocr` | Disable OCR grounding. |  |
 | `--no-cache` | Ephemeral: render in a throwaway temp dir wiped on exit — nothing persists to the on-disk cache (use for confidential inputs). |  |
+| `--storage-state` | Path to a Playwright `storage_state` JSON — render **authenticated** (get past a login wall). Forces ephemeral mode. See [auth & interaction](configuration.md#authenticated-interactive-rendering). |  |
+| `--interactions` | Pre-capture steps (JSON array or a path to one) — `click`/`hover`/`fill`/`click_at`/… — to reveal a popup/panel before grading. |  |
+| `--allow-mutations` | Permit non-GET requests during interactions (default: blocked, read-only). |  |
 | `--json` | Emit JSON. |  |
 | `--handoff` | Emit the eyes→brain handoff signal (JSON) for an agent/brain to act on. |  |
 | `--quiet` | Machine mode: only JSON on stdout, logs on stderr, stable exit codes (0 pass/warn, 2 fail, 3 error). |  |
@@ -90,6 +93,9 @@ overlapping shapes — see below).
 |---|---|---|
 | `--source-type` |  | `auto` |
 | `--no-cache` | Ephemeral: throwaway temp dir wiped on exit; nothing persists to the cache (confidential inputs). |  |
+| `--storage-state` | Path to a Playwright `storage_state` JSON — render authenticated (get past a login wall). Forces ephemeral mode. |  |
+| `--interactions` | Pre-capture steps (JSON array or a path) — `click`/`hover`/`fill`/`click_at`/… — to reveal a popup/panel before the offline checks. |  |
+| `--allow-mutations` | Permit non-GET requests during interactions (default: blocked, read-only). |  |
 | `--viewport` | WxH |  |
 | `--full-page` |  | on |
 | `--wait-for` | CSS selector to wait for first. |  |
@@ -206,6 +212,9 @@ Render an artifact to a PNG.
 | `--render-timeout` | Max render seconds. |  |
 | `--allow-local` | Allow localhost / LAN URLs. |  |
 | `--no-cache` | Ephemeral: throwaway temp dir wiped on exit; nothing persists to the cache (confidential inputs). |  |
+| `--storage-state` | Path to a Playwright `storage_state` JSON — render authenticated. Forces ephemeral mode. |  |
+| `--interactions` | Pre-capture steps (JSON array or a path) — `click`/`hover`/`fill`/`click_at`/…. |  |
+| `--allow-mutations` | Permit non-GET requests during interactions (default: blocked, read-only). |  |
 
 ## `agentvision diff`
 

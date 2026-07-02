@@ -5,9 +5,10 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Protocol, runtime_checkable
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from ..models.geometry import BBox, Viewport
+from ..models.interaction import Interaction
 from ..sources import ResolvedSource
 
 
@@ -20,6 +21,34 @@ class RenderSpec(BaseModel):
     device_scale: float = 1.0
     settle_ms: int = 0  # quiet wait after load before extract/capture
     freeze: bool = False  # pause CSS animations + rAF (canvas/WebGL) before capture
+    # --- Authenticated rendering (get past a login wall) ---
+    storage_state_path: str | None = None  # Playwright storage_state JSON (cookies+localStorage)
+    # --- Pre-capture interaction (reach state that only appears after click/hover/zoom) ---
+    interactions: list[Interaction] = Field(default_factory=list)
+    allow_mutations: bool = False  # if False, non-GET requests are blocked while steps run
+    step_timeout_ms: int = 8000  # per-step ceiling (clamped by the renderer)
+
+    @model_validator(mode="after")
+    def _one_viewport_with_interactions(self) -> RenderSpec:
+        # Interactions replay against a single page; a click_at fraction or a revealed popup
+        # would land differently per viewport, and the renderer takes canonical signals from
+        # viewport[0]. So interactions require exactly one viewport (fail loud, don't guess).
+        if self.interactions and len(self.viewports) > 1:
+            raise ValueError("interactions require a single viewport (got "
+                             f"{len(self.viewports)}); run one viewport at a time")
+        return self
+
+
+class InteractionStep(BaseModel):
+    """The recorded outcome of one executed interaction step (log-safe, no secret values)."""
+
+    index: int
+    type: str
+    selector: str = ""
+    ok: bool = True
+    detail: str = ""  # resolved coords, or the failure reason
+    elapsed_ms: int = 0
+    blocked_mutations: int = 0  # non-GET requests aborted while this step ran
 
 
 class ElementBox(BaseModel):
@@ -128,6 +157,10 @@ class RenderResult(BaseModel):
     visual_elements: list[ElementBox] = Field(
         default_factory=list,
         description="Sizable visual elements with image-px geometry (for full-res crops).",
+    )
+    interaction_log: list[InteractionStep] = Field(
+        default_factory=list,
+        description="Outcome of each pre-capture interaction step (what state was reached).",
     )
     source_type: str = "html"
 

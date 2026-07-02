@@ -39,13 +39,54 @@ def _parse_viewport(s: str | None) -> Viewport | None:
         raise typer.BadParameter("viewport must be WxH, e.g. 1280x800") from e
 
 
+def _parse_interactions(raw: str | None) -> list:
+    """Parse --interactions: a path to a JSON file, or inline JSON. Returns list[Interaction].
+
+    The closed vocabulary (see models.interaction) is validated here, so a bad step is a clean
+    CLI error, not a mid-render surprise. Never contains secrets (use fill_env for those)."""
+    if not raw:
+        return []
+    import json as _json
+
+    from ..models.interaction import Interaction
+
+    text = raw
+    p = Path(raw)
+    try:
+        if p.exists() and p.is_file():
+            text = p.read_text()
+    except OSError:
+        pass
+    try:
+        data = _json.loads(text)
+    except _json.JSONDecodeError as e:
+        raise typer.BadParameter(
+            f"--interactions must be a JSON array (or a path to one): {e}") from e
+    if not isinstance(data, list):
+        raise typer.BadParameter("--interactions must be a JSON array of step objects.")
+    try:
+        return [Interaction.model_validate(step) for step in data]
+    except Exception as e:  # noqa: BLE001 — pydantic ValidationError → clean CLI message
+        raise typer.BadParameter(f"invalid interaction step: {e}") from e
+
+
 def _settings(backend: str | None = None, full_page: bool | None = None,
               viewport: str | None = None, device_scale: float | None = None,
               timeout: float | None = None, nav_wait: str | None = None,
               settle_ms: int | None = None, freeze: bool | None = None,
               allow_local: bool = False, render_timeout: float | None = None,
-              no_cache: bool = False) -> Settings:
+              no_cache: bool = False, storage_state: str | None = None,
+              interactions: str | None = None, allow_mutations: bool = False) -> Settings:
     overrides: dict = {}
+    steps = _parse_interactions(interactions)
+    if steps:
+        overrides["interactions"] = steps
+        overrides["allow_mutations"] = allow_mutations
+    if storage_state:
+        overrides["storage_state"] = storage_state
+        # An authenticated capture carries live cookies + real user data — force ephemeral so
+        # nothing persists to the shared cache (the same guarantee as --no-cache).
+        no_cache = True
     if no_cache:
         # Ephemeral: render into a throwaway temp dir, wiped when this CLI process exits, so a
         # confidential input is never persisted to the on-disk cache.
@@ -203,6 +244,14 @@ def analyze(
     no_cache: bool = typer.Option(False, "--no-cache", help="Ephemeral: render in a throwaway "
                                   "temp dir wiped on exit; nothing persisted to the cache "
                                   "(use for confidential inputs)."),
+    storage_state: str = typer.Option(None, "--storage-state", help="Path to a Playwright "
+                                      "storage_state JSON to render authenticated (get past a "
+                                      "login wall). Forces ephemeral mode."),
+    interactions: str = typer.Option(None, "--interactions", help="Pre-capture steps: a JSON "
+                                     "array (or a path to one) of click/hover/fill/click_at/… "
+                                     "to reveal a popup/panel before grading."),
+    allow_mutations: bool = typer.Option(False, "--allow-mutations", help="Permit non-GET "
+                                         "requests during interactions (default: blocked)."),
     no_ocr: bool = typer.Option(False, "--no-ocr", help="Disable OCR grounding."),
     json_out: bool = typer.Option(False, "--json", help="Emit JSON."),
     handoff: bool = typer.Option(False, "--handoff", help="Emit the eyes→brain handoff "
@@ -218,7 +267,9 @@ def analyze(
 
     settings = _settings(backend=backend, full_page=full_page, viewport=viewport,
                          nav_wait=nav_wait, settle_ms=settle_ms, freeze=freeze,
-                         allow_local=allow_local, render_timeout=render_timeout, no_cache=no_cache)
+                         allow_local=allow_local, render_timeout=render_timeout, no_cache=no_cache,
+                         storage_state=storage_state, interactions=interactions,
+                         allow_mutations=allow_mutations)
     _run_report(do_analyze(
         source, settings=settings, backend=backend, instructions=instructions,
         expected=expected, brief=_build_brief(brief, expect, reference),
@@ -281,6 +332,14 @@ def check(
     allow_local: bool = typer.Option(False, "--allow-local", help="Allow localhost / LAN URLs."),
     no_cache: bool = typer.Option(False, "--no-cache", help="Ephemeral: nothing persisted to "
                                   "the cache (wiped on exit); use for confidential inputs."),
+    storage_state: str = typer.Option(None, "--storage-state", help="Path to a Playwright "
+                                      "storage_state JSON to render authenticated (get past a "
+                                      "login wall). Forces ephemeral mode."),
+    interactions: str = typer.Option(None, "--interactions", help="Pre-capture steps: a JSON "
+                                     "array (or a path to one) of click/hover/fill/click_at/… "
+                                     "to reveal a popup/panel before grading."),
+    allow_mutations: bool = typer.Option(False, "--allow-mutations", help="Permit non-GET "
+                                         "requests during interactions (default: blocked)."),
     json_out: bool = typer.Option(False, "--json"),
     handoff: bool = typer.Option(False, "--handoff", help="Emit the eyes→brain handoff "
                                  "signal (JSON) for an agent/brain to act on."),
@@ -291,7 +350,9 @@ def check(
 
     settings = _settings(full_page=full_page, viewport=viewport, nav_wait=nav_wait,
                          settle_ms=settle_ms, freeze=freeze, allow_local=allow_local,
-                         render_timeout=render_timeout, no_cache=no_cache)
+                         render_timeout=render_timeout, no_cache=no_cache,
+                         storage_state=storage_state, interactions=interactions,
+                         allow_mutations=allow_mutations)
     _run_report(do_check(source, settings=settings, source_type=source_type,
                          full_page=full_page, wait_for=wait_for),
                 json_out=json_out, handoff=handoff, quiet=quiet)
@@ -312,13 +373,22 @@ def render(
     allow_local: bool = typer.Option(False, "--allow-local", help="Allow localhost / LAN URLs."),
     no_cache: bool = typer.Option(False, "--no-cache", help="Ephemeral: nothing persisted to "
                                   "the cache (wiped on exit); use for confidential inputs."),
+    storage_state: str = typer.Option(None, "--storage-state", help="Path to a Playwright "
+                                      "storage_state JSON to render authenticated. Forces "
+                                      "ephemeral mode."),
+    interactions: str = typer.Option(None, "--interactions", help="Pre-capture steps: a JSON "
+                                     "array (or a path to one) of click/hover/fill/click_at/…."),
+    allow_mutations: bool = typer.Option(False, "--allow-mutations", help="Permit non-GET "
+                                         "requests during interactions (default: blocked)."),
 ):
     """Render an artifact to a PNG."""
     from ..core import render as do_render
 
     settings = _settings(full_page=full_page, viewport=viewport, nav_wait=nav_wait,
                          settle_ms=settle_ms, freeze=freeze, allow_local=allow_local,
-                         render_timeout=render_timeout, no_cache=no_cache)
+                         render_timeout=render_timeout, no_cache=no_cache,
+                         storage_state=storage_state, interactions=interactions,
+                         allow_mutations=allow_mutations)
     result = asyncio.run(do_render(source, settings=settings, source_type=source_type,
                                    full_page=full_page, wait_for=wait_for))
     if not result.primary:

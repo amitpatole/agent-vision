@@ -55,6 +55,22 @@ pixels), **clipped/truncated text**, **off-slide shapes**, and **overlapping box
 `[slide N]`. Add `--no-cache` for a confidential deck (nothing is written to disk). See
 [the `check` command](cli.md#offline-powerpoint-slide-inspection).
 
+## Behind a login, or behind a click
+
+Real apps hide the thing worth grading. AgentVision can render **authenticated** and **drive the
+UI to the right state** before it looks:
+
+- **Past a login wall** — point `--storage-state` at a saved Playwright session and the eyes
+  grade the app, not the login page (and error loudly if the session expired, rather than grading
+  the login screen by mistake).
+- **Behind an interaction** — pass `--interactions` to click, hover, or zoom first. For a map
+  whose metrics popup only opens when you click a `<canvas>` heat-bin, `click_at` clicks a
+  fractional point inside the map, then `wait_for` the popup, then it's graded — so unreadable
+  popup text (low contrast over the raster tiles) is caught like any other defect. Interactions
+  are read-only by default (writes blocked) and fail closed.
+
+See [Configuration → Authenticated & interactive rendering](configuration.md#authenticated-interactive-rendering).
+
 ## Streaming, loading, and liveness
 
 A glance can't tell a chart that's still loading from one that's broken. `watch` verifies an

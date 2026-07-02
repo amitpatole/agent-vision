@@ -68,6 +68,54 @@ agentvision serve --host 0.0.0.0 --port 8000
 The REST service additionally refuses bare-path and `file://` sources by default, so this is a
 second layer for deployments that intentionally serve files from a directory.
 
+## Authenticated rendering
+
+`--storage-state PATH` renders an app while logged in (see
+[Configuration](configuration.md#authenticated-interactive-rendering)). The security model:
+
+- **Credentials by reference, never inline.** The CLI accepts only a *path* to a Playwright
+  `storage_state` JSON (or the `AGENTVISION_STORAGE_STATE` env var) — never a password or token
+  on the command line (which would land in shell history and `ps`).
+- **Read-only consumption.** AgentVision loads the session into memory and never re-serializes
+  it, so no fresh credential file is written as a side effect. Tracing/HAR are never enabled, so
+  session cookies can't leak into a trace artifact.
+- **Secrets are redaction-registered.** Every cookie / localStorage value in the state file is
+  registered with the log scrubber on load, so it can never appear in a log line; only
+  non-sensitive counts (`N cookies, M origins`) are logged.
+- **Forced ephemeral.** Supplying a session **forces `--no-cache`**, so authenticated captures
+  (which contain real user data) are never written to the shared on-disk cache.
+- **Fail-closed on expiry.** If the session is expired/invalid and the page lands on a login
+  wall, AgentVision errors (`AuthExpiredError`) instead of silently grading the login page.
+
+**The state file is a live credential** — anyone with it can impersonate the account. Keep it out
+of version control (`echo 'state.json' >> .gitignore`; verify with `git check-ignore -v
+state.json`). An authenticated screenshot also contains real user data; treat the output the same
+way (the analyze/check path keeps it in the ephemeral temp dir and wipes it).
+
+## Pre-capture interactions
+
+`--interactions` drives the page (click/hover/fill/…) before grading, so it can act inside a live
+authenticated app. Guardrails:
+
+- **Closed vocabulary, no code execution.** Steps are a fixed enum mapped one-to-one to Playwright
+  calls; there is **no `eval`/raw-JS step**, so a steps file can't run arbitrary code in the page.
+- **Read-only by default.** While steps run, non-GET HTTP requests (POST/PUT/PATCH/DELETE) are
+  aborted, so a click can't submit/delete/send. Opt in per run with `--allow-mutations` when a
+  step legitimately needs a write.
+- **Fail-closed.** A missing selector or timeout aborts the render rather than grading the wrong
+  state; a runaway is bounded by `max_interactions`, a per-step timeout, and the overall render
+  timeout.
+- **Secrets by reference.** Use `fill_env` (types the value of a named env var, redaction-
+  registered) rather than `fill` for a password, so no secret is written into the steps JSON.
+- **Local-only surface.** Interactions and `storage_state` are **not** settable by a remote
+  REST/MCP caller — both resolve from server-side config only.
+
+**Residual limits (stated honestly).** The read-only guard covers **HTTP non-GET** requests; it
+does **not** block a write sent over a WebSocket, nor a side-effecting `GET` (an app that mutates
+on a GET is its own bug). Login-wall detection is a heuristic (login-ish URL or a visible password
+field) and is best-effort. Treat `--allow-mutations` against a production app the way you'd treat
+any write — it is not a sandbox.
+
 ## Deploy securely (recommended backstops)
 
 ```bash

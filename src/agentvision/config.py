@@ -13,6 +13,8 @@ import platformdirs
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from .models.interaction import Interaction
+
 APP_NAME = "agentvision"
 
 # Default model per provider. Anthropic defaults to the cheap/fast Haiku because
@@ -131,6 +133,19 @@ class Settings(BaseSettings):
     # attack surface on untrusted input (macros/DDE/remote-template/OLE), so it is not exposed
     # to remote callers by default.
     allow_office_render: bool = True
+
+    # Authenticated rendering & pre-capture interaction (Phase 1)
+    # Path to a Playwright storage_state JSON (cookies + localStorage) captured out-of-band, so
+    # the renderer starts already logged in and grades the app, not the login wall. Accepts only
+    # a PATH — never inline credentials. The file IS a live credential; keep it out of VCS.
+    storage_state: Path | None = None
+    # Ordered pre-capture steps (closed vocabulary; see models.interaction). Empty = none.
+    interactions: list[Interaction] = Field(default_factory=list)
+    # While interactions run, block non-GET requests (POST/PUT/PATCH/DELETE) unless enabled, so
+    # clicking around a live authenticated app can't submit/delete/send by default (fail-safe).
+    allow_mutations: bool = False
+    max_interactions: int = 20             # cap the number of steps (DoS / runaway bound)
+    interaction_step_timeout_ms: int = 8000  # per-step ceiling (clamped)
 
     # HTTP service (REST): bind + auth + DoS bounds
     api_token: str | None = Field(default=None, validation_alias="AGENTVISION_API_TOKEN")

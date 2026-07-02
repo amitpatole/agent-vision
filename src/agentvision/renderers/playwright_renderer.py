@@ -9,13 +9,21 @@ device_scale). Every render is bounded by a hard timeout.
 from __future__ import annotations
 
 import asyncio
+import json
 import re
+import time
 from pathlib import Path
 from urllib.parse import urlparse
 
 from ..config import Settings
-from ..errors import MissingDependencyError, RenderError, RenderTimeout
-from ..logging import get_logger
+from ..errors import (
+    AuthExpiredError,
+    InteractionError,
+    MissingDependencyError,
+    RenderError,
+    RenderTimeout,
+)
+from ..logging import get_logger, register_secret
 from ..models.geometry import BBox, Viewport
 from ..netguard import host_is_safe
 from ..sources import ResolvedSource
@@ -27,11 +35,18 @@ from .base import (
     ElementBox,
     FailedResponse,
     Frame,
+    InteractionStep,
     MediaState,
     RenderedImage,
     RenderResult,
     RenderSpec,
 )
+
+# URL fragments that signal a login/SSO wall — used only to detect an expired session when a
+# storage_state was supplied (so we refuse to silently grade the login page). Kept specific to
+# avoid false positives on app routes that merely contain "auth" (a visible password field is
+# the stronger, primary signal — see _looks_like_login).
+_LOGIN_URL_HINTS = ("/login", "/signin", "/sign-in", "/sso/", "/oauth/", "/session/new")
 
 log = get_logger("playwright")
 
@@ -201,6 +216,7 @@ class PlaywrightRenderer:
         overflow_x = 0.0
         visual_tags: list[str] = []
         visual_elements: list[ElementBox] = []
+        interaction_log: list[InteractionStep] = []
 
         proxy = await self._start_proxy()
         try:
@@ -223,6 +239,7 @@ class PlaywrightRenderer:
                             overflow_x = page_result["overflow_x"]
                             visual_tags = page_result["visual_tags"]
                             visual_elements = page_result["visual_elements"]
+                            interaction_log = page_result["interaction_log"]
                 finally:
                     await browser.close()
         finally:
@@ -234,19 +251,29 @@ class PlaywrightRenderer:
             console_errors=console_errors, failed_responses=failed,
             broken_images=broken, clipped_text=clipped, overflow_x=overflow_x,
             visual_tags=visual_tags,
-            visual_elements=visual_elements, source_type=resolved.kind,
+            visual_elements=visual_elements, interaction_log=interaction_log,
+            source_type=resolved.kind,
         )
 
     async def _render_one(self, browser, spec, resolved, vp: Viewport, out_dir: Path, idx: int):
         vw, vh, dsf = self._clamp(vp, spec.device_scale or 1.0)
         vp = Viewport(width=vw, height=vh)
-        context = await browser.new_context(
-            viewport={"width": vw, "height": vh},
-            device_scale_factor=dsf,
-            reduced_motion="reduce" if spec.freeze else "no-preference",
-            accept_downloads=False,  # untrusted page can't trigger disk-filling downloads
-        )
-        await self._install_guards(context)
+        context_kwargs: dict = {
+            "viewport": {"width": vw, "height": vh},
+            "device_scale_factor": dsf,
+            "reduced_motion": "reduce" if spec.freeze else "no-preference",
+            "accept_downloads": False,  # untrusted page can't trigger disk-filling downloads
+        }
+        state = self._load_storage_state(spec.storage_state_path)
+        if state is not None:
+            # In-memory dict form: AgentVision consumes the session read-only and never
+            # re-serializes it, so no fresh credential file is written as a side effect.
+            context_kwargs["storage_state"] = state
+        context = await browser.new_context(**context_kwargs)
+        # Toggled ON only while interaction steps run: aborts non-GET requests so clicking
+        # around a live authenticated app can't submit/delete/send by default.
+        mutation_state = {"block_mutations": False, "blocked_count": 0}
+        await self._install_guards(context, mutation_state)
         page = await context.new_page()
         # Close any EXTRA page (window.open popup) — but never our own main page.
         context.on("page", lambda pg: asyncio.create_task(pg.close()) if pg is not page else None)
@@ -271,6 +298,16 @@ class PlaywrightRenderer:
             await context.close()
             raise RenderError(f"Navigation failed: {e}") from e
 
+        # A supplied session that lands on a login wall means it expired/invalid. Refuse to
+        # silently grade the login page — raise a distinct signal (fail-closed).
+        if spec.storage_state_path and await self._looks_like_login(page):
+            url = page.url
+            await context.close()
+            raise AuthExpiredError(
+                "storage_state was supplied but the page is a login wall (the session is "
+                f"expired or invalid): {url}. Refresh the saved session and retry."
+            )
+
         # A <canvas> scene often BUILDS inside the rAF loop, so we must let rAF run long
         # enough for it to draw before pausing it ("settle-then-freeze", not the reverse).
         has_canvas = False
@@ -289,6 +326,19 @@ class PlaywrightRenderer:
                 await page.wait_for_timeout(settle)
             except Exception:  # noqa: BLE001
                 pass
+
+        # Drive the page to the state worth grading (open a popup, hover a tooltip, click a
+        # map heat-bin) BEFORE freeze/capture, so the revealed DOM is present for extraction
+        # and appears in the screenshot. Read-only by default (non-GET requests blocked);
+        # fail-closed (a bad step raises rather than grading the wrong state).
+        interaction_log: list[InteractionStep] = []
+        if spec.interactions:
+            mutation_state["block_mutations"] = not spec.allow_mutations
+            try:
+                interaction_log = await self._run_interactions(page, spec, mutation_state)
+            finally:
+                mutation_state["block_mutations"] = False
+
         # Freeze perpetual motion so capture (incl. full-page) can't hang on animation. CSS
         # is always safe; rAF is only frozen when there's no canvas (else we'd capture an
         # empty canvas). Canvas pages rely on animations="disabled" + the settle above.
@@ -361,6 +411,7 @@ class PlaywrightRenderer:
             "console_errors": console_errors, "failed": _dedupe_failed(failed),
             "overflow_x": float(data.get("overflowX", 0) or 0) * dsf,
             "visual_tags": list(visual_tags), "visual_elements": visual_elements,
+            "interaction_log": interaction_log,
         }
         await context.close()
         return result
@@ -458,8 +509,128 @@ class PlaywrightRenderer:
             except Exception:  # noqa: BLE001
                 pass
 
-    async def _install_guards(self, context):
-        """Browser-level defense-in-depth: block file:// and private-network subrequests."""
+    def _load_storage_state(self, path: str | None):
+        """Load a Playwright storage_state JSON into memory for an authenticated context.
+
+        Registers every cookie/localStorage value as a secret (so it can never appear in a log
+        line) and logs only non-sensitive counts. Read-only: the state is never re-serialized.
+        """
+        if not path:
+            return None
+        p = Path(path)
+        if not p.exists():
+            raise RenderError(f"storage_state file not found: {path}")
+        try:
+            state = json.loads(p.read_text())
+        except (OSError, json.JSONDecodeError) as e:
+            raise RenderError(f"storage_state is not valid JSON ({path}): {e}") from e
+        if not isinstance(state, dict):
+            raise RenderError(f"storage_state must be a JSON object: {path}")
+        cookies = state.get("cookies") or []
+        origins = state.get("origins") or []
+        for c in cookies:
+            if isinstance(c, dict) and c.get("value"):
+                register_secret(str(c["value"]))
+        for o in origins:
+            for item in (o.get("localStorage") or []) if isinstance(o, dict) else []:
+                if isinstance(item, dict) and item.get("value"):
+                    register_secret(str(item["value"]))
+        log.info("storage_state loaded: %d cookie(s), %d origin(s)", len(cookies), len(origins))
+        return state
+
+    async def _looks_like_login(self, page) -> bool:
+        """Best-effort detection that a supplied session bounced to a login wall: a login-ish
+        final URL, or a visible password field on the page."""
+        url = (page.url or "").lower()
+        if any(hint in url for hint in _LOGIN_URL_HINTS):
+            return True
+        try:
+            return bool(await page.evaluate(
+                "() => !!document.querySelector('input[type=password]')"))
+        except Exception:  # noqa: BLE001
+            return False
+
+    async def _run_interactions(self, page, spec: RenderSpec, mutation_state: dict):
+        """Execute the closed, ordered interaction vocabulary. Fail-closed: any step that
+        errors raises InteractionError (the renderer never grades the pre-interaction state)."""
+        cap = max(0, min(int(spec.step_timeout_ms), 30_000))  # hard ceiling per step
+        out: list[InteractionStep] = []
+        for i, step in enumerate(spec.interactions):
+            before = mutation_state.get("blocked_count", 0)
+            t0 = time.monotonic()
+            try:
+                detail = await self._do_step(page, step, cap)
+            except InteractionError:
+                raise
+            except Exception as e:  # noqa: BLE001 — fail-closed on any Playwright error
+                where = f" '{step.selector}'" if step.selector else ""
+                raise InteractionError(
+                    f"interaction step {i} ({step.type}{where}) failed: {e}"
+                ) from e
+            out.append(InteractionStep(
+                index=i, type=step.type, selector=step.selector or "", ok=True, detail=detail,
+                elapsed_ms=int((time.monotonic() - t0) * 1000),
+                blocked_mutations=mutation_state.get("blocked_count", 0) - before,
+            ))
+        total_blocked = sum(s.blocked_mutations for s in out)
+        if total_blocked:
+            log.info("blocked %d non-GET request(s) during interactions (allow_mutations=%s)",
+                     total_blocked, spec.allow_mutations)
+        return out
+
+    async def _do_step(self, page, step, cap_ms: int) -> str:
+        """Map ONE interaction to exactly one Playwright call. No arbitrary code path exists."""
+        t = step.type
+        if t == "click":
+            await page.click(step.selector, timeout=cap_ms)
+            return step.selector
+        if t == "hover":
+            await page.hover(step.selector, timeout=cap_ms)
+            return step.selector
+        if t == "scroll_into_view":
+            await page.locator(step.selector).scroll_into_view_if_needed(timeout=cap_ms)
+            return step.selector
+        if t == "wait_for":
+            await page.locator(step.selector).wait_for(state="visible", timeout=cap_ms)
+            return step.selector
+        if t == "fill":
+            await page.fill(step.selector, step.value or "", timeout=cap_ms)
+            return f"{step.selector} = <literal>"
+        if t == "fill_env":
+            import os
+
+            secret = os.environ.get(step.value or "")
+            if secret is None:
+                raise InteractionError(
+                    f"fill_env: environment variable '{step.value}' is not set")
+            register_secret(secret)
+            await page.fill(step.selector, secret, timeout=cap_ms)
+            return f"{step.selector} = <env>"  # never record the env var name or its value
+        if t == "press":
+            if step.selector:
+                await page.press(step.selector, step.value, timeout=cap_ms)
+            else:
+                await page.keyboard.press(step.value)
+            return f"press {step.value}"
+        if t == "click_at":
+            box = await page.locator(step.selector).bounding_box(timeout=cap_ms)
+            if not box:
+                raise InteractionError(
+                    f"click_at: '{step.selector}' has no bounding box (not visible?)")
+            cx = box["x"] + box["width"] * float(step.x)
+            cy = box["y"] + box["height"] * float(step.y)
+            await page.mouse.click(cx, cy)
+            return f"{step.selector} @ ({cx:.0f},{cy:.0f})"
+        if t == "wait_timeout":
+            ms = max(0, min(int(step.ms or 0), cap_ms))
+            await page.wait_for_timeout(ms)
+            return f"{ms}ms"
+        raise InteractionError(f"unknown interaction type: {t}")
+
+    async def _install_guards(self, context, mutation_state: dict | None = None):
+        """Browser-level defense-in-depth: block file:// and private-network subrequests, and
+        (while ``mutation_state['block_mutations']`` is set, during interaction steps) abort
+        non-GET requests so a click/fill on a live app can't cause a write by default."""
         block_private = self.settings.block_private_networks
         allow_file = self.settings.allow_file_scheme
 
@@ -494,6 +665,13 @@ class PlaywrightRenderer:
             if block_private and not await host_is_safe(parsed.hostname, parsed.port):
                 await route_obj.abort()
                 return
+            # Read-only guard: while interactions run, abort writes unless explicitly allowed.
+            if mutation_state and mutation_state.get("block_mutations"):
+                method = (route_obj.request.method or "GET").upper()
+                if method not in ("GET", "HEAD", "OPTIONS"):
+                    mutation_state["blocked_count"] = mutation_state.get("blocked_count", 0) + 1
+                    await route_obj.abort()
+                    return
             await route_obj.continue_()
 
         await context.route("**/*", route)
