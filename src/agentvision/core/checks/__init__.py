@@ -12,6 +12,7 @@ from ...models.report import Issue
 from ...ocr.base import OcrResult
 from ...renderers.base import RenderResult
 from .contrast import check_contrast_dom
+from .contrast_pixel import check_contrast_pixel
 from .layout import (
     check_blank,
     check_broken_images,
@@ -33,7 +34,8 @@ def run_all_checks(
     render: RenderResult, image_path: str | Path | None, ocr: OcrResult | None = None
 ) -> list[Issue]:
     issues: list[Issue] = []
-    issues += check_contrast_dom(render)
+    issues += check_contrast_dom(render)                  # solid-background samples (exact)
+    issues += check_contrast_pixel(render, image_path)    # non-solid: grade the real pixels
     issues += run_structural_checks(render, image_path)
     if ocr is not None:
         issues += check_spelling_from_ocr(ocr)
@@ -41,7 +43,7 @@ def run_all_checks(
 
 
 __all__ = [
-    "run_all_checks", "run_structural_checks", "check_contrast_dom",
+    "run_all_checks", "run_structural_checks", "check_contrast_dom", "check_contrast_pixel",
     "check_overflow", "check_broken_images", "check_clipped_text", "check_console",
     "check_blank", "check_spelling_from_ocr", "CLASSIC_CAPABILITIES",
 ]

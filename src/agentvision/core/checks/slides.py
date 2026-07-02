@@ -25,6 +25,7 @@ from xml.etree import ElementTree as ET
 from ...logging import get_logger
 from ...models.geometry import BBox
 from ...models.report import Confidence, Issue, IssueKind, IssueSource, Severity
+from ._pixel_contrast import bimodal_contrast as _bimodal_contrast
 
 log = get_logger("slides")
 
@@ -55,57 +56,6 @@ def _shapes(root: ET.Element):
         text = "".join(t.text or "" for t in sp.iter(f"{_A}t")).strip()
         yield (int(off.get("x")), int(off.get("y")), int(ext.get("cx")), int(ext.get("cy")),
                text, sp.tag.endswith("graphicFrame"))
-
-
-def _relative_luminance(rgb) -> float:
-    def f(v: float) -> float:
-        v /= 255.0
-        return v / 12.92 if v <= 0.03928 else ((v + 0.055) / 1.055) ** 2.4
-    return 0.2126 * f(rgb[0]) + 0.7152 * f(rgb[1]) + 0.0722 * f(rgb[2])
-
-
-def _contrast(a, b) -> float:
-    la, lb = _relative_luminance(a), _relative_luminance(b)
-    hi, lo = max(la, lb), min(la, lb)
-    return (hi + 0.05) / (lo + 0.05)
-
-
-def _bimodal_contrast(crop) -> tuple[float, float] | None:
-    """Split a text-box crop into foreground/background by Otsu luminance and return
-    (contrast_ratio, text_fraction). None if there's no discernible text."""
-    import numpy as np
-
-    arr = np.asarray(crop.convert("RGB")).reshape(-1, 3).astype(float)
-    if len(arr) < 64:
-        return None
-    g = 0.2126 * arr[:, 0] + 0.7152 * arr[:, 1] + 0.0722 * arr[:, 2]
-    hist, _ = np.histogram(g, bins=256, range=(0, 255))
-    total = g.size
-    sum_total = float((np.arange(256) * hist).sum())
-    sum_b = w_b = 0.0
-    best_var, thr = -1.0, 128
-    for i in range(256):
-        w_b += hist[i]
-        if w_b == 0:
-            continue
-        w_f = total - w_b
-        if w_f == 0:
-            break
-        sum_b += i * hist[i]
-        m_b = sum_b / w_b
-        m_f = (sum_total - sum_b) / w_f
-        var = w_b * w_f * (m_b - m_f) ** 2
-        if var > best_var:
-            best_var, thr = var, i
-    cut = thr + 0.5  # split at the bin boundary so float luminance in bin `thr` lands left
-    dark, light = arr[g <= cut], arr[g > cut]
-    if len(dark) < 10 or len(light) < 10:
-        return None
-    minority, majority = (dark, light) if len(dark) < len(light) else (light, dark)
-    frac = len(minority) / len(arr)
-    if frac < 0.003:  # negligible ink — treat as no text
-        return None
-    return _contrast(minority.mean(0), majority.mean(0)), frac
 
 
 def check_pptx(pptx_path, page_images: list[str], settings=None) -> list[Issue]:

@@ -4,7 +4,9 @@ import zipfile
 
 from PIL import Image
 
-from agentvision.core.checks.slides import _bimodal_contrast, _contrast, check_pptx
+from agentvision.core.checks._pixel_contrast import bimodal_contrast as _bimodal_contrast
+from agentvision.core.checks._pixel_contrast import contrast_ratio as _contrast
+from agentvision.core.checks.slides import check_pptx
 from agentvision.models.report import IssueKind
 
 A = "xmlns:a=\"http://schemas.openxmlformats.org/drawingml/2006/main\""

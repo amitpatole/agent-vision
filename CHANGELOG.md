@@ -4,6 +4,23 @@ All notable changes to AgentVision are documented here.
 
 ## [Unreleased]
 
+### Added — pixel-graded contrast over non-solid backgrounds (Phase 2)
+
+Text over a `<canvas>` / raster map tile / gradient / image has no CSS `background-color` to
+read, so computed-style contrast could only guess and emit a vague "verify manually" warning.
+Now those samples are graded from the **rendered pixels**: an Otsu split separates the text ink
+from its background and measures the **worst-case** (lowest-contrast) background patch under the
+text — because contrast can swing across a heatmap within a few pixels. This is the check that
+catches the unreadable metrics in a map popup whose text sits over the raster tiles.
+
+- `check_contrast_dom` now owns **solid-background** samples only (exact, hard AA fail);
+  non-solid samples are ceded to the new `check_contrast_pixel`.
+- Output is **banded** (clear-fail `< 3:1` → error, marginal `< 4.5:1` → warning) and carries
+  `source = cv` — a distinct, pixel-derived tier from exact computed-style contrast — with a
+  prescriptive fix (add an opaque background or a text halo). A sample that measures readable is
+  dropped (the computed-style guess was a false alarm). Runs in `check` — offline, no key, no
+  egress; pair with `--interactions` to grade a popup revealed by a click.
+
 ### Added — authenticated & interactive rendering (Phase 1)
 
 Grade apps that live *behind a login* and state that only appears *after an interaction* (a
