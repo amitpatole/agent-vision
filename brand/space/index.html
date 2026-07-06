@@ -123,13 +123,13 @@ footer{position:relative;z-index:1;border-top:1px solid var(--border);padding:2.
     <a href="#surfaces">Surfaces</a>
     <a href="#install">Install</a>
     <a href="https://github.com/amitpatole/agent-vision" target="_blank">GitHub</a>
-    <a href="https://pypi.org/project/agentvision/" target="_blank" class="vbadge">v0.9.1</a>
+    <a href="https://pypi.org/project/agentvision/" target="_blank" class="vbadge">v0.11.0</a>
     <a href="https://github.com/amitpatole/agent-vision" target="_blank" class="btn btn-star">★ Star</a>
   </div>
 </nav>
 
 <section class="hero">
-  <div class="eyebrow"><span class="dot-live"></span>AgentVision v0.9.1 is live on PyPI</div>
+  <div class="eyebrow"><span class="dot-live"></span>AgentVision v0.11.0 is live on PyPI</div>
   <h1>Coding <span class="w-agents">agents</span> are <span class="w-blind">blind</span>.<br>Now they can see.</h1>
   <p class="hero-sub">Closes the visual feedback loop for AI coding agents:<br><strong>render → perceive → report → fix</strong> — before claiming done.</p>
   <div class="hero-btns">
@@ -167,7 +167,7 @@ footer{position:relative;z-index:1;border-top:1px solid var(--border);padding:2.
   </div>
   <div class="feat-grid">
     <div class="feat"><div class="fi">📐</div><h3>DOM Geometry</h3><p>Precise element boxes via <code>getBoundingClientRect</code> + scroll offset. Coordinate-grounded overflow and clip detection.</p></div>
-    <div class="feat"><div class="fi">🎨</div><h3>Real WCAG Contrast</h3><p>Ratios from <code>getComputedStyle</code> — degrades honestly over gradients and images rather than lying.</p></div>
+    <div class="feat"><div class="fi">🎨</div><h3>Real WCAG Contrast</h3><p>Ratios from <code>getComputedStyle</code> over solid backgrounds; over a <strong>canvas / raster map / gradient</strong> it grades from the rendered <strong>pixels</strong> (worst-case sampling) instead of guessing.</p></div>
     <div class="feat"><div class="fi">🔤</div><h3>OCR Word Boxes</h3><p>Tesseract-powered text locations for clipped labels, overflowing content, and garbled rendering.</p></div>
     <div class="feat"><div class="fi">🌐</div><h3>Network &amp; Console</h3><p>Catches 4xx errors and console warnings — the #1 “looks fine in code, broken live” cause.</p></div>
     <div class="feat"><div class="fi">🤖</div><h3>Vision LLM Critique</h3><p>Claude / OpenAI / Gemini add semantic critique on top. Pixel boxes flagged <code>bbox_precise:false</code>.</p></div>
@@ -175,7 +175,9 @@ footer{position:relative;z-index:1;border-top:1px solid var(--border);padding:2.
     <div class="feat"><div class="fi">📸</div><h3>Visual Regression</h3><p>Named baseline snapshots + diff scoring so agents know exactly what regressed between iterations.</p></div>
     <div class="feat"><div class="fi">🩺</div><h3>Doctor Command</h3><p>Runs a real Chromium launch, checks Tesseract, poppler, and every missing system dependency.</p></div>
     <div class="feat"><div class="fi">🔌</div><h3>Provider-Agnostic API</h3><p>Swap backends via <code>--backend</code> flag or env var. Uniform API surface across all vision providers.</p></div>
-    <div class="feat"><div class="fi">🎞️</div><h3>Temporal Verification</h3><p><code>watch</code> samples frames over time to verify <strong>playback, loading &amp; liveness</strong> — is the video actually playing, did the spinner clear, are captions on. Deterministic &lt;video&gt; state + pixel liveness. For streaming UIs &amp; live dashboards.</p></div>
+    <div class="feat"><div class="fi">🎞️</div><h3>Temporal Verification</h3><p><code>watch</code> samples frames over time to verify <strong>playback, loading &amp; liveness</strong> — is the video actually playing, did the spinner clear, are captions on. Deterministic &lt;video&gt; state + pixel liveness. Now grades <strong>local video files &amp; animated GIFs</strong> too (a dead/static export FAILs). For streaming UIs &amp; live dashboards.</p></div>
+    <div class="feat"><div class="fi">🔐</div><h3>Authenticated &amp; Interactive</h3><p>Render an app <strong>behind a login</strong> (<code>--storage-state</code>) and reach state <strong>behind a click</strong> — a closed-vocabulary <code>--interactions</code> list (click / hover / fill / canvas <code>click_at</code>) opens a popup before grading. Read-only by default; origin-scoped auth.</p></div>
+    <div class="feat"><div class="fi">🖌️</div><h3>Canvas-Baked Text</h3><p>Text painted straight <strong>into a &lt;canvas&gt;</strong> (a chart label, a metric on a heat tile) has no DOM node to inspect — OCR + worst-case pixel contrast flags the unreadable ones at the chart/colormap layer.</p></div>
     <div class="feat"><div class="fi">🧩</div><h3>Full-Coverage Vision</h3><p>Large artifacts are tiled at <strong>full resolution</strong> (overview + detail), so no small text or chart data is lost to downscaling. Pixel-based &amp; source-agnostic — HTML, images, PDFs, canvas alike.</p></div>
   </div>
 </section>
@@ -185,7 +187,7 @@ footer{position:relative;z-index:1;border-top:1px solid var(--border);padding:2.
   <h2 class="sec-title">The eyes for a brain that decides</h2>
   <p class="sec-sub">AgentVision is the <strong>eyes</strong>. Pair it with <a href="https://huggingface.co/spaces/amitpatole/verel" target="_blank">Verel</a> — the <strong>brain</strong> — where nothing is &ldquo;done&rdquo; until a grader returns a verdict. The eyes perceive and grade intent; the brain decides with attestation and compounds <strong>only verified work</strong> into memory. Then the eyes look again.</p>
   <p style="text-align:center;margin-top:1.5rem"><img src="https://raw.githubusercontent.com/amitpatole/verel/main/media/unified-architecture.png" alt="Eyes and Brain - AgentVision perceives and grades intent; Verel decides and compounds verified work into memory" style="max-width:100%;border-radius:16px;border:1px solid #2a3142"></p>
-  <p class="sec-sub" style="margin-top:1.75rem"><strong>New in v0.9.1:</strong> intent conformance (does it match what you set out to build?), a generative loop for AI images/infographics, and the eyes&rarr;brain <code>Handoff</code> signal. <a href="https://github.com/amitpatole/verel" target="_blank">Verel on GitHub &rarr;</a></p>
+  <p class="sec-sub" style="margin-top:1.75rem"><strong>New in v0.11.0:</strong> grade an app <strong>behind a login</strong> and state <strong>behind a click</strong>, unreadable metrics <strong>over a raster map</strong>, text <strong>baked into a canvas</strong>, and local <strong>video / GIF motion over time</strong>. <a href="https://github.com/amitpatole/verel" target="_blank">Verel on GitHub &rarr;</a></p>
 </section>
 
 <section class="sec" id="surfaces">
@@ -300,7 +302,7 @@ asyncio.run(main())</pre></div>
   </div>
 </section>
 
-<section class="sec"><div class="sec-chip">Adopt</div><h2 class="sec-title">Drop it into your workflow &amp; agents</h2><p class="sec-sub">CI gate in one step (<code>uses: amitpatole/agent-vision@v0.9.1</code>), a pre-commit hook, or shell out anywhere (exit codes 0/2/3). For agents: the Claude Code Skill, MCP tools, or a drop-in agent contract.</p></section>
+<section class="sec"><div class="sec-chip">Adopt</div><h2 class="sec-title">Drop it into your workflow &amp; agents</h2><p class="sec-sub">CI gate in one step (<code>uses: amitpatole/agent-vision@v0.11.0</code>), a pre-commit hook, or shell out anywhere (exit codes 0/2/3). For agents: the Claude Code Skill, MCP tools, or a drop-in agent contract.</p></section>
 <footer>
   <div class="ft-links">
     <a href="https://github.com/amitpatole/agent-vision" target="_blank">GitHub</a>
@@ -309,7 +311,7 @@ asyncio.run(main())</pre></div>
     <a href="https://github.com/amitpatole/agent-vision/issues" target="_blank">Issues</a>
     <a href="https://github.com/amitpatole/agent-vision/blob/main/README.md" target="_blank">Docs</a>
   </div>
-  <p>AgentVision v0.9.1 · MIT © Amit Patole · Eyes for AI Agents</p>
+  <p>AgentVision v0.11.0 · MIT © Amit Patole · Eyes for AI Agents</p>
   <span class="sig">— amitpatole</span>
 </footer>
 </body>
