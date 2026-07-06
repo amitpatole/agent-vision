@@ -2,7 +2,13 @@
 
 All notable changes to AgentVision are documented here.
 
-## [Unreleased]
+## [0.11.0] — 2026-07-05
+
+Grade what agents couldn't see before: apps **behind a login**, state **behind a click**,
+unreadable metrics **over a raster map**, text **baked into a canvas**, and now motion **over
+time**. Four capabilities land together (authenticated + interactive rendering, pixel-graded
+contrast over non-solid backgrounds, OCR-graded canvas text with origin-scoped auth, and local
+video/GIF grading) — each through the security cadence.
 
 ### Added — grade local motion media (video files + animated GIFs)
 
