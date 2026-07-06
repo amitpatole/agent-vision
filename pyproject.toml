@@ -35,6 +35,7 @@ dependencies = [
 [project.optional-dependencies]
 render = ["playwright>=1.44", "pdf2image>=1.17"]
 ocr = ["pytesseract>=0.3.10", "pyspellchecker>=0.8"]
+motion = ["imageio-ffmpeg>=0.4"]
 anthropic = ["anthropic>=0.40"]
 openai = ["openai>=1.40"]
 gemini = ["google-genai>=0.3"]
@@ -42,6 +43,7 @@ serve = ["fastapi>=0.110", "uvicorn[standard]>=0.29", "python-multipart>=0.0.9"]
 mcp = ["mcp>=1.2"]
 all = [
     "playwright>=1.44", "pdf2image>=1.17", "pytesseract>=0.3.10", "pyspellchecker>=0.8",
+    "imageio-ffmpeg>=0.4",
     "anthropic>=0.40", "openai>=1.40", "google-genai>=0.3",
     "fastapi>=0.110", "uvicorn[standard]>=0.29", "python-multipart>=0.0.9",
     "mcp>=1.2",

@@ -27,6 +27,12 @@ overview; the full policy + reporting is in
   throwaway user profile per conversion (and `--convert-to` does not execute document macros),
   and a hard timeout with **process-group kill**. Gated **off by default on the REST service**
   (`allow_office_render=False`) — LibreOffice is a large attack surface on untrusted input.
+- **Motion media (ffmpeg)** — local video / animated-GIF decode is hardened like Office
+  conversion: a byte cap before decode, ffmpeg in **argv form (no shell)** with the input as an
+  **absolute path**, a **`file`-only protocol whitelist** and a **demuxer allowlist** so a file
+  named `.mp4` that is really an HLS playlist / ffconcat script can't make ffmpeg dereference a
+  URL (SSRF) or another local file (LFI), a **hard timeout with process-group kill**, and frame
+  byte/pixel caps. Gated **off by default on the REST service** (`allow_motion_render=False`).
 - **HTTP service** — loopback is zero-config; a non-loopback bind **refuses to start without a
   token**; token auth is constant-time; request bodies are capped (incl. chunked); renders are
   bounded by a semaphore; errors don't leak internals; local-file sources are refused.
@@ -135,6 +141,32 @@ does **not** block a write sent over a WebSocket, nor a side-effecting `GET` (an
 on a GET is its own bug). Login-wall detection is a heuristic (login-ish URL or a visible password
 field) and is best-effort. Treat `--allow-mutations` against a production app the way you'd treat
 any write — it is not a sandbox.
+
+## Motion media (video / GIF decode)
+
+Grading a local video or animated GIF (see
+[Configuration → motion media](configuration.md#grading-local-motion-media-video-files-animated-gifs))
+runs an **ffmpeg decoder over untrusted bytes**, so it is bounded the same way LibreOffice
+conversion is:
+
+- **Gated** by `allow_motion_render` — **off on the REST service**, so a remote caller can't reach
+  the decoder. Enabled for trusted local CLI/library use.
+- **Byte cap** (`max_document_bytes`) before any decode; a **hard timeout**
+  (`motion_decode_timeout_s`) with **process-group kill** so a malformed file can't park the
+  process; extracted frames pass the same **byte + pixel caps** as any image (decompression-bomb
+  guard), and a GIF frame-count cap bounds iteration.
+- **Content, not extension, decides the demuxer.** ffmpeg picks its demuxer from the file's
+  bytes, so a `.mp4` extension proves nothing. Two layers close the classic playlist/script abuse:
+  a **`-protocol_whitelist file`** so the decoder can only ever open local files (never a network
+  protocol → no SSRF), and a **demuxer allowlist** (mp4/mov/webm/matroska/avi/gif) that refuses
+  playlist- or script-style inputs (`hls`, `concat`, …) which can reference other files/URLs.
+  Regression tests feed an HLS playlist and an ffconcat/LFI file disguised as `.mp4` and assert
+  both are refused before any frame is extracted.
+
+**Residual limits (honest).** This is decode hardening around a large third-party binary, not a
+sandbox; keep the recommended **network-layer egress restriction** below (which also backstops
+ffmpeg), and prefer running motion grading against files you trust. As with `storage_state` and
+`--interactions`, motion decode is **not** exposed to a remote REST/MCP caller.
 
 ## Deploy securely (recommended backstops)
 

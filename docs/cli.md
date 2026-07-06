@@ -140,15 +140,20 @@ agentvision check confidential-deck.pptx --no-cache   # + never touch the on-dis
 
 ## `agentvision watch`
 
-Watch an artifact over time — verify playback / loading / liveness, not just a glance.
+Watch an artifact over time — verify playback / loading / liveness, not just a glance. `SOURCE`
+may be a URL/HTML/SVG **or a local motion file** — a video (`.mp4`/`.webm`/`.mov`/…) or an
+animated GIF, sampled across its full duration and graded for motion / dead-export / black-frame.
+`analyze` and `check` auto-route motion files here too. Video needs **ffmpeg** (`pip install
+'agentvision[motion]'` or a system install; `agentvision doctor` reports it); GIFs need nothing
+extra. See [Configuration → motion media](configuration.md#grading-local-motion-media-video-files-animated-gifs).
 
 **Arguments:** `SOURCE`
 
 | Option | Description | Default |
 |---|---|---|
 | `--backend` | Vision backend for the time-aware pass. |  |
-| `--frames` | How many frames to sample. |  |
-| `--interval-ms` | Delay between frames (ms). |  |
+| `--frames` | How many frames to sample (default 6 for motion files). |  |
+| `--interval-ms` | Delay between frames (ms); ignored for motion files (sampled across the duration). |  |
 | `--brief` | Intended behavior (e.g. 'the video plays'). |  |
 | `--expect` | A required behavior (repeatable). |  |
 | `--no-vision` | Deterministic signals only. |  |

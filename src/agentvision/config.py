@@ -97,6 +97,10 @@ class Settings(BaseSettings):
     watch_interval_ms: int = 600
     watch_max_frames: int = 60  # clamp caller-supplied frames (DoS bound)
     watch_max_interval_ms: int = 10_000
+    # Local motion media (video files + animated GIFs): sampled into frames and fed to the
+    # same temporal grader `watch` uses — never flattened to a still or handed to the browser.
+    motion_frames: int = 6              # default frames sampled evenly across the duration
+    motion_decode_timeout_s: float = 30.0  # hard timeout per ffmpeg invocation
 
     # Renderer isolation / resource caps (untrusted pages drive Chromium)
     chromium_sandbox: bool = True  # keep the OS sandbox; disable only in a trusted/contained env
@@ -133,6 +137,10 @@ class Settings(BaseSettings):
     # attack surface on untrusted input (macros/DDE/remote-template/OLE), so it is not exposed
     # to remote callers by default.
     allow_office_render: bool = True
+    # Decoding local motion media (video/animated GIF) with ffmpeg. Enabled for trusted local
+    # CLI/library use; the REST service sets this False — a media decoder is a meaningful
+    # attack surface on untrusted bytes, so it is not exposed to remote callers by default.
+    allow_motion_render: bool = True
 
     # Authenticated rendering & pre-capture interaction (Phase 1)
     # Path to a Playwright storage_state JSON (cookies + localStorage) captured out-of-band, so

@@ -51,6 +51,9 @@ settings = load_settings(vision_backend='anthropic', settle_ms=800)
 | `allow_mutations` | `AGENTVISION_ALLOW_MUTATIONS` | `False` | While interactions run, non-GET requests (POST/PUT/PATCH/DELETE) are **blocked** so clicking a live app can't write. Set `True` only when a step legitimately needs a write (e.g. a popup whose data loads via POST). |
 | `max_interactions` | `AGENTVISION_MAX_INTERACTIONS` | `20` | Cap on the number of interaction steps (runaway/DoS bound). |
 | `interaction_step_timeout_ms` | `AGENTVISION_INTERACTION_STEP_TIMEOUT_MS` | `8000` | Per-step ceiling (hard-clamped to 30 s). |
+| `motion_frames` | `AGENTVISION_MOTION_FRAMES` | `6` | Frames sampled evenly across a **local motion file** (video / animated GIF) before grading over time. |
+| `motion_decode_timeout_s` | `AGENTVISION_MOTION_DECODE_TIMEOUT_S` | `30.0` | Hard timeout per ffmpeg invocation (process-group killed on expiry). |
+| `allow_motion_render` | `AGENTVISION_ALLOW_MOTION_RENDER` | `True` | Decode local motion media with ffmpeg. **Off on the REST service** — a media decoder is an attack surface on untrusted bytes. |
 | `rest_enabled_backends` | `AGENTVISION_REST_ENABLED_BACKENDS` | `['local']` |  |
 
 ## API keys & key files
@@ -133,6 +136,35 @@ only when a step legitimately needs a write. A step whose selector is missing or
 **fails closed** (errors) rather than grading the wrong, pre-interaction state. Interactions
 require a single viewport and are **not** exposed to remote REST/MCP callers. Use `fill_env`
 (never `fill`) for a password, so no secret is written into the steps JSON.
+
+## Grading local motion media (video files & animated GIFs)
+
+The eyes grade **motion over time**, not just a single frame — so a local video file
+(`.mp4`/`.webm`/`.mov`/`.m4v`/`.avi`/`.mkv`) or an **animated GIF** is sampled into frames and
+fed to the temporal grader (`watch`), the same path used for a `<video>` on a page. This closes
+two silent failures: a video handed to the browser rendered **blank** (a misleading `blank
+render` FAIL), and an animated GIF was flattened to **frame 0** and graded as a still (so every
+motion/story requirement failed as "not depicted").
+
+```bash
+# grade a motion file offline — no key, no egress (frames sampled across the whole clip):
+agentvision check ./promo.mp4            # deterministic motion/black/dead-export signals
+agentvision analyze ./promo.gif          # + a time-aware vision pass (with a backend key)
+agentvision watch  ./promo.mp4 --frames 8   # explicit temporal form; --frames overrides
+```
+
+- **`analyze` / `check` / `watch` auto-detect** motion inputs and film-strip them. A **single-frame
+  GIF stays a still** (back-compat); pass `--source-type image` to deliberately grade an animated
+  GIF's first frame.
+- **Sampling spans the full duration** (default `motion_frames=6`) so the story start → middle →
+  end is graded, not one arbitrary window. `--frames N` overrides.
+- **Deterministic checks (no LLM):** a motion file that **doesn't move** fails as a dead/static
+  export; a `loops_cleanly` signal reports whether the first and last frames match. Findings are
+  grounded with a **frame index**.
+- **Dependencies:** animated GIFs need nothing extra; **video needs ffmpeg** — install it
+  (`dnf install ffmpeg` / `apt install ffmpeg`) or `pip install 'agentvision[motion]'` (bundles a
+  static binary). `agentvision doctor` reports a **Motion (ffmpeg)** line. See
+  [Security → Motion media](security.md#motion-media-video-gif-decode) for the decode hardening.
 
 ## REST service & auth
 

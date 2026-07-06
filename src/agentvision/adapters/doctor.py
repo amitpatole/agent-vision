@@ -101,6 +101,13 @@ async def run_doctor(fix: bool = False) -> bool:
     print(f"  {_OK if soffice else _WARN} Office docs (LibreOffice): "
           + (soffice or "not found — install libreoffice (optional, for docx/pptx/xlsx)"))
 
+    # Motion media (video files + animated GIFs → the temporal grader)
+    from ..renderers.motion import find_ffmpeg
+    ffmpeg = find_ffmpeg()
+    print(f"  {_OK if ffmpeg else _WARN} Motion (ffmpeg): "
+          + (ffmpeg or "not found — install ffmpeg or pip install 'agentvision[motion]' "
+             "(optional, for video/GIF grading; animated GIFs work without it)"))
+
     # Backends
     print("\n  Vision backends:")
     any_cloud = False

@@ -73,10 +73,12 @@ async def watch(
 ) -> Report:
     """Watch ``source`` over time and report temporal behavior (playback/loading/liveness)."""
     settings = settings or load_settings()
-    # Clamp caller-supplied values so a single request can't hold a browser for a huge window.
-    n = max(2, min(frames or settings.watch_frames, settings.watch_max_frames))
-    interval = max(0, min(interval_ms or settings.watch_interval_ms, settings.watch_max_interval_ms))
     resolved = resolve_source(source, source_type, settings=settings)
+    is_motion_file = resolved.kind == "motion"
+    # Clamp caller-supplied values so a single request can't hold a browser for a huge window.
+    default_frames = settings.motion_frames if is_motion_file else settings.watch_frames
+    n = max(2, min(frames or default_frames, settings.watch_max_frames))
+    interval = max(0, min(interval_ms or settings.watch_interval_ms, settings.watch_max_interval_ms))
     if out_dir is None:
         out_dir = Workspace(settings).tmp / uuid.uuid4().hex[:12]
 
@@ -99,7 +101,9 @@ async def watch(
         return Report(verdict=Verdict.FAIL, summary="Temporal capture produced no frames.",
                       backend="watch", capabilities=[])
 
-    issues, signals = compute_temporal_checks(frame_list)
+    # A motion FILE (video / animated GIF) is *expected* to move: a static one is a dead
+    # export and fails deterministically. A static page under watch stays legitimate.
+    issues, signals = compute_temporal_checks(frame_list, expect_motion=is_motion_file)
 
     backend_name = "watch"
     if use_vision:

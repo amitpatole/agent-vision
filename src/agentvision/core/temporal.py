@@ -55,8 +55,15 @@ def _frame_stats(path: str) -> tuple[float, float]:
     return float(arr.mean()), float(arr.std())
 
 
-def compute_temporal_checks(frames: list[Frame]) -> tuple[list[Issue], dict]:
-    """Return ``(issues, signals)`` from a frame sequence (deterministic, no LLM)."""
+def compute_temporal_checks(
+    frames: list[Frame], *, expect_motion: bool = False
+) -> tuple[list[Issue], dict]:
+    """Return ``(issues, signals)`` from a frame sequence (deterministic, no LLM).
+
+    ``expect_motion=True`` (motion *files* — a video or animated GIF) makes "nothing moved
+    across the window" an ERROR: a static page is fine, but a static video/GIF is a dead
+    export (the animation never made it into the file).
+    """
     issues: list[Issue] = []
     if len(frames) < 2:
         return issues, {"frames": len(frames), "moving": False, "stabilized": True, "videos": []}
@@ -68,6 +75,14 @@ def compute_temporal_checks(frames: list[Frame]) -> tuple[list[Issue], dict]:
     moving = max_change > _MOTION_EPS
     stabilized = last_change < _SETTLE_EPS
     window_ms = frames[-1].t_ms - frames[0].t_ms
+
+    if expect_motion and not moving:
+        issues.append(Issue.make(
+            IssueKind.OTHER, Severity.ERROR,
+            f"Nothing moved across {len(frames)} sampled frames — the motion file appears to "
+            "be a dead/static export (the animation never made it into the file).",
+            source=IssueSource.CV, confidence=Confidence.HIGH,
+            detail={"temporal": "no_motion"}))
 
     # Black / blank across the whole window.
     stats = [_frame_stats(f.image_path) for f in frames]
@@ -119,6 +134,12 @@ def compute_temporal_checks(frames: list[Frame]) -> tuple[list[Issue], dict]:
         "max_change": round(max_change, 4), "last_change": round(last_change, 4),
         "moving": moving, "stabilized": stabilized, "videos": videos,
     }
+    if expect_motion:
+        # Loop cleanliness (first ≈ last frame) — a *signal*, not a failure: many videos
+        # legitimately end elsewhere; for a looping GIF a big first↔last jump reads as a hitch.
+        signals["loops_cleanly"] = (
+            changed_ratio(frames[0].image_path, frames[-1].image_path) < _SETTLE_EPS
+        )
     return issues, signals
 
 
@@ -128,6 +149,8 @@ def temporal_summary(signals: dict) -> str:
     bits = [f"{n} frames over {win}ms"]
     bits.append("moving" if signals.get("moving") else "static")
     bits.append("stabilized" if signals.get("stabilized") else "still-changing")
+    if "loops_cleanly" in signals:
+        bits.append("loops cleanly" if signals["loops_cleanly"] else "no clean loop")
     for v in signals.get("videos", []):
         state = ("playing" if v["playing"] else "ended" if v["ended"]
                  else "paused" if v["paused"] else "stalled")

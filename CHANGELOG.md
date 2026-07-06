@@ -4,6 +4,34 @@ All notable changes to AgentVision are documented here.
 
 ## [Unreleased]
 
+### Added — grade local motion media (video files + animated GIFs)
+
+AgentVision could not grade **local motion media**: a video file (`.mp4`/`.webm`/`.mov`/…) was
+mis-routed into the browser render path, rendered blank, and returned a misleading
+`blank render` FAIL; an animated GIF was flattened to **frame 0** and graded as a still, so every
+motion/story/timing requirement silently failed as "not depicted." Both are now sampled over time
+and fed to the existing temporal grader (`watch`) — an ingestion path, not new grading science.
+
+- **New `motion` source kind** — `.mp4/.webm/.mov/.m4v/.avi/.mkv` and **animated** GIFs
+  (`n_frames > 1`) route to the temporal grader; a single-frame GIF still grades as a still
+  (back-compat), and an explicit `--source-type image` overrides to grade a GIF's first frame.
+- **`MotionRenderer`** samples frames evenly across the media's **full duration** (default 6):
+  video via **ffmpeg** (PATH or the `[motion]` extra's bundled binary), animated GIF via Pillow.
+  `analyze`/`check`/`watch` auto-detect and film-strip motion inputs; `--backend local` stays
+  fully offline/no-egress (GIFs need no ffmpeg at all).
+- **Deterministic motion checks (no LLM):** "nothing moved across the window" is an **error** for
+  a motion file (catches a dead/static export bug) while a watched *page* staying static remains
+  legitimate; a `loops_cleanly` signal (first ≈ last frame) rides on the temporal detail. Findings
+  are grounded with a **frame index** and flow through `--handoff`/`--json` like any report.
+- **`agentvision doctor`** now reports a **Motion (ffmpeg)** line; a `motion` pip extra bundles a
+  static ffmpeg (`imageio-ffmpeg`).
+- **Hardened for untrusted bytes** (a media decoder is an attack surface): gated by
+  `allow_motion_render` (**off on the REST service**, like Office), a byte cap before decode,
+  ffmpeg in **argv form with a `file`-only protocol whitelist** + a **demuxer allowlist** (so a
+  `.mp4` that is really an HLS playlist or an ffconcat script can't make ffmpeg dereference a URL
+  (SSRF) or a local file (LFI)), a **hard timeout with process-group kill**, and the pixel/byte
+  caps of `open_image_safely`. Regression tests pin the SSRF/LFI refusal and the dead-export fail.
+
 ### Added — canvas-baked text legibility + origin-scoped auth (Phase 3)
 
 - **OCR-driven contrast for text painted *into* a `<canvas>`** — a chart/map library often

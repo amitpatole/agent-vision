@@ -27,7 +27,10 @@ Every analysis returns a `Report`:
     *into* a `<canvas>` (via OCR + pixels, advisory) that has no DOM node to restyle. For
     **PowerPoint**
     sources, `contrast`, `clipped`, `overflow` and `overlap` are also produced **offline** (no
-    key, no egress) by the [slide inspector](cli.md#offline-powerpoint-slide-inspection).
+    key, no egress) by the [slide inspector](cli.md#offline-powerpoint-slide-inspection). A
+    **local motion file** (video / animated GIF) is graded **over time** rather than as a still —
+    sampled into frames and judged for motion / dead-export / black-frame / stall, deterministically
+    (see [Configuration → motion media](configuration.md#grading-local-motion-media-video-files-animated-gifs)).
 - `capabilities[]` — which issue kinds the producing backend can emit (the `local`
   backend emits fewer than the LLM backends — it does structural checks only)
 

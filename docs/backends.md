@@ -48,6 +48,17 @@ export AGENTVISION_GEMINI_MODEL=gemini-2.0-flash
 The Anthropic default is **Haiku** because `analyze` runs frequently inside the loop;
 upgrade to Sonnet/Opus for harder visual judgments.
 
+!!! note "Intent-checklist grading wants a stronger vision model"
+    The small/cheap default models (e.g. OpenAI `gpt-4o-mini`) are tuned for the fast in-loop
+    `analyze` pass, and on a **detailed intent checklist** they can produce *self-contradictory*
+    findings on a clean artifact — passing "no clipped text" and then flagging clipped text on the
+    same image, or calling a plainly light background "not light." When you grade against a
+    `--brief`/`--expect` checklist (conformance), prefer a stronger model
+    (`AGENTVISION_OPENAI_MODEL=gpt-4o`, `AGENTVISION_ANTHROPIC_MODEL=claude-sonnet-4-6`). AgentVision
+    already suppresses a vision "missing"/intent claim that DOM/OCR **proves** is present, so the
+    deterministic ground truth overrules a weak model where it can — but a purely visual judgment
+    is only as reliable as the model making it.
+
 ## Fallback semantics
 
 - **Missing key/dependency** for a requested cloud backend → falls back to `local` and

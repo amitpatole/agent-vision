@@ -40,6 +40,18 @@ from .render import render
 log = get_logger("analyze")
 
 
+def _is_motion(source: str, source_type: str, settings: Settings) -> bool:
+    """True when the source resolves to local motion media (video / animated GIF)."""
+    if source_type not in {"auto", "motion", "file"}:
+        return False  # explicit non-motion type is an override (e.g. grade a GIF as a still)
+    try:
+        from ..sources import resolve_source
+
+        return resolve_source(source, source_type, settings=settings).kind == "motion"
+    except Exception:  # noqa: BLE001  # let the normal render path raise the real error
+        return False
+
+
 def _wants_visual_judgment(brief: Brief | None, claims) -> bool:
     """True when the intent mentions a visual element (chart/canvas/image/…)."""
     text = " ".join([(brief.text if brief else "") or ""] + [c.text for c in claims]).lower()
@@ -143,8 +155,18 @@ async def analyze(
 
     When ``brief`` is given, the render is also graded for **intent conformance** — does it
     match what the agent set out to build — and the verdict is gated on it.
+
+    Motion sources (a video file or an animated GIF) are automatically routed to the
+    temporal grader (``watch``) — sampled over time, never flattened to a single frame or
+    mis-rendered by the browser.
     """
     settings = settings or load_settings()
+    if _is_motion(source, source_type, settings):
+        from .watch import watch
+
+        return await watch(source, settings=settings, backend=backend, brief=brief,
+                           instructions=instructions, use_vision=True,
+                           source_type=source_type, out_dir=out_dir)
     grade_intent = brief is not None and not brief.is_empty()
     render_result, grounded, ocr_text = await _render_and_ground(
         source, settings, source_type=source_type, viewport=viewport,
@@ -247,8 +269,16 @@ async def check(
 
     With a ``brief``, also grades **text** requirements deterministically via OCR; non-text
     requirements are reported ``uncertain`` (the offline path cannot judge visual intent).
+
+    Motion sources route to the temporal grader with the vision pass off (deterministic
+    motion/black/dead-export signals only — still no LLM, no egress).
     """
     settings = settings or load_settings()
+    if _is_motion(source, source_type, settings):
+        from .watch import watch
+
+        return await watch(source, settings=settings, brief=brief, use_vision=False,
+                           source_type=source_type, out_dir=out_dir)
     grade_intent = brief is not None and not brief.is_empty()
     render_result, grounded, ocr_text = await _render_and_ground(
         source, settings, source_type=source_type, viewport=viewport,

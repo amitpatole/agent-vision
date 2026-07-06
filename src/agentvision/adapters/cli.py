@@ -595,10 +595,12 @@ def generate(
 
 @app.command()
 def watch(
-    source: str = typer.Argument(..., help="URL / HTML / SVG to capture over time."),
+    source: str = typer.Argument(..., help="URL / HTML / SVG — or a local video file "
+                                 "(.mp4/.webm/.mov) / animated GIF — to grade over time."),
     backend: str = typer.Option(None, help="Vision backend for the time-aware pass."),
     frames: int = typer.Option(None, "--frames", help="How many frames to sample."),
-    interval_ms: int = typer.Option(None, "--interval-ms", help="Delay between frames (ms)."),
+    interval_ms: int = typer.Option(None, "--interval-ms", help="Delay between frames (ms); "
+                                    "ignored for motion files (sampled across the duration)."),
     brief: str = typer.Option(None, help="Intended behavior (e.g. 'the video plays')."),
     expect: list[str] = typer.Option(None, "--expect", help="A required behavior (repeatable)."),
     no_vision: bool = typer.Option(False, "--no-vision", help="Deterministic signals only."),
@@ -615,7 +617,9 @@ def watch(
 
     Deterministic signals (video currentTime/readyState/captions, pixel liveness, stall /
     black-frame detection) plus a time-aware vision pass over the frames. For streaming UIs,
-    video players, live dashboards, and any animated/canvas surface.
+    video players, live dashboards, and any animated/canvas surface. Local motion media
+    (an .mp4/.webm/.mov file or an animated GIF) is sampled across its full duration —
+    `analyze`/`check` auto-route those here too.
     """
     from ..core import watch as do_watch
 

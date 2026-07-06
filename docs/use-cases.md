@@ -75,7 +75,10 @@ See [Configuration → Authenticated & interactive rendering](configuration.md#a
 
 A glance can't tell a chart that's still loading from one that's broken. `watch` verifies an
 artifact **over time** — frames across an interval — to confirm playback, a loading→loaded
-transition, or that a live dashboard actually updates. See [Streaming /
+transition, or that a live dashboard actually updates. The same grader handles a **local motion
+file**: `agentvision check promo.mp4` (or an animated `promo.gif`) is sampled across its whole
+duration and graded for motion, a dead/static export, and black frames — so a generated hero video
+or social GIF is verified before it ships, not eyeballed. See [Streaming /
 temporal](use-cases/streaming.md).
 
 ## Visual regression against a baseline

@@ -19,8 +19,22 @@ from .office import OFFICE_EXT
 from .pathsafe import resolve_local
 
 # Logical source kinds. ``html``/``svg`` may be inline (content) or from a file.
-KINDS = ("html", "svg", "url", "pdf", "image", "office", "file")
+KINDS = ("html", "svg", "url", "pdf", "image", "office", "motion", "file")
 _IMAGE_EXT = {".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp"}
+# Local motion media (video files). Routed to the temporal grader, never the browser —
+# handing an .mp4 to Chromium as a page renders blank and produces a misleading FAIL.
+_VIDEO_EXT = {".mp4", ".webm", ".mov", ".m4v", ".avi", ".mkv"}
+
+
+def _gif_is_animated(path: Path) -> bool:
+    """True when a GIF has more than one frame (graded as motion, not a frame-0 still)."""
+    try:
+        from .imageguard import open_image_safely
+
+        with open_image_safely(path) as im:
+            return int(getattr(im, "n_frames", 1)) > 1
+    except Exception:  # noqa: BLE001  # unreadable/oversized: let the image path report it
+        return False
 
 
 @dataclass
@@ -135,12 +149,16 @@ def resolve_source(source: str, source_type: str = "auto", *, settings: Settings
             kind = "svg"
         elif ext in OFFICE_EXT:
             kind = "office"
+        elif ext in _VIDEO_EXT:
+            kind = "motion"
+        elif ext == ".gif" and _gif_is_animated(path):
+            kind = "motion"  # animated GIF: grade the animation, not frame 0
         elif ext in _IMAGE_EXT:
             kind = "image"
         else:
             kind = "html"
     else:
-        kind = stype if stype in {"pdf", "image", "svg", "html", "office"} else "html"
+        kind = stype if stype in {"pdf", "image", "svg", "html", "office", "motion"} else "html"
 
     if kind in {"svg", "html"} and source_type in {"svg", "html", "auto", "file"}:
         # Inline file content so the renderer can wrap/serve it without file:// access.

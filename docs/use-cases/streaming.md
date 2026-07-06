@@ -53,6 +53,22 @@ signal = report.issues[0].detail["temporal"]   # {moving, stabilized, videos:[{p
 
 Also available as the MCP tool `watch_artifact` and `POST /watch`.
 
+### Local motion files (video / animated GIF)
+
+`watch` isn't just for live pages — point it at a **file** and it grades the media over time the
+same way. This catches a **dead export** (a promo `.mp4` or social `.gif` that rendered static —
+the animation never made it into the file) and a black/blank clip, deterministically:
+
+```bash
+agentvision check promo.mp4                 # offline: motion / dead-export / black-frame
+agentvision analyze hero.gif --backend openai   # + a time-aware semantic pass
+```
+
+Sampling spans the **whole clip** (default 6 frames); a static motion file **fails** the
+deterministic "nothing moved" check, and a `loops_cleanly` signal reports whether it loops. Video
+needs **ffmpeg** (`pip install 'agentvision[motion]'`); animated GIFs need nothing extra. Decode is
+hardened for untrusted bytes — see [Security → motion media](../security.md#motion-media-video-gif-decode).
+
 ## The three audiences, one capability
 
 - **Media / OTT (Netflix/Disney/Roku-style):** player states (playing vs buffering vs black vs
