@@ -68,6 +68,34 @@ def build_server():
         return report.model_dump(mode="json")
 
     @mcp.tool()
+    async def capture_screen(ask: str | None = None, backend: str | None = None,
+                             instructions: str | None = None,
+                             expect: list[str] | None = None,
+                             interactive: bool = False,
+                             allow_egress: bool = False) -> dict:
+        """Capture the LIVE desktop and grade it with a vision backend — answer semantic
+        questions about what is on screen (e.g. 'is a dialog asking about X?').
+
+        The OS screenshot portal prompts the user for permission on every capture; nothing is
+        captured without their approval. `ask` is the question; `expect` adds required visual
+        claims. Sending the capture to a NON-local (cloud) backend is refused unless
+        `allow_egress=True` (the local backend never egresses). Requires the `[desktop]` extra
+        and a running screenshot portal. Returns a Report.
+        """
+        from ..core import analyze
+        from ..workspace import ephemeral_cache
+
+        # Confidential by nature → ephemeral_cache renders into a throwaway temp dir wiped on
+        # exit, so the screenshot never persists to the shared on-disk cache.
+        base = load_settings(screen_capture_interactive=interactive,
+                             allow_screen_capture_egress=allow_egress)
+        with ephemeral_cache(base) as settings:
+            report = await analyze("desktop:", settings=settings, backend=backend,
+                                   instructions=instructions, expected=ask,
+                                   brief=_brief(None, expect, None), source_type="desktop")
+        return report.model_dump(mode="json")
+
+    @mcp.tool()
     async def conform_artifact(source: str, brief: str | None = None,
                                expect: list[str] | None = None,
                                reference: str | None = None,

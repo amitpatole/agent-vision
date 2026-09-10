@@ -111,11 +111,11 @@ def build_app():
 
     from .. import __version__
 
-    # Service hardening: a remote caller must not read host files via a bare-path source, and
-    # Office conversion (LibreOffice) / motion decode (ffmpeg) are too large an attack surface
-    # to expose to remote input.
+    # Service hardening: a remote caller must not read host files via a bare-path source, capture
+    # the host's screen, and Office conversion (LibreOffice) / motion decode (ffmpeg) are too
+    # large an attack surface to expose to remote input.
     settings = load_settings(allow_local_files=False, allow_office_render=False,
-                             allow_motion_render=False)
+                             allow_motion_render=False, allow_screen_capture=False)
 
     def _auth(request: Request):
         """Bearer-token auth (constant-time). Zero-config on loopback; required once a token

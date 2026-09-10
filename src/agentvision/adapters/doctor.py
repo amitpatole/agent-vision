@@ -70,6 +70,34 @@ def _ldd_missing(exe: str | None) -> list[str]:
     return sorted(set(missing))
 
 
+def _check_screen_capture() -> tuple[str, str]:
+    """Probe live-desktop capture readiness without capturing (reads the portal version).
+
+    Returns (marker, message). Never triggers the permission prompt.
+    """
+    try:
+        from jeepney import DBusAddress, new_method_call
+        from jeepney.io.blocking import open_dbus_connection
+    except ModuleNotFoundError:
+        return _WARN, "jeepney not installed — pip install 'agentvision[desktop]' (optional)"
+    try:
+        conn = open_dbus_connection(bus="SESSION")
+    except Exception:  # noqa: BLE001
+        return _WARN, "no session bus — run inside a logged-in graphical session (optional)"
+    try:
+        props = DBusAddress("/org/freedesktop/portal/desktop",
+                            bus_name="org.freedesktop.portal.Desktop",
+                            interface="org.freedesktop.DBus.Properties")
+        msg = new_method_call(props, "Get", "ss",
+                              ("org.freedesktop.portal.Screenshot", "version"))
+        conn.send_and_get_reply(msg, timeout=5)
+        return _OK, "screenshot portal reachable (prompts for consent on capture)"
+    except Exception:  # noqa: BLE001
+        return _WARN, "screenshot portal not reachable — install xdg-desktop-portal (optional)"
+    finally:
+        conn.close()
+
+
 async def run_doctor(fix: bool = False) -> bool:
     settings = load_settings()
     print("AgentVision doctor\n" + "=" * 40)
@@ -107,6 +135,10 @@ async def run_doctor(fix: bool = False) -> bool:
     print(f"  {_OK if ffmpeg else _WARN} Motion (ffmpeg): "
           + (ffmpeg or "not found — install ffmpeg or pip install 'agentvision[motion]' "
              "(optional, for video/GIF grading; animated GIFs work without it)"))
+
+    # Live desktop screen capture (via the freedesktop screenshot portal)
+    cap_mark, cap_msg = _check_screen_capture()
+    print(f"  {cap_mark} Screen capture (portal): {cap_msg}")
 
     # Backends
     print("\n  Vision backends:")

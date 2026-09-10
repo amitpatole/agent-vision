@@ -108,6 +108,11 @@ async def watch(
     backend_name = "watch"
     if use_vision:
         vision, _fallback = select_backend(settings, backend)
+        # Centralized fail-closed egress guard (lazy import avoids an analyze<->watch cycle). A
+        # desktop capture never routes here (it isn't motion), but this keeps the guard at EVERY
+        # vision.analyze sink so no future branch can egress a screen frame unchecked.
+        from .analyze import assert_screen_egress_allowed
+        assert_screen_egress_allowed(resolved.kind, vision, settings)
         if getattr(vision, "name", "local") != "local":
             sheet = _frame_sheet(frame_list, out_dir, max_edge=settings.vision_max_edge_px)
             t_instr = (

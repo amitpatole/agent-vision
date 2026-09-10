@@ -78,8 +78,19 @@ def _settings(backend: str | None = None, full_page: bool | None = None,
               no_cache: bool = False, storage_state: str | None = None,
               interactions: str | None = None, allow_mutations: bool = False,
               auth_header_env: str | None = None,
-              http_credentials_env: str | None = None) -> Settings:
+              http_credentials_env: str | None = None,
+              screen_interactive: bool | None = None,
+              screen_timeout: float | None = None,
+              allow_screen_egress: bool = False) -> Settings:
     overrides: dict = {}
+    if allow_screen_egress:
+        overrides["allow_screen_capture_egress"] = True
+    if screen_interactive is not None:
+        overrides["screen_capture_interactive"] = screen_interactive
+    if screen_timeout is not None:
+        # Clamp to the same bound as the setting (0 < t ≤ 300) so a stray --timeout can't be
+        # weaponized into a self-hang and never trips a raw pydantic validation traceback.
+        overrides["screen_capture_timeout_s"] = max(1.0, min(300.0, screen_timeout))
     steps = _parse_interactions(interactions)
     if steps:
         overrides["interactions"] = steps
@@ -288,6 +299,50 @@ def analyze(
         source, settings=settings, backend=backend, instructions=instructions,
         expected=expected, brief=_build_brief(brief, expect, reference),
         use_ocr=not no_ocr, source_type=source_type, full_page=full_page, wait_for=wait_for,
+    ), json_out=json_out, handoff=handoff, quiet=quiet)
+
+
+@app.command()
+def screen(
+    ask: str = typer.Option(None, "--ask", help="A question about the screen, e.g. "
+                            "'is a dialog asking about X?' (graded by the vision backend)."),
+    backend: str = typer.Option(None, help="anthropic|openai|gemini|local"),
+    instructions: str = typer.Option(None, help="Extra context for the vision model."),
+    expect: list[str] = typer.Option(None, "--expect", help="A required visual claim "
+                                      "(repeatable; prefix 'should:'/'nice:')."),
+    interactive: bool = typer.Option(False, "--interactive/--full-screen", help="Let the OS "
+                                     "portal prompt you to pick a window/area (default: whole "
+                                     "screen). Consent is prompted either way."),
+    timeout: float = typer.Option(None, "--timeout", help="Seconds to wait for the portal "
+                                  "permission prompt before failing (default 60)."),
+    allow_egress: bool = typer.Option(False, "--allow-egress", help="Consent to uploading the "
+                                      "captured screen to a NON-local (cloud) vision backend. "
+                                      "Without this, a cloud backend is refused — use "
+                                      "--backend local for an offline, no-egress grade."),
+    no_ocr: bool = typer.Option(False, "--no-ocr", help="Disable OCR grounding."),
+    json_out: bool = typer.Option(False, "--json", help="Emit JSON."),
+    handoff: bool = typer.Option(False, "--handoff", help="Emit the eyes→brain handoff signal."),
+    quiet: bool = typer.Option(False, "--quiet", help="Machine mode: JSON on stdout, stable "
+                               "exit codes (0 pass/warn, 2 fail, 3 error)."),
+):
+    r"""Capture the live desktop (via the screenshot portal) and grade it with a vision backend.
+
+    Unlike the deterministic ``check``, this answers semantic questions about what is on
+    screen — 'is a dialog asking about X?' — by sending the captured image to the vision
+    backend. The OS portal prompts for permission on every capture; nothing is captured
+    without your approval. Needs the 'desktop' extra: pip install 'agentvision\[desktop]'.
+    """
+    from ..core import analyze as do_analyze
+
+    # A screen capture is confidential by nature — force ephemeral so the screenshot never
+    # persists to the shared on-disk cache.
+    settings = _settings(backend=backend, no_cache=True,
+                         screen_interactive=interactive, screen_timeout=timeout,
+                         allow_screen_egress=allow_egress)
+    _run_report(do_analyze(
+        "desktop:", settings=settings, backend=backend, instructions=instructions,
+        expected=ask, brief=_build_brief(None, expect, None),
+        use_ocr=not no_ocr, source_type="desktop",
     ), json_out=json_out, handoff=handoff, quiet=quiet)
 
 

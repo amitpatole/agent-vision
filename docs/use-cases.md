@@ -81,6 +81,18 @@ duration and graded for motion, a dead/static export, and black frames — so a 
 or social GIF is verified before it ships, not eyeballed. See [Streaming /
 temporal](use-cases/streaming.md).
 
+## Look at the live desktop ("sight")
+
+Every case above grades an artifact you *hand* the eyes. Sometimes the agent needs to see the
+**world as it is right now** — a running app, an installer, a native dialog it can't render. The
+`desktop:` source captures the live screen through the OS `xdg-desktop-portal` and grades it like
+any screenshot: `agentvision screen --ask "is a permission dialog open?"`. Useful for confirming a
+launched app reached the expected state, catching a modal/error before automation proceeds, or
+answering a question about external UI with no scripted navigation. Capture is consent-prompted by
+the OS every time, ephemeral by default, and offline with `--backend local`. See
+[CLI → screen](cli.md#agentvision-screen) and
+[Configuration → screen capture](configuration.md#live-desktop-screen-capture).
+
 ## Visual regression against a baseline
 
 Capture a named baseline, then gate future renders against it with a structural SSIM diff:

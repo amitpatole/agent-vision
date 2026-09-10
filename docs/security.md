@@ -168,6 +168,40 @@ sandbox; keep the recommended **network-layer egress restriction** below (which 
 ffmpeg), and prefer running motion grading against files you trust. As with `storage_state` and
 `--interactions`, motion decode is **not** exposed to a remote REST/MCP caller.
 
+## Live desktop screen capture
+
+Grading the **live desktop** (see [Configuration → screen capture](configuration.md#live-desktop-screen-capture))
+reads whatever is on your display — maximally sensitive — so it is bounded on several independent
+axes, and the whole thing went through the security cadence (four adversarial rounds):
+
+- **OS consent is the boundary.** Capture goes through the freedesktop `xdg-desktop-portal`
+  **Screenshot** interface, which prompts for permission on the desktop. A denied, cancelled, or
+  unanswered prompt **fails closed** (`RenderError`, no pixels).
+- **Consent ≠ egress.** The portal authorizes the *capture*; sending the frame to a **non-local
+  (cloud)** vision backend is a **separate, fail-closed opt-in** (`allow_screen_capture_egress` /
+  CLI `--allow-egress` / MCP `allow_egress=True`). Enforced at the single choke point right before
+  the backend call, on both the `analyze` and `watch` paths, so no branch can egress a frame
+  unchecked. The `local` backend never egresses.
+- **Never by a remote caller.** `allow_screen_capture` is forced **off** on the REST service — a
+  remote caller can never capture the host's screen. The gate is the sole barrier and also refuses
+  an explicit `source_type="desktop"`.
+- **Confidential by default.** Desktop sources are forced **ephemeral** at the core (both `analyze`
+  and `check`), so the screenshot (and any crops/tiles) is written only to a throwaway temp dir
+  wiped on exit — never to `~/.cache/agentvision`. The portal's own output file is deleted after it
+  is read (only when under a temp/cache/runtime root — never a user file such as `~/Pictures`).
+- **DoS-bounded.** Every D-Bus call is timeout-bounded and the wait is clamped
+  (`screen_capture_timeout_s`, 0 < t ≤ 300) with an outer wall-clock backstop, so a wedged portal
+  can't hang the worker thread.
+- **Untrusted return handling.** The portal-returned URI is validated (`file://` only, local host,
+  no NUL byte), resolved **once** and reused for `is_file`/open/unlink (TOCTOU-hardened), refused
+  if not a regular file, and decoded under the same byte/pixel caps as any image.
+
+**Residual limits (honest).** The strong boundaries are the OS portal's consent + implementation
+and the egress opt-in; AgentVision cannot vet the portal backend itself, and a same-user local
+process racing the portal's output file is a narrow, in-trust-model residual (bounded to deleting
+files under temp/cache roots). Prefer `--backend local` when you don't want the frame to leave the
+machine at all.
+
 ## Deploy securely (recommended backstops)
 
 ```bash

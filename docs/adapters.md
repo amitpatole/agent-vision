@@ -17,8 +17,8 @@ report = asyncio.run(analyze("index.html", settings=load_settings(vision_backend
 ## CLI
 
 ```
-agentvision demo | render | analyze | check | diff | ocr | loop | sheet
-              | baseline | regress | doctor | serve
+agentvision demo | render | analyze | check | screen | watch | diff | ocr | loop
+              | sheet | baseline | regress | doctor | serve
 ```
 
 All commands accept `--json` and exit non-zero on a FAIL verdict.
@@ -39,8 +39,10 @@ Register it with an MCP host (Claude Desktop / Cursor):
 }
 ```
 
-Tools: `analyze_artifact`, `check_artifact`, `render_artifact`, `contact_sheet`,
+Tools: `analyze_artifact`, `check_artifact`, `render_artifact`, `capture_screen`, `contact_sheet`,
 `visual_diff`, `ocr_artifact`, `start_loop`, `loop_iterate`, `manage_baseline`, `doctor`.
+(`capture_screen` grades the live desktop — portal-consented, `allow_egress=True` required for a
+cloud backend.)
 Image-returning tools downscale before encoding so they don't overflow stdio/token budgets.
 Loop sessions persist in-process so `loop_iterate` continues a `start_loop`.
 

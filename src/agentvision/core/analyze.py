@@ -10,6 +10,7 @@ from pathlib import Path
 from ..backends.base import AnalysisRequest
 from ..backends.registry import select_backend
 from ..config import Settings, load_settings
+from ..errors import UnsafeSourceError
 from ..logging import get_logger
 from ..models.geometry import Viewport
 from ..models.intent import Brief
@@ -40,6 +41,34 @@ from .render import render
 log = get_logger("analyze")
 
 
+def assert_screen_egress_allowed(source_type: str, vision, settings: Settings) -> None:
+    """Fail closed before a live desktop capture is sent to a NON-local vision backend.
+
+    The OS screenshot portal authorizes *capturing* the screen; it does not authorize shipping
+    those pixels to a third-party cloud model. That second egress requires an explicit opt-in
+    (``allow_screen_capture_egress`` / CLI ``--allow-egress`` / MCP ``allow_egress=True``). The
+    ``local`` backend never egresses and is always allowed. Called at the single choke point
+    right before ``vision.analyze`` so no dispatch branch (analyze or watch) can bypass it.
+    """
+    if source_type != "desktop":
+        return
+    if getattr(vision, "name", "local") == "local":
+        return
+    if settings.allow_screen_capture_egress:
+        log.warning(
+            "sending a live desktop screen capture to the '%s' vision backend — the captured "
+            "pixels are leaving this machine (egress opt-in is enabled).",
+            getattr(vision, "name", "?"),
+        )
+        return
+    raise UnsafeSourceError(
+        f"Refusing to send a live desktop screen capture to the non-local '"
+        f"{getattr(vision, 'name', '?')}' vision backend: the captured pixels would leave this "
+        "machine. Use --backend local for an offline (no-egress) grade, or pass --allow-egress "
+        "(MCP allow_egress=True / allow_screen_capture_egress=True) to consent to the upload."
+    )
+
+
 def _is_motion(source: str, source_type: str, settings: Settings) -> bool:
     """True when the source resolves to local motion media (video / animated GIF)."""
     if source_type not in {"auto", "motion", "file"}:
@@ -49,6 +78,16 @@ def _is_motion(source: str, source_type: str, settings: Settings) -> bool:
 
         return resolve_source(source, source_type, settings=settings).kind == "motion"
     except Exception:  # noqa: BLE001  # let the normal render path raise the real error
+        return False
+
+
+def _is_desktop(source: str, source_type: str, settings: Settings) -> bool:
+    """True when the source resolves to a live desktop screen capture."""
+    try:
+        from ..sources import resolve_source
+
+        return resolve_source(source, source_type, settings=settings).kind == "desktop"
+    except Exception:  # noqa: BLE001  # gate/other errors surface on the real render path
         return False
 
 
@@ -161,6 +200,18 @@ async def analyze(
     mis-rendered by the browser.
     """
     settings = settings or load_settings()
+    # A live desktop capture is confidential by nature — never let the screenshot (or its
+    # crops/tiles) persist to the shared on-disk cache. Force ephemeral at the CORE, so the
+    # library path is protected too, not just the CLI/MCP adapters. Re-enters ephemeral=True.
+    if not settings.ephemeral and _is_desktop(source, source_type, settings):
+        from ..workspace import ephemeral_cache
+
+        with ephemeral_cache(settings) as eph:
+            return await analyze(
+                source, settings=eph, backend=backend, instructions=instructions,
+                expected=expected, brief=brief, use_ocr=use_ocr, source_type=source_type,
+                viewport=viewport, full_page=full_page, wait_for=wait_for, out_dir=out_dir,
+            )
     if _is_motion(source, source_type, settings):
         from .watch import watch
 
@@ -179,6 +230,9 @@ async def analyze(
                       backend="none", capabilities=[])
 
     vision, fallback_warning = select_backend(settings, backend)
+    # Fail closed on desktop→cloud egress (see assert_screen_egress_allowed). The OS portal
+    # authorizes the capture; shipping the frame to a third-party model is a separate consent.
+    assert_screen_egress_allowed(render_result.source_type, vision, settings)
     # Pre-derive claims so the vision call can grade against the numbered checklist.
     claims = await derive_claims(brief, backend=vision) if grade_intent else []
 
@@ -274,6 +328,16 @@ async def check(
     motion/black/dead-export signals only — still no LLM, no egress).
     """
     settings = settings or load_settings()
+    # Desktop capture is confidential even on the offline path (no egress, but the screenshot
+    # still hits disk) — force ephemeral at the core so `check("desktop:")` never persists it.
+    if not settings.ephemeral and _is_desktop(source, source_type, settings):
+        from ..workspace import ephemeral_cache
+
+        with ephemeral_cache(settings) as eph:
+            return await check(
+                source, settings=eph, brief=brief, source_type=source_type, viewport=viewport,
+                full_page=full_page, wait_for=wait_for, use_ocr=use_ocr, out_dir=out_dir,
+            )
     if _is_motion(source, source_type, settings):
         from .watch import watch
 

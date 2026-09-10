@@ -142,6 +142,27 @@ class Settings(BaseSettings):
     # attack surface on untrusted bytes, so it is not exposed to remote callers by default.
     allow_motion_render: bool = True
 
+    # Live desktop screen capture via the freedesktop screenshot portal (source `desktop:`).
+    # Enabled for trusted local CLI/library use; the REST service sets this False — a remote
+    # caller must never capture the host's screen. Every capture still prompts the user for
+    # consent at the OS portal (that interactive approval is the real security boundary).
+    allow_screen_capture: bool = True
+    # Sending a live screen capture to a NON-local (cloud) vision backend is a separate egress
+    # from the OS capture consent — the portal authorizes the capture, not shipping the frame to
+    # a third party. Fail closed: a desktop capture + cloud backend is REFUSED unless this is
+    # explicitly set True (CLI `--allow-egress`, MCP `allow_egress=True`). The `local` backend
+    # never egresses and is always allowed.
+    allow_screen_capture_egress: bool = False
+    # When True, the portal lets the user pick the area/window/screen to capture; when False,
+    # the portal captures per its default (typically the whole screen). Consent is prompted
+    # either way.
+    screen_capture_interactive: bool = False
+    # Hard ceiling on how long to wait for the portal's Response (i.e. the user answering the
+    # permission prompt) before failing closed, so an unanswered prompt can't hang forever.
+    # Bounded (0 < t ≤ 300) so a caller can't set a multi-year self-hang or a negative value
+    # that would escape the timeout handling as an unhandled error.
+    screen_capture_timeout_s: float = Field(default=60.0, gt=0, le=300)
+
     # Authenticated rendering & pre-capture interaction (Phase 1)
     # Path to a Playwright storage_state JSON (cookies + localStorage) captured out-of-band, so
     # the renderer starts already logged in and grades the app, not the login wall. Accepts only

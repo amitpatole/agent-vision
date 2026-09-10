@@ -39,7 +39,12 @@ def run_all_checks(
     issues += check_contrast_pixel(render, image_path)    # DOM text over a non-solid backdrop
     issues += run_structural_checks(render, image_path)
     if ocr is not None:
-        issues += check_spelling_from_ocr(ocr)
+        # A live desktop capture is not an artifact whose text WE authored — it's full of
+        # correctly-spelled proper nouns / identifiers / non-English UI copy (app names,
+        # filenames, code tokens) that a plain dictionary flags as high-confidence "typos",
+        # which would hard-FAIL a perfectly normal screen. Skip spell-check for desktop sources.
+        if render.source_type != "desktop":
+            issues += check_spelling_from_ocr(ocr)
         issues += check_contrast_ocr(render, image_path, ocr)  # text painted into a <canvas>
     return issues
 

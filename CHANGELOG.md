@@ -2,6 +2,40 @@
 
 All notable changes to AgentVision are documented here.
 
+## [0.12.0] — 2026-09-10
+
+Turn the eyes into **sight**. Until now AgentVision graded artifacts you *handed* it — HTML, a
+PDF, an image, a video. It can now **look**: capture the live desktop on demand and answer a
+question about what's on screen right now, with no scripted navigation. Perception (capture) flows
+into the same grading brain (`analyze`), so "sight" = a new capture source + the existing eyes.
+
+### Added — live desktop screen capture
+
+- **New `desktop:` / `screen:` source kind** — captures the live desktop via the freedesktop
+  **`xdg-desktop-portal` Screenshot** interface (a `DesktopRenderer` driven over D-Bus with
+  `jeepney`). The OS portal prompts for consent on **every** capture; no pixels without approval.
+- **New CLI `agentvision screen`** — `--ask "is a dialog asking about X?"`, `--interactive` /
+  `--full-screen`, `--backend`, `--allow-egress`, `--timeout`. Routes the capture into the vision
+  backend for a semantic (VQA) grade, or `--backend local` for a deterministic offline grade.
+- **New MCP tool `capture_screen`** — the same capability for any MCP host (Claude/Cursor/…).
+- **`agentvision doctor`** now reports screenshot-portal readiness (probes the portal version
+  without capturing).
+- **Install** — optional `jeepney>=0.8` via `pip install 'agentvision[desktop]'` (also in `[all]`).
+
+Shipped through the full security cadence (four adversarial rounds):
+
+- **Consent ≠ egress.** The portal authorizes *capture*; sending the frame to a **cloud** backend
+  is a separate, fail-closed opt-in (`allow_screen_capture_egress` / `--allow-egress` / MCP
+  `allow_egress=True`). The `local` backend never egresses. Refused by default otherwise.
+- **Never captured by a remote caller.** The REST service forces `allow_screen_capture=False`.
+- **Confidential by default.** Desktop captures are forced **ephemeral** at the core (both
+  `analyze` and `check`) — the screenshot never persists to `~/.cache/agentvision`, and the
+  portal's own output file is deleted after read (only under temp/cache/runtime roots).
+- **Hardened** — every D-Bus call is timeout-bounded (no hang on a wedged portal), the wait is
+  clamped (`screen_capture_timeout_s`, 1–300 s), the returned URI is validated (`file://` only,
+  no NUL byte, regular file only, resolved once against a TOCTOU swap), and the offline
+  spell-check is skipped for a live desktop (proper nouns are not "typos").
+
 ## [0.11.0] — 2026-07-05
 
 Grade what agents couldn't see before: apps **behind a login**, state **behind a click**,

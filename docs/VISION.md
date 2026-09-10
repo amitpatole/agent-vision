@@ -7,7 +7,7 @@ AgentVision is a comprehensive visual perception system designed to enable AI ag
 ## Core Components
 
 ### 1. Visual Capture System
-- **Screen Capture**: Ability to capture screenshots of the agent's current workspace, application windows, or full desktop
+- **Screen Capture** *(shipped in v0.12.0)*: capture the live desktop via the freedesktop `xdg-desktop-portal` (consent-prompted, ephemeral) and grade it like any screenshot — `agentvision screen` / the `desktop:` source. See [CLI → screen](cli.md#agentvision-screen).
 - **Application Window Inspection**: Capture specific application windows by title or process ID
 - **Web Page Rendering**: Render and capture web pages that agents generate or interact with
 - **Video Stream Processing**: Capture frames from video streams, camera feeds, or screen recordings

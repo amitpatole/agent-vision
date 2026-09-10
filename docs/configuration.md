@@ -54,6 +54,10 @@ settings = load_settings(vision_backend='anthropic', settle_ms=800)
 | `motion_frames` | `AGENTVISION_MOTION_FRAMES` | `6` | Frames sampled evenly across a **local motion file** (video / animated GIF) before grading over time. |
 | `motion_decode_timeout_s` | `AGENTVISION_MOTION_DECODE_TIMEOUT_S` | `30.0` | Hard timeout per ffmpeg invocation (process-group killed on expiry). |
 | `allow_motion_render` | `AGENTVISION_ALLOW_MOTION_RENDER` | `True` | Decode local motion media with ffmpeg. **Off on the REST service** — a media decoder is an attack surface on untrusted bytes. |
+| `allow_screen_capture` | `AGENTVISION_ALLOW_SCREEN_CAPTURE` | `True` | Allow live desktop capture via `xdg-desktop-portal` (source `desktop:` / `screen:`). **Off on the REST service** — a remote caller must never grab the host's screen. The portal still prompts for consent on every capture. |
+| `allow_screen_capture_egress` | `AGENTVISION_ALLOW_SCREEN_CAPTURE_EGRESS` | `False` | Allow sending a live desktop capture to a **non-local (cloud)** vision backend. **Fail-closed** — refused unless explicitly `True` (CLI `--allow-egress`, MCP `allow_egress=True`). The `local` backend never egresses. |
+| `screen_capture_interactive` | `AGENTVISION_SCREEN_CAPTURE_INTERACTIVE` | `False` | Let the portal prompt you to pick the area/window/screen; when `False`, the portal captures per its default (typically the whole screen). Consent is prompted either way. |
+| `screen_capture_timeout_s` | `AGENTVISION_SCREEN_CAPTURE_TIMEOUT_S` | `60.0` | Ceiling (bounded 0 < t ≤ 300) on waiting for the portal permission prompt before failing closed, so an unanswered prompt can't hang. |
 | `rest_enabled_backends` | `AGENTVISION_REST_ENABLED_BACKENDS` | `['local']` |  |
 
 ## API keys & key files
@@ -165,6 +169,36 @@ agentvision watch  ./promo.mp4 --frames 8   # explicit temporal form; --frames o
   (`dnf install ffmpeg` / `apt install ffmpeg`) or `pip install 'agentvision[motion]'` (bundles a
   static binary). `agentvision doctor` reports a **Motion (ffmpeg)** line. See
   [Security → Motion media](security.md#motion-media-video-gif-decode) for the decode hardening.
+
+## Live desktop screen capture
+
+AgentVision can grade the **live desktop** — not just an artifact you hand it. The eyes become
+**sight**: the agent looks at the screen *right now* and answers a question about it. Use the
+`desktop:` / `screen:` source, the [`agentvision screen`](cli.md#agentvision-screen) command, the
+library (`analyze("desktop:", …)`), or the MCP `capture_screen` tool.
+
+```bash
+agentvision screen --ask "is an error dialog open?" --backend local   # offline, no egress
+```
+
+- **Portal consent (the real boundary).** Capture goes through the freedesktop
+  `xdg-desktop-portal` **Screenshot** interface, which shows a permission prompt on the desktop.
+  **Nothing is captured without your approval** — a denied/cancelled/unanswered prompt fails closed.
+- **Consent ≠ egress.** The portal authorizes the *capture*; sending the frame to a **cloud**
+  backend is a *separate* consent. It is **refused by default** (`allow_screen_capture_egress`) —
+  pass `--allow-egress` (CLI) / `allow_egress=True` (MCP) to opt in. `--backend local` never
+  egresses (deterministic, offline grade).
+- **Confidential by default.** A desktop capture is always **ephemeral** — the screenshot is
+  rendered into a throwaway temp dir wiped on exit and never written to `~/.cache/agentvision`;
+  the portal's own output file is deleted after it is read.
+- **Full screen vs. pick.** `screen_capture_interactive` (CLI `--interactive`) lets the portal
+  prompt you to choose a window/area; the default captures the whole screen. Consent either way.
+- **Not on the REST service.** `allow_screen_capture` is forced **off** for `agentvision serve` —
+  a remote caller can never capture the host's screen.
+- **Dependencies:** the `[desktop]` extra (`pip install 'agentvision[desktop]'`, bundles
+  `jeepney`) plus a running `xdg-desktop-portal` on the OS. `agentvision doctor` reports a
+  **Screen capture (portal)** line. See
+  [Security → Screen capture](security.md#live-desktop-screen-capture) for the hardening.
 
 ## REST service & auth
 

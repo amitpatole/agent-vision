@@ -19,7 +19,10 @@ from .office import OFFICE_EXT
 from .pathsafe import resolve_local
 
 # Logical source kinds. ``html``/``svg`` may be inline (content) or from a file.
-KINDS = ("html", "svg", "url", "pdf", "image", "office", "motion", "file")
+# ``desktop`` is a live capture (no path/url/content) via the screenshot portal.
+KINDS = ("html", "svg", "url", "pdf", "image", "office", "motion", "file", "desktop")
+# URI schemes that request a live desktop screen capture (no file, no URL).
+_SCREEN_SCHEMES = ("desktop:", "screen:")
 _IMAGE_EXT = {".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp"}
 # Local motion media (video files). Routed to the temporal grader, never the browser —
 # handing an .mp4 to Chromium as a page renders blank and produces a misleading FAIL.
@@ -63,6 +66,8 @@ def _looks_like_markup(s: str) -> bool:
 def _detect_type(source: str, settings: Settings) -> str:
     s = source.strip()
     low = s.lower()
+    if low.startswith(_SCREEN_SCHEMES):
+        return "desktop"
     if low.startswith(("http://", "https://")):
         return "url"
     if low.startswith("file://"):
@@ -107,6 +112,21 @@ def _check_url_safety(url: str, settings: Settings) -> None:
 def resolve_source(source: str, source_type: str = "auto", *, settings: Settings) -> ResolvedSource:
     """Normalize ``source`` into a :class:`ResolvedSource`, enforcing the safety policy."""
     stype = source_type if source_type != "auto" else _detect_type(source, settings)
+
+    if stype == "desktop":
+        # A live screen capture reads whatever is on the user's display, so it is refused on
+        # the (untrusted) REST service, which sets allow_screen_capture=False — a remote caller
+        # must never grab the host's screen. Local CLI/library use is trusted, and the portal
+        # itself prompts for consent on every capture.
+        # SECURITY INVARIANT: this gate is the ONLY barrier — an explicit source_type="desktop"
+        # captures the screen regardless of the `source` string. Any adapter that forwards a
+        # caller-supplied source_type to untrusted callers MUST keep allow_screen_capture=False.
+        if not settings.allow_screen_capture:
+            raise UnsafeSourceError(
+                "Refusing a desktop screen-capture source (not permitted on this service). "
+                "Set allow_screen_capture=True to override (local use only)."
+            )
+        return ResolvedSource(kind="desktop")
 
     if stype == "url":
         url = source.strip()

@@ -37,7 +37,7 @@ Render and analyze an artifact with a vision backend (+ DOM/CV grounding).
 | `--brief` | The intended product — graded for intent match. |  |
 | `--expect` | A required visual claim (repeatable; prefix 'should:'/'nice:'). |  |
 | `--reference` | Reference/mockup image the render should match. |  |
-| `--source-type` | auto\|html\|file\|url\|svg\|pdf\|image | `auto` |
+| `--source-type` | auto\|html\|file\|url\|svg\|pdf\|image\|desktop | `auto` |
 | `--viewport` | WxH, e.g. 1280x800 |  |
 | `--full-page` |  |  |
 | `--wait-for` | CSS selector to wait for before capture (for client-rendered data). |  |
@@ -164,6 +164,45 @@ extra. See [Configuration → motion media](configuration.md#grading-local-motio
 | `--json` |  |  |
 | `--handoff` | Emit the eyes→brain handoff signal. |  |
 | `--quiet` | Machine mode: only JSON on stdout. |  |
+
+## `agentvision screen`
+
+Capture the **live desktop** (via the freedesktop `xdg-desktop-portal` **Screenshot** interface)
+and grade it with a vision backend. This turns the eyes into **sight**: instead of handing
+AgentVision an artifact you built, the agent *looks* at the screen right now and answers a
+question about it — "is a dialog asking about X?", "did the export finish?" — with no scripted
+navigation. The OS portal **prompts for consent on every capture**; nothing is captured without
+your approval. Needs the `[desktop]` extra (`pip install 'agentvision[desktop]'`) and a running
+screenshot portal (`agentvision doctor` reports readiness). See
+[Configuration → live desktop screen capture](configuration.md#live-desktop-screen-capture).
+
+**Arguments:** none (the source is always the live desktop)
+
+| Option | Description | Default |
+|---|---|---|
+| `--ask` | A question about the screen, e.g. 'is a dialog asking about X?' (graded by the vision backend). |  |
+| `--backend` | anthropic\|openai\|gemini\|local |  |
+| `--instructions` | Extra context for the vision model. |  |
+| `--expect` | A required visual claim (repeatable; prefix 'should:'/'nice:'). |  |
+| `--interactive` / `--full-screen` | Let the OS portal prompt you to pick a window/area (default: whole screen). Consent is prompted either way. | `--full-screen` |
+| `--allow-egress` | Consent to uploading the captured screen to a **non-local (cloud)** backend. Without it, a cloud backend is **refused** — use `--backend local` for an offline, no-egress grade. | off |
+| `--timeout` | Seconds to wait for the portal permission prompt before failing. | `60` |
+| `--no-ocr` | Disable OCR grounding. |  |
+| `--json` | Emit JSON. |  |
+| `--handoff` | Emit the eyes→brain handoff signal. |  |
+| `--quiet` | Machine mode: only JSON on stdout, stable exit codes (0 pass/warn, 2 fail, 3 error). |  |
+
+The capture is **ephemeral by default** — the screenshot is rendered into a throwaway temp dir
+wiped on exit and never written to `~/.cache/agentvision`. Not available on the REST service (a
+remote caller can never capture the host's screen).
+
+```bash
+# Offline, no egress — deterministic checks + local grade (no API key):
+agentvision screen --backend local
+
+# Ask a semantic question (cloud backend needs explicit egress consent):
+agentvision screen --ask "is an error dialog open?" --backend anthropic --allow-egress
+```
 
 ## `agentvision loop`
 

@@ -28,7 +28,9 @@ Chromium needs OS libraries that `playwright install` does **not** install.
   ```
 
 - **Optional extras:** `tesseract-ocr tesseract-ocr-eng` (OCR), `poppler-utils` (PDF),
-  `libreoffice` (Office/OpenDocument: `.docx/.pptx/.xlsx/.odt/.odp/.ods/…`).
+  `libreoffice` (Office/OpenDocument: `.docx/.pptx/.xlsx/.odt/.odp/.ods/…`), and
+  `xdg-desktop-portal` (+ a backend such as `xdg-desktop-portal-gnome`) for **live desktop
+  capture** — pair it with the `[desktop]` pip extra: `pip install 'agentvision[desktop]'`.
 
 !!! info "Documents (PDF + Office)"
     Point any AgentVision command at a PDF or an Office/OpenDocument file and it just works —

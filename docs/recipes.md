@@ -12,7 +12,7 @@ agentvision check dist/index.html --full-page --quiet
 Or as a [GitHub Action](integrations.md#in-your-ci-workflow):
 
 ```yaml
-- uses: amitpatole/agent-vision@v0.11.0
+- uses: amitpatole/agent-vision@v0.12.0
   with: { source: dist/index.html, command: check, args: --full-page }
 ```
 
@@ -96,3 +96,19 @@ agentvision sheet ./index.html --breakpoints 375,768,1280,1920 -o sheet.png
 agentvision baseline ./index.html --name home      # capture once
 agentvision regress  ./index.html --name home      # later: fail on drift
 ```
+
+## Grade the live desktop ("sight")
+
+```bash
+pip install 'agentvision[desktop]'                       # jeepney + xdg-desktop-portal
+agentvision screen --backend local                       # offline, no egress; approve the prompt
+```
+
+Ask a semantic question via a cloud backend (the frame leaves the machine, so egress is opt-in):
+
+```bash
+agentvision screen --ask "is there an error?" --backend anthropic --allow-egress
+```
+
+The OS portal prompts for consent on every capture; the screenshot is ephemeral (never cached).
+Run it inside a graphical desktop session.

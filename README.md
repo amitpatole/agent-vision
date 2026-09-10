@@ -190,6 +190,7 @@ Pluggable and selectable via `--backend` / `AGENTVISION_VISION_BACKEND`:
 pip install "agentvision[all]"          # everything
 pip install "agentvision[render]"       # just rendering + the no-key local loop
 pip install "agentvision[render,anthropic]"  # + Claude analysis
+pip install "agentvision[desktop]"      # + live desktop screen capture (xdg-desktop-portal)
 ```
 
 System dependencies (Chromium, Tesseract, poppler) and a `doctor` that checks them:
@@ -208,6 +209,10 @@ On a bare RHEL/CentOS box, `playwright install-deps` does **not** work (apt-only
 ```bash
 # Analyze a file/URL/HTML string and print a structured report
 agentvision analyze ./index.html --backend local --json
+
+# Grade the LIVE desktop ("sight") — capture via the OS portal, ask a question
+# (needs the [desktop] extra; the portal prompts for consent on every capture)
+agentvision screen --ask "is an error dialog open?" --backend local
 
 # Run the self-correcting loop
 agentvision loop ./dashboard.html --max-iter 3
@@ -264,7 +269,7 @@ asyncio.run(main())
 
 ```yaml
 # CI gate (GitHub Action): fails the build on a visual FAIL verdict
-- uses: amitpatole/agent-vision@v0.11.0
+- uses: amitpatole/agent-vision@v0.12.0
   with: { source: dist/index.html, command: check, args: --full-page }
 ```
 

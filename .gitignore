@@ -46,3 +46,8 @@ site/
 *.pptx
 *.ppt
 PAAS-*
+# Local-only working notes: handoffs, findings, task/residual ledgers — never commit or publish
+*.local.md
+SECURITY_TASK.md
+.security-local/
+docs/SECURITY_RESIDUALS.md

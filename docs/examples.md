@@ -129,6 +129,28 @@ For loop sessions across multiple workers, mind the [multi-worker
 caveat](scaling.md#three-ways-to-handle-loop-state) — keep loops client-side or sticky-routed.
 Full treatment: **[Swarms & scaling](scaling.md)**.
 
+## 6. Grade the live desktop ("sight")
+
+Turn the eyes into **sight** — instead of handing AgentVision an artifact, let the agent *look* at
+the screen right now. Capture goes through the OS `xdg-desktop-portal`, which prompts for consent;
+`--backend local` keeps it fully offline (no egress, no key). Runnable source:
+[`examples/capture_screen.py`](https://github.com/amitpatole/agent-vision/blob/main/examples/capture_screen.py).
+
+```bash
+pip install 'agentvision[desktop]'      # jeepney + a running xdg-desktop-portal
+agentvision screen --backend local      # approve the portal prompt; offline deterministic grade
+```
+
+Ask a semantic question with a cloud backend (requires explicit egress consent, since the frame
+leaves the machine):
+
+```bash
+agentvision screen --ask "is an error dialog open?" --backend anthropic --allow-egress
+```
+
+Run it from a terminal **inside a graphical desktop session** — on a headless / SSH-only host
+there is no display to capture and it fails closed with a clear message.
+
 ---
 
 More: **[Recipes](recipes.md)** (copy-paste snippets) · **[Workflows &
