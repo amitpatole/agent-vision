@@ -41,9 +41,13 @@ jobs:
           pip install -e ".[all,dev]"
 
       - name: Install system deps for OCR/PDF/Office
+        # Usually ~35s. A stalled mirror hung this step for 14+ min on two runs; retry stalled
+        # fetches and cap the step so a hang fails fast instead of holding the job for hours.
+        timeout-minutes: 10
         run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
+          APT="-o Acquire::Retries=3 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30"
+          sudo apt-get $APT update
+          sudo apt-get $APT install -y --no-install-recommends \
             tesseract-ocr tesseract-ocr-eng poppler-utils \
             libreoffice-writer libreoffice-impress libreoffice-calc
 
