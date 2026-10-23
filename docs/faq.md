@@ -34,7 +34,7 @@ Polling and websocket pages never go network-idle. The default `--nav-wait` is a
 ## Why does a requirement come back "uncertain"?
 
 The offline `local` backend can't judge visual/semantic intent — it grades quoted-text claims
-deterministically (OCR/DOM) and reports everything else as `uncertain` rather than a false
+deterministically from the rendered pixels (OCR) and reports everything else as `uncertain` rather than a false
 PASS. Use a vision backend for semantic claims. See [Conformance](conformance.md).
 
 ## Are the bounding boxes pixel-accurate?

@@ -81,6 +81,7 @@ nav:
       - Streaming / temporal: use-cases/streaming.md
       - Eyes → brain (handoff): handoff.md
       - Vision backends: backends.md
+      - Pilot guide (media & comms): pilot.md
   - Use it:
       - Adapters (CLI/MCP/REST/Skill): adapters.md
       - Swarms & scaling: scaling.md

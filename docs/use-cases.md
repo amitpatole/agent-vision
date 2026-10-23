@@ -3,6 +3,9 @@
 Where the eyes earn their keep. The through-line: **anything that renders to pixels can be
 graded before it's shipped** — by one agent, a CI pipeline, or a whole swarm.
 
+> **Media and communications teams:** start with the [pilot guide](pilot.md). It covers
+> in-network deployment, advisory CI and a labelled benchmark on media-style artifacts.
+
 ## A swarm of agents (the main event)
 
 A fleet of agents generating UIs, charts, dashboards or documents in parallel — each one needs

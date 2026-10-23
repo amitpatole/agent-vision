@@ -12,7 +12,7 @@ agentvision check dist/index.html --full-page --quiet
 Or as a [GitHub Action](integrations.md#in-your-ci-workflow):
 
 ```yaml
-- uses: amitpatole/agent-vision@v0.12.0
+- uses: amitpatole/agent-vision@v0.13.0
   with: { source: dist/index.html, command: check, args: --full-page }
 ```
 
@@ -36,7 +36,7 @@ agentvision conform ./pricing.html \
   --backend anthropic
 ```
 
-Quoted text is graded **deterministically** (OCR/DOM); the rest is judged by the vision model.
+Quoted text is graded **deterministically** from the rendered pixels (OCR); the rest is judged by the vision model. Text that exists only in the DOM, hidden or covered, does not count.
 
 ## Close the loop on an AI-generated image
 

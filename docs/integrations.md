@@ -15,13 +15,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: amitpatole/agent-vision@v0.12.0
+      - uses: amitpatole/agent-vision@v0.13.0
         with:
           source: dist/index.html
           command: check            # check (no key) | analyze | conform | watch
           args: --full-page
       # Intent gate with a vision backend:
-      - uses: amitpatole/agent-vision@v0.12.0
+      - uses: amitpatole/agent-vision@v0.13.0
         with:
           command: conform
           source: dist/index.html
@@ -33,12 +33,27 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 ```
 
+**Advisory mode (pilots).** `mode: advisory` runs the same grade but never fails the build. A
+FAIL or an error becomes a warning annotation, and the full report lands in the job summary. Use
+it while you calibrate AgentVision on your own artifacts, then switch to the default
+`mode: gate`. The [pilot guide](pilot.md) walks through this.
+
+```yaml
+      - uses: amitpatole/agent-vision@v0.13.0
+        with:
+          source: dist/index.html
+          mode: advisory            # gate (default) | advisory
+```
+
+The step treats the report as untrusted output, because it quotes text from the page under test.
+Workflow-command parsing is suspended while it prints, and the job summary is HTML-escaped.
+
 **pre-commit** (this repo ships `.pre-commit-hooks.yaml`):
 
 ```yaml
 # .pre-commit-config.yaml
 - repo: https://github.com/amitpatole/agent-vision
-  rev: v0.12.0
+  rev: v0.13.0
   hooks:
     - id: agentvision-check
       args: ["dist/index.html", "--quiet"]

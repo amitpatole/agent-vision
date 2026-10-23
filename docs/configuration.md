@@ -1,6 +1,6 @@
 # Configuration
 
-Settings resolve in order: **explicit kwargs → environment variables → a `.env` file → defaults**. Every field is an env var with the `AGENTVISION_` prefix (e.g. `AGENTVISION_NAV_WAIT=load`); provider API keys use their conventional names.
+Settings resolve in order: **explicit kwargs → environment variables → a `.env` file → defaults**. The `.env` file in the working directory is read only where that directory is trusted. Under CI (`CI` or `GITHUB_ACTIONS` set) it is ignored unless `AGENTVISION_DOTENV=1`; `AGENTVISION_DOTENV=0` turns it off anywhere. A pull request could otherwise plant a `.env` that redirects backends or relaxes the sandbox. Every field is an env var with the `AGENTVISION_` prefix (e.g. `AGENTVISION_NAV_WAIT=load`); provider API keys use their conventional names.
 
 ```python
 from agentvision import load_settings
@@ -16,11 +16,12 @@ settings = load_settings(vision_backend='anthropic', settle_ms=800)
 | `openai_model` | `AGENTVISION_OPENAI_MODEL` | `'gpt-4o-mini'` |  |
 | `gemini_model` | `AGENTVISION_GEMINI_MODEL` | `'gemini-2.0-flash'` |  |
 | `ollama_model` | `AGENTVISION_OLLAMA_MODEL` | `'gemma3:27b'` |  |
-| `ollama_base_url` | `AGENTVISION_OLLAMA_BASE_URL` | `'https://ollama.com/v1'` |  |
+| `ollama_base_url` | `AGENTVISION_OLLAMA_BASE_URL` | `'https://ollama.com/v1'` | Ollama Cloud by default. Any other host (e.g. `http://localhost:11434/v1`) is treated as **self-hosted**: no key needed, and the cloud key is never sent to it. |
 | `anthropic_api_key` | `ANTHROPIC_API_KEY` |  | Provider API key *(secret — never logged)* |
 | `openai_api_key` | `OPENAI_API_KEY` |  | Provider API key *(secret — never logged)* |
 | `google_api_key` | `GOOGLE_API_KEY` |  | Provider API key *(secret — never logged)* |
-| `ollama_api_key` | `OLLAMA_API_KEY` |  | Provider API key *(secret — never logged)* |
+| `ollama_api_key` | `OLLAMA_API_KEY` |  | Ollama Cloud key *(secret, never logged)*. Falls back to `~/.config/ollama/key`. Sent **only** over `https` to an `ollama.com` host, never to a self-hosted one. |
+| `ollama_self_hosted_key` | `AGENTVISION_OLLAMA_SELF_HOSTED_KEY` |  | Key for an auth proxy in front of a **self-hosted** Ollama *(secret, never logged)*. Kept separate so the cloud key can't follow a redirected base URL. |
 | `default_viewport_width` | `AGENTVISION_DEFAULT_VIEWPORT_WIDTH` | `1280` |  |
 | `default_viewport_height` | `AGENTVISION_DEFAULT_VIEWPORT_HEIGHT` | `800` |  |
 | `device_scale` | `AGENTVISION_DEVICE_SCALE` | `1.0` |  |
@@ -51,6 +52,12 @@ settings = load_settings(vision_backend='anthropic', settle_ms=800)
 | `allow_mutations` | `AGENTVISION_ALLOW_MUTATIONS` | `False` | While interactions run, non-GET requests (POST/PUT/PATCH/DELETE) are **blocked** so clicking a live app can't write. Set `True` only when a step legitimately needs a write (e.g. a popup whose data loads via POST). |
 | `max_interactions` | `AGENTVISION_MAX_INTERACTIONS` | `20` | Cap on the number of interaction steps (runaway/DoS bound). |
 | `interaction_step_timeout_ms` | `AGENTVISION_INTERACTION_STEP_TIMEOUT_MS` | `8000` | Per-step ceiling (hard-clamped to 30 s). |
+| `dom_max_elements` | `AGENTVISION_DOM_MAX_ELEMENTS` | `20000` | Elements the DOM grading pass visits. Hitting the cap is graded as an **ERROR**, because the rest of the page went unchecked. Raise it for very large pages. |
+| `dom_budget_ms` | `AGENTVISION_DOM_BUDGET_MS` | `4000` | Time budget for the DOM grading pass. Running out is graded as an **ERROR**, for the same reason. |
+| `spell_variants` | `AGENTVISION_SPELL_VARIANTS` | `True` | The offline typo check uses a US-English dictionary. When on, Commonwealth spellings (colour, centre, organise, catalogue, defence, travelled, programme) are accepted too. |
+| `spell_allow_words` | `AGENTVISION_SPELL_ALLOW_WORDS` | `[]` | House vocabulary the typo check accepts, such as show, talent and brand names. JSON list in env: `'["Harbour","Quentaro"]'`. |
+| `spell_allow_file` | `AGENTVISION_SPELL_ALLOW_FILE` | _none_ | Newline-delimited vocabulary file (`#` starts a comment). Operator config only. A missing, unreadable or oversized file **raises** rather than silently checking against less vocabulary. |
+| `spell_allow_file_max_bytes` | `AGENTVISION_SPELL_ALLOW_FILE_MAX_BYTES` | `1000000` | Size cap for `spell_allow_file`. |
 | `motion_frames` | `AGENTVISION_MOTION_FRAMES` | `6` | Frames sampled evenly across a **local motion file** (video / animated GIF) before grading over time. |
 | `motion_decode_timeout_s` | `AGENTVISION_MOTION_DECODE_TIMEOUT_S` | `30.0` | Hard timeout per ffmpeg invocation (process-group killed on expiry). |
 | `allow_motion_render` | `AGENTVISION_ALLOW_MOTION_RENDER` | `True` | Decode local motion media with ffmpeg. **Off on the REST service** — a media decoder is an attack surface on untrusted bytes. |

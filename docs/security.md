@@ -202,6 +202,44 @@ process racing the portal's output file is a narrow, in-trust-model residual (bo
 files under temp/cache roots). Prefer `--backend local` when you don't want the frame to leave the
 machine at all.
 
+## Self-hosted vision and grading integrity
+
+These controls matter most when AgentVision runs as a QC step inside a pipeline, where a page
+under test might try to grade itself clean.
+
+- **The Ollama Cloud key is host-scoped.** The key from `OLLAMA_API_KEY` or
+  `~/.config/ollama/key` is sent only over `https` to an `ollama.com` host. A self-hosted,
+  lookalike or plain-`http` base URL never receives it. An auth proxy in front of a self-hosted
+  server uses its own `AGENTVISION_OLLAMA_SELF_HOSTED_KEY`.
+- **Pin the vision backend where data must stay in-house.** With no backend named, `analyze`
+  and `conform` use the first cloud provider whose key is present. Set
+  `AGENTVISION_VISION_BACKEND=local` or `ollama` (self-hosted) on hosts that grade
+  confidential artifacts, and don't keep cloud keys there. `check` never egresses.
+- **A planted `.env` is ignored in CI.** Under `CI` or `GITHUB_ACTIONS`, the working-directory
+  `.env` is not read unless `AGENTVISION_DOTENV=1`. The GitHub Action also sets
+  `AGENTVISION_DOTENV=0` explicitly.
+- **The page cannot reach the grader's JavaScript.** Every DOM probe that feeds a grade runs in
+  a separate Chrome DevTools Protocol *isolated world*. That covers the extractor, the visual
+  element scan, the media-state probe, the page-height probe and login-wall detection. A page
+  that overrides `Range`, `RegExp`, `getComputedStyle` or `querySelectorAll` changes nothing the
+  grader sees.
+- **"Not checked" is never "clean".** These cases grade as an **ERROR**:
+  - the DOM grading pass failed;
+  - the pass hit its time budget or element cap (`dom_budget_ms`, `dom_max_elements`);
+  - OCR is installed but failed.
+
+  The pixel contrast pass and the text-requirement checks also have time and size budgets;
+  running out of either is an ERROR, so a page cannot stall the grader or grade itself clean
+  by exhausting it.
+
+  A vision reply that is not valid JSON adds a WARNING. A spell-check vocabulary file that is
+  missing, unreadable, oversized or not a regular file raises a configuration error.
+- **The GitHub Action treats the checkout and its own report as untrusted.** Installs run in
+  Python isolated mode (`python -I -m ...`) from the runner's temp directory, so a committed
+  `pip/` or `playwright/` package cannot execute. The report quotes page text, so
+  workflow-command parsing is suspended while it prints, the job summary is HTML-escaped, and
+  the annotation's source string is encoded.
+
 ## Deploy securely (recommended backstops)
 
 ```bash

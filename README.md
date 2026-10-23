@@ -182,7 +182,13 @@ Pluggable and selectable via `--backend` / `AGENTVISION_VISION_BACKEND`:
 
 - **`anthropic`** (default model `claude-haiku-4-5`, upgradable to Sonnet/Opus)
 - **`openai`**, **`gemini`**
+- **`ollama`**: open-source vision models on **your own GPU**, with no key and no egress, or on
+  Ollama Cloud. The cloud key is only ever sent to `https://ollama.com`.
 - **`local`** — CV/OCR heuristics only, **no API key, no egress** (great for CI / air-gapped)
+
+**Piloting in a media or communications pipeline?** The [pilot guide](docs/pilot.md) covers
+the in-network deployment and advisory CI. It also has a labelled benchmark of what the local
+checks and three 12 GB-class vision models actually catch.
 
 ## Install
 
@@ -269,7 +275,7 @@ asyncio.run(main())
 
 ```yaml
 # CI gate (GitHub Action): fails the build on a visual FAIL verdict
-- uses: amitpatole/agent-vision@v0.12.0
+- uses: amitpatole/agent-vision@v0.13.0
   with: { source: dist/index.html, command: check, args: --full-page }
 ```
 
@@ -287,7 +293,8 @@ Full guide: [docs/integrations.md](docs/integrations.md).
 - [Quickstart](docs/quickstart.md) · [The Loop](docs/the-loop.md) ·
   [Conformance](docs/conformance.md) · [Handoff (eyes→brain)](docs/handoff.md) ·
   [Streaming / temporal](docs/use-cases/streaming.md) · [Backends](docs/backends.md) ·
-  [Adapters](docs/adapters.md) · [Integrations](docs/integrations.md) · [Vision](docs/VISION.md)
+  [Adapters](docs/adapters.md) · [Integrations](docs/integrations.md) ·
+  [Pilot guide + benchmark](docs/pilot.md) · [Vision](docs/VISION.md)
 
 ## What we do **not** claim (honesty)
 
