@@ -3,8 +3,20 @@
 Lets AgentVision "see" with an open-source multimodal model served by Ollama (local or
 Ollama Cloud) — the offline/OSS option for semantic critique. Default model: gemma3:27b.
 
+Two deployment shapes, decided by ``ollama_base_url``:
+
+- **Ollama Cloud** (``https://ollama.com/...``, the default): needs an API key, resolved from
+  ``OLLAMA_API_KEY`` or ``~/.config/ollama/key``.
+- **Self-hosted** (any other host, e.g. ``http://192.0.2.10:11434/v1``): needs no key. The cloud
+  key, from ``OLLAMA_API_KEY`` *or* the key file, is **never** sent to a self-hosted host, so a
+  redirected base URL (including one planted in a ``.env``) cannot exfiltrate it. An auth proxy
+  in front of a self-hosted server uses its own ``AGENTVISION_OLLAMA_SELF_HOSTED_KEY``.
+
+The cloud key is sent only over ``https`` to an ``ollama.com`` host.
+
 Structured output is requested as JSON and parsed tolerantly (Ollama's JSON-schema support
-varies by model), then validated into the shared VisionFindings model.
+varies by model), then validated into the shared VisionFindings model. A reply that cannot be
+parsed is surfaced as a WARNING issue, so a garbled model reply can never grade as PASS.
 """
 
 from __future__ import annotations
@@ -12,6 +24,7 @@ from __future__ import annotations
 import json
 import re
 import time
+from urllib.parse import urlsplit
 
 from ..config import Settings
 from ..errors import BackendAuthError, BackendError, MissingDependencyError
@@ -30,6 +43,43 @@ _JSON_INSTRUCTION = (
 )
 
 
+_CLOUD_HOSTS = frozenset({"ollama.com", "www.ollama.com"})
+# The OpenAI SDK insists on a non-empty key; a self-hosted Ollama ignores it.
+_SELF_HOSTED_PLACEHOLDER_KEY = "ollama"
+_UNPARSEABLE = "Vision model returned unparseable output; semantic grade is missing."
+
+
+def is_cloud_url(base_url: str) -> bool:
+    """True when ``base_url`` is ``https`` to an Ollama Cloud host — the only destination that
+    ever receives the cloud key (``http://ollama.com`` would send it in cleartext: not cloud)."""
+    try:
+        parts = urlsplit(base_url)
+        host = (parts.hostname or "").lower().rstrip(".")
+    except ValueError:
+        return False  # unparseable: never the cloud, never gets the key
+    if parts.scheme.lower() != "https":
+        return False
+    return host in _CLOUD_HOSTS or host.endswith(".ollama.com")
+
+
+def resolve_credential(settings: Settings) -> str | None:
+    """The key to send to ``settings.ollama_base_url``, or None if a required key is missing.
+
+    Cloud: the cloud key (``OLLAMA_API_KEY`` or the key file). Self-hosted: only the separate
+    ``AGENTVISION_OLLAMA_SELF_HOSTED_KEY`` (never the cloud key), else a placeholder the server
+    ignores.
+    """
+    if is_cloud_url(settings.ollama_base_url):
+        return settings.key_for("ollama")
+    own = settings.ollama_self_hosted_key
+    if own:
+        from ..logging import register_secret
+
+        register_secret(own)
+        return own
+    return _SELF_HOSTED_PLACEHOLDER_KEY
+
+
 class OllamaBackend:
     name = "ollama"
 
@@ -41,7 +91,17 @@ class OllamaBackend:
             import openai  # noqa: F401
         except ImportError:
             return False
-        return bool(self.settings.key_for("ollama"))
+        return bool(resolve_credential(self.settings))
+
+    def _key(self) -> str:
+        key = resolve_credential(self.settings)
+        if not key:
+            raise BackendAuthError(
+                "Ollama Cloud (https://ollama.com) needs OLLAMA_API_KEY (or ~/.config/ollama/key). "
+                "For a self-hosted server set AGENTVISION_OLLAMA_BASE_URL, e.g. "
+                "http://localhost:11434/v1."
+            )
+        return key
 
     async def analyze(self, req: AnalysisRequest) -> Report:
         try:
@@ -50,9 +110,7 @@ class OllamaBackend:
         except ImportError as e:
             raise MissingDependencyError("Ollama backend", pip_extra="openai") from e
 
-        key = self.settings.key_for("ollama")
-        if not key:
-            raise BackendAuthError("OLLAMA_API_KEY is not set (and no key file found).")
+        key = self._key()
 
         b64, media, size = load_image_b64(req.image_path, self.settings.vision_max_edge_px)
         user_text = build_user_text(req, size) + _JSON_INSTRUCTION
@@ -94,19 +152,26 @@ class OllamaBackend:
 
         elapsed = int((time.monotonic() - t0) * 1000)
         content = resp.choices[0].message.content or ""
-        findings = _parse_findings(content)
+        findings, parsed = _parse_findings(content)
+        grounded = list(req.dom_hints)
+        if not parsed:
+            # Fail closed: a missing semantic grade must not read as a clean PASS.
+            from ..models.report import Confidence, Issue, IssueKind, IssueSource, Severity
+
+            grounded.append(Issue.make(
+                IssueKind.OTHER, Severity.WARNING, _UNPARSEABLE,
+                confidence=Confidence.HIGH, source=IssueSource.VISION,
+            ))
         return findings_to_report(
             findings, req, backend=self.name, model=model,
-            grounded=req.dom_hints, image_size=size, elapsed_ms=elapsed,
+            grounded=grounded, image_size=size, elapsed_ms=elapsed,
         )
 
     async def complete_text(self, system: str, user: str) -> str:
         import openai
         from openai import AsyncOpenAI
 
-        key = self.settings.key_for("ollama")
-        if not key:
-            raise BackendAuthError("OLLAMA_API_KEY is not set (and no key file found).")
+        key = self._key()
         client = AsyncOpenAI(base_url=self.settings.ollama_base_url, api_key=key)
         try:
             resp = await client.chat.completions.create(
@@ -126,8 +191,11 @@ class OllamaBackend:
         return (resp.choices[0].message.content or "").strip()
 
 
-def _parse_findings(content: str) -> VisionFindings:
-    """Tolerantly extract a JSON object and validate it into VisionFindings."""
+def _parse_findings(content: str) -> tuple[VisionFindings, bool]:
+    """Tolerantly extract a JSON object and validate it into VisionFindings.
+
+    Returns ``(findings, parsed)``; ``parsed`` is False when the reply was unusable.
+    """
     text = content.strip()
     # Strip code fences if present.
     text = re.sub(r"^```(?:json)?|```$", "", text, flags=re.MULTILINE).strip()
@@ -138,11 +206,11 @@ def _parse_findings(content: str) -> VisionFindings:
             candidate = m.group(0)
     try:
         data = json.loads(candidate)
-        return VisionFindings.model_validate(data)
+        return VisionFindings.model_validate(data), True
     except (json.JSONDecodeError, ValueError):
         from ..models.report import Verdict
         return VisionFindings(
             verdict=Verdict.WARN,
-            summary=(content[:300] or "Ollama returned no parseable findings."),
+            summary=_UNPARSEABLE,
             issues=[],
-        )
+        ), False
