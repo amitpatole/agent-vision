@@ -52,6 +52,14 @@ def _norm(s: str) -> str:
     return re.sub(r"\s+", " ", s).strip().lower()
 
 
+def contains_phrase(haystack: str, phrase: str) -> bool:
+    """Whole-word phrase match on normalized text: "free" is not satisfied by "freeze", and
+    "subscribe today" is not satisfied by "unsubscribe today"."""
+    if not phrase:
+        return False
+    return re.search(r"(?<!\w)" + re.escape(phrase) + r"(?!\w)", haystack) is not None
+
+
 async def derive_claims(
     brief: Brief, *, backend, max_claims: int = 12
 ) -> list[IntentClaim]:
@@ -94,22 +102,24 @@ def check_claims_ocr(
     everything else is left to the vision backend.
     """
     results: dict[int, ClaimResult] = {}
-    if not ocr_text:
-        return results
+    if ocr_text is None:
+        return results  # OCR did not run: text claims stay ungraded (uncertain)
+    # OCR ran: an empty reading means the required text is NOT on screen (a page with no
+    # legible text must not turn every quoted requirement into "uncertain").
     hay = _norm(ocr_text)
     for i, claim in enumerate(claims):
         quoted = _QUOTED.findall(claim.text)
         if not quoted:
             continue
-        missing = [q for q in quoted if _norm(q) not in hay]
+        missing = [q for q in quoted if not contains_phrase(hay, _norm(q))]
         results[i] = ClaimResult(
             text=claim.text,
             importance=claim.importance,
             status=ClaimStatus.SATISFIED if not missing else ClaimStatus.VIOLATED,
             confidence=Confidence.HIGH,
             source=IssueSource.OCR,
-            evidence=("required text present in the rendered output (OCR/DOM)" if not missing
-                      else f"required text not found in the rendered output (OCR/DOM): {missing}"),
+            evidence=("required text read in the rendered pixels (OCR)" if not missing
+                      else f"required text not found in the rendered pixels (OCR): {missing}"),
         )
     return results
 
@@ -157,7 +167,7 @@ def suppress_contradicted_vision(
         )
         if contradictable:
             phrases = _QUOTED.findall(iss.message)
-            if phrases and hay and all(_norm(p) in hay for p in phrases):
+            if phrases and hay and all(contains_phrase(hay, _norm(p)) for p in phrases):
                 dropped.append(iss)
                 continue
             if present and _visual_contradicted(iss.message, present):

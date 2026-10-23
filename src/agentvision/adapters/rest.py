@@ -105,6 +105,38 @@ def _register_artifact(path: str | None) -> str | None:
     return aid
 
 
+class _RequestDeadline:
+    """Pure-ASGI hard per-request ceiling over every stage together (render + OCR + checks).
+
+    The CPU stages run in worker threads, so cancelling the request task here returns a 504
+    promptly even while they are busy (the thread finishes its bounded stage and is dropped).
+    """
+
+    def __init__(self, app, timeout_s: float):
+        self.app = app
+        self.timeout_s = timeout_s
+
+    async def __call__(self, scope, receive, send):
+        if scope.get("type") != "http":
+            return await self.app(scope, receive, send)
+        started = False
+
+        async def _send(message):
+            nonlocal started
+            if message.get("type") == "http.response.start":
+                started = True
+            await send(message)
+
+        try:
+            await asyncio.wait_for(self.app(scope, receive, _send), timeout=self.timeout_s)
+        except TimeoutError:
+            if not started:
+                body = b'{"detail":"Request exceeded request_timeout_s."}'
+                await send({"type": "http.response.start", "status": 504,
+                            "headers": [(b"content-type", b"application/json")]})
+                await send({"type": "http.response.body", "body": body})
+
+
 def build_app():
     if FastAPI is None:
         raise MissingDependencyError("REST service", pip_extra="serve")
@@ -158,6 +190,10 @@ def build_app():
         request._body = body            # cache so downstream .json()/.body() use the read bytes
         request._receive = _replay      # and so the handler can still receive it
         return await call_next(request)
+
+    # Registered LAST so it is the OUTERMOST layer: the deadline also covers reading the
+    # request body (a client trickling its body can't hold the connection forever).
+    app.add_middleware(_RequestDeadline, timeout_s=settings.request_timeout_s)
 
     async def _render_slot():
         async with _render_sem:

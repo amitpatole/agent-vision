@@ -7,6 +7,9 @@ read here and nowhere else, and are never persisted or logged.
 
 from __future__ import annotations
 
+import os
+import re
+import stat
 from pathlib import Path
 
 import platformdirs
@@ -66,6 +69,10 @@ class Settings(BaseSettings):
     openai_api_key: str | None = Field(default=None, validation_alias="OPENAI_API_KEY")
     google_api_key: str | None = Field(default=None, validation_alias="GOOGLE_API_KEY")
     ollama_api_key: str | None = Field(default=None, validation_alias="OLLAMA_API_KEY")
+    # Auth for a SELF-HOSTED Ollama behind a proxy. Deliberately separate from the cloud key so
+    # a redirected base URL can never receive OLLAMA_API_KEY.
+    ollama_self_hosted_key: str | None = Field(
+        default=None, validation_alias="AGENTVISION_OLLAMA_SELF_HOSTED_KEY")
 
     # Rendering
     default_viewport_width: int = 1280
@@ -101,6 +108,11 @@ class Settings(BaseSettings):
     # same temporal grader `watch` uses — never flattened to a still or handed to the browser.
     motion_frames: int = 6              # default frames sampled evenly across the duration
     motion_decode_timeout_s: float = 30.0  # hard timeout per ffmpeg invocation
+
+    # DOM grading pass limits. Hitting either means some elements went unchecked, which is
+    # graded as an ERROR (never a clean pass). Raise them for very large pages.
+    dom_max_elements: int = 20_000
+    dom_budget_ms: int = 4000
 
     # Renderer isolation / resource caps (untrusted pages drive Chromium)
     chromium_sandbox: bool = True  # keep the OS sandbox; disable only in a trusted/contained env
@@ -197,6 +209,15 @@ class Settings(BaseSettings):
     # AGENTVISION_EPHEMERAL=true, or the ephemeral_cache() context manager (library).
     ephemeral: bool = False
 
+    # Spell-check vocabulary (offline OCR typo check). The base dictionary is US English;
+    # spell_variants also accepts Commonwealth spellings (colour, centre, organise, ...).
+    # House vocabulary — show, talent, brand names — comes from spell_allow_words and/or a
+    # newline-delimited spell_allow_file (operator config only; size-capped when read).
+    spell_variants: bool = True
+    spell_allow_words: list[str] = Field(default_factory=list)
+    spell_allow_file: Path | None = None
+    spell_allow_file_max_bytes: int = 1_000_000
+
     # REST: only these backends may be selected per-request (allowlist)
     rest_enabled_backends: list[str] = Field(default_factory=lambda: ["local"])
 
@@ -207,6 +228,18 @@ class Settings(BaseSettings):
             "gemini": self.gemini_model,
             "ollama": self.ollama_model,
         }.get(backend, "")
+
+    def spell_vocabulary(self) -> frozenset[str]:
+        """Lower-cased house vocabulary from ``spell_allow_words`` + ``spell_allow_file``.
+
+        Fails closed on a bad file: it raises ConfigError rather than silently checking against
+        a smaller vocabulary than the operator configured.
+        """
+        words = {w.strip().lower() for w in self.spell_allow_words if w.strip()}
+        f = self.spell_allow_file
+        if f is not None:
+            words |= _read_vocab_file(Path(f), self.spell_allow_file_max_bytes)
+        return frozenset(words)
 
     def key_for(self, backend: str) -> str | None:
         key = {
@@ -231,9 +264,65 @@ class Settings(BaseSettings):
         return key
 
 
+_VOCAB_CACHE: dict[tuple, frozenset[str]] = {}
+
+
+def _read_vocab_file(path: Path, max_bytes: int) -> frozenset[str]:
+    """Read a vocabulary file: a REGULAR file only (a FIFO/device would block or stream
+    forever), capped in BYTES, opened non-blocking, cached by (path, inode, mtime, size)."""
+    from .errors import ConfigError
+
+    try:
+        fd = os.open(path, os.O_RDONLY | getattr(os, "O_NONBLOCK", 0))
+    except OSError as e:
+        raise ConfigError(f"Cannot read spell_allow_file {str(path)!r}: {e}") from e
+    try:
+        st = os.fstat(fd)
+        if not stat.S_ISREG(st.st_mode):
+            raise ConfigError(f"spell_allow_file {str(path)!r} is not a regular file.")
+        if st.st_size > max_bytes:
+            raise ConfigError(f"spell_allow_file is {st.st_size} bytes, over "
+                              f"spell_allow_file_max_bytes ({max_bytes}).")
+        key = (str(path), st.st_ino, st.st_mtime_ns, st.st_size)
+        if key in _VOCAB_CACHE:
+            return _VOCAB_CACHE[key]
+        data = os.read(fd, max_bytes + 1)
+        if len(data) > max_bytes:
+            raise ConfigError(f"spell_allow_file exceeds spell_allow_file_max_bytes ({max_bytes}).")
+    finally:
+        os.close(fd)
+    words: set[str] = set()
+    for line in data.decode("utf-8", errors="replace").splitlines():
+        line = line.split("#", 1)[0]
+        words.update(w.lower() for w in re.findall(r"[A-Za-z]+", line))
+    out = frozenset(words)
+    _VOCAB_CACHE.clear()  # one live vocabulary at a time; bounded
+    _VOCAB_CACHE[key] = out
+    return out
+
+
+def dotenv_enabled() -> bool:
+    """Whether a ``.env`` in the working directory is read.
+
+    A planted ``.env`` could redirect backends or relax sandbox/file settings, so it is read
+    only where the working directory is trusted. ``AGENTVISION_DOTENV=0`` turns it off; under
+    CI (``CI`` or ``GITHUB_ACTIONS`` set — usually a PR checkout) it is OFF unless
+    ``AGENTVISION_DOTENV=1`` explicitly opts back in.
+    """
+    raw = os.environ.get("AGENTVISION_DOTENV", "").strip().lower()
+    if raw in {"0", "false", "no", "off"}:
+        return False
+    if raw in {"1", "true", "yes", "on"}:
+        return True
+    return not (os.environ.get("CI") or os.environ.get("GITHUB_ACTIONS"))
+
+
 def load_settings(**overrides) -> Settings:
     """Build a Settings object, applying any explicit overrides last."""
-    s = Settings(**{k: v for k, v in overrides.items() if v is not None})
+    kwargs = {k: v for k, v in overrides.items() if v is not None}
+    if not dotenv_enabled():
+        kwargs["_env_file"] = None
+    s = Settings(**kwargs)
     if s.api_token:
         from .logging import register_secret
 

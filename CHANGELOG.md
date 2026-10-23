@@ -2,6 +2,216 @@
 
 All notable changes to AgentVision are documented here.
 
+## [0.13.0] — 2026-10-23
+
+**Pilot readiness: self-hosted vision, a labelled benchmark, and no silent PASS.** This release
+gets AgentVision ready for an advisory pilot inside a media and communications pipeline. Vision
+grading runs on your own GPU with no key and no egress. A labelled corpus measures what each
+backend actually catches. Every path that used to degrade quietly now says so in the report.
+
+### Added
+
+- **Self-hosted Ollama needs no key.** Any `AGENTVISION_OLLAMA_BASE_URL` other than
+  `ollama.com` is treated as self-hosted. See [Backends → Ollama](docs/backends.md#ollama).
+- **Benchmark corpus and harness** (`bench/`). Twenty labelled cases themed on media work:
+  player errors, TV schedules, headlines, carousels, social cards. Twelve carry one known defect
+  and eight are clean. `python bench/run.py` scores a backend on how many defects it flags, the
+  right issue kind, clean-page pass rate, false fails, unparseable replies and latency. Results
+  for the local checks and three 12 GB-class vision models are in the
+  [pilot guide](docs/pilot.md#benchmark).
+- **Text too small to read.** Visible text painted under about 8.5px is an ERROR, and under
+  about 9.5px a WARNING. The size is measured as painted: single-character boxes come out
+  already projected through every transform, including the individual `scale` property, 3D
+  perspective, offset paths and SVG `viewBox`. Only letters spread across the text are
+  sampled, measured across the line. Each font is calibrated from canvas text metrics, which
+  touches no DOM, so the page can neither observe nor skew grading. The glyph ink is
+  measured too, so a font that shrinks its glyphs while keeping normal line boxes is caught. The computed size times
+  transform scale times zoom is a ceiling. So scaling,
+  zoom, rotation, skew, tall or short font metrics and vertical writing can't fool it. Text
+  split into tiny fragments, form-field values and list-box options count too. Ruby
+  annotations such as pinyin and furigana over a real base are skipped. Genuinely raised
+  footnote markers are only a warning, unless a block is mostly made of them. Before this, tiny text passed silently, and so did any typo in it,
+  because OCR can't read it.
+- **Three deterministic DOM checks**, found missing by the benchmark:
+  - text partly cut off by an `overflow: hidden` container on either axis (`clipped`), while
+    fully hidden carousel slides and `line-clamp` stay unflagged;
+  - text covered by an absolutely or fixed positioned element, confirmed by hit-test
+    (`overlap`);
+  - visible error copy such as "Error 403", "Playback failed", "Something went wrong" or
+    "[object Object]" (`error_text`), using narrow patterns so news copy is not flagged.
+- **Spell-check for global English.** Commonwealth spellings are accepted by default
+  (`spell_variants`), including derived forms ("neighbourhoods", "behavioural") and common
+  British words no rule reaches ("jewellery", "cheque", "aluminium"). The rules are
+  deliberately narrow so they can't hide typos: only known British "-our" stems are
+  rewritten, so "histoury" is still flagged. Doubled "l" follows a single vowel, so
+  "feelling" is still flagged. Words that collide with common ones, such as "gaol" with
+  "goal", are left out. House vocabulary such as show, talent and brand names comes from
+  `spell_allow_words` or a size-capped `spell_allow_file`.
+- **GitHub Action `mode: advisory`.** It never fails the build. A FAIL or an error becomes a
+  warning annotation, and the report goes to the job summary. `mode: gate` stays the default.
+- **Pilot guide** ([docs/pilot.md](docs/pilot.md)): deployment shape, model choice, advisory CI,
+  acceptance criteria and the measured benchmark.
+
+### Fixed
+
+- **The Ollama Cloud key could leak to any host.** Pointing the base URL elsewhere sent that
+  host the cloud key, whether it came from `OLLAMA_API_KEY` or `~/.config/ollama/key`. A `.env`
+  in the working directory could do the redirecting. The key now goes only over `https` to
+  `ollama.com` hosts. A self-hosted auth proxy uses its own `AGENTVISION_OLLAMA_SELF_HOSTED_KEY`.
+  Regression-pinned, including lookalike, userinfo and plain-`http` URLs.
+- **An unparseable vision reply could grade PASS.** On a page with no deterministic findings, a
+  model reply in prose became a PASS. It now adds a WARNING issue.
+- **OCR failure was silent.** When tesseract was installed but timed out, the typo, text-claim
+  and canvas-contrast checks were silently skipped and the page could PASS. It now adds an
+  ERROR issue.
+- **Quoted requirements are graded on the pixels only. This is a behaviour change.** `analyze`
+  used to accept DOM text as proof that a quoted string was shown. A page could therefore keep
+  "Subscribe now" in its DOM while painting it invisible, covering it, or moving it off-screen.
+  Now only text that OCR reads in the capture counts. Page-level OCR misses light-on-dark
+  labels, such as a white "Subscribe" on a blue button. So an element that holds the string is
+  re-read at its own glyph box, and it counts only if OCR reads it there. OCR alone is not
+  proof, because Tesseract can read text one shade off its background. So every word that
+  counts must also show real ink in its own pixels. A string present in the DOM but not in the
+  pixels stays violated, and the evidence says why. For text below the fold, use `--full-page`.
+  Matching is now whole-word, so "Free" is no longer satisfied by "Freeze". A page with no
+  legible text at all now violates its quoted requirements instead of leaving them
+  "uncertain". They stay ungraded only when OCR cannot run on the host.
+- **Pixel contrast now measures each line of text on its own.** Before, it measured the element
+  box, which could include other dark ink: a bold child word, an underline, an icon. That ink
+  could stand in for faint text. Each line is now cropped separately, and plain-colour text is
+  also graded with its known colour against the real background pixels. A wide or tall
+  container no longer pushes in-frame text out of grading, and a sliver at the fold is treated
+  as out of frame rather than "no ink".
+- **Disabled controls follow WCAG 1.4.3.** The short label of a native disabled form control
+  is exempt from contrast checks. That covers a `button`, `input`, `select` or `textarea`, or a
+  control inside a disabled `fieldset`. `aria-disabled` does not exempt, because a page can put
+  it on anything. A page-wide budget stops the exemption from covering body copy line by line.
+- **SVG text is graded on its `fill`.** It used to be graded on the CSS `color`, so a pale
+  chart label passed as 21:1.
+- **Text over an image is checked even when it computes as passing.** Dark text on a dark
+  `background-image` read as 21:1 against the assumed white page. The known text colour is now
+  measured against the real pixels. Text whose ink is missing from the pixels, for example
+  under a near-opaque overlay, is an ERROR.
+- **Haloed headlines are a warning, not a failure.** White text with a dark `text-shadow`
+  over a photo is the standard news-hero treatment. When the halo is visibly painted around
+  the glyphs and the fill alone would fail, the text is reported as a WARNING asking for a
+  check. It is never a silent pass. Its pixels must concentrate around the glyphs rather than in the
+  backdrop above and below, and spread across the line rather than forming a stripe. A shadow
+  thrown off-screen, a faint outline, a textured or striped backdrop does not count, nor does
+  a texture painted as the text element's own background. When a shadow is the only effect,
+  the text's exact fill colour is graded against the real backdrop.
+- **Opacity dims text the way it looks.** When opacity below the backdrop is the only effect,
+  it is folded into the text colour. Black at `opacity: .4` is graded as the grey it renders
+  as. A translucent card dims text and backdrop together, so it is graded on its pixels.
+- **Long text blocks are graded throughout.** Up to 40 lines are sampled evenly across the
+  whole block, so text past a fixed line count can't hide.
+- **Covered text is an overlap warning, consistently.** Text covered or dimmed by an overlay
+  was sometimes a contrast ERROR, while the overlap check called the same thing a WARNING. That
+  included cookie banners, sticky bars, paywall fades and modals. A line that a painted fixed or
+  sticky overlay actually sits on top of is now left to the overlap check. "Actually" means
+  most of a 3×3 grid of hit-tests across the line lands on it, and it paints a solid,
+  unclipped, unfaded background with no blend mode or filter. A hit counts only where the
+  overlay actually paints, so something that is hit-testable but paints nothing, like a
+  transparent child, a mask or a transparent border, is not a cover. The pixels must also
+  confirm it: the overlay's colour, composited with its alpha, has to dominate the line, and
+  the text's own composited colour must be absent. A thin strip is not a cover either. An element behind the content, clipped, faded,
+  blended or transparent switches nothing off. Even under a real overlay, a covered line that
+  would fail is still reported as an overlap WARNING; a covered defect never just disappears.
+- **The CLI's error exit code is consistent.** A grading error exits 3 with or without
+  `--quiet`; it used to print a traceback and exit 1.
+- **OCR misreads are warnings, real typos are errors.** On an HTML page, an unknown word is an
+  ERROR only when the page's own visible text contains it, because that is where a real typo
+  lives. A word OCR produced that the page doesn't contain, such as "resen" read from a small
+  "reserved", is a WARNING. The page text used for this is each element's full visible text,
+  so a long paragraph counts in full. Words split by soft hyphens, zero-width characters or
+  inline markup are rejoined, and form-control values are included. URLs, email addresses and
+  @handles are not spell-checked.
+  Raster inputs keep the OCR-confidence rule.
+- **Common media words are not typos.** "Tech", "Podcasts", "Livestream", "Newsletter" and
+  similar navigation words are in the spelling allowlist, along with common web words such as
+  "intro", "admin", "dropdown" and "analytics", and tech-news words such as "viewport" and
+  "localhost". Capitalised unknown words are
+  warnings, not errors. In news copy they are almost always names: about one in nine common
+  news names sits one edit from a dictionary word, such as "Starmer" and "Haaland". A word OCR
+  split off the front or end of a visible word, like "greement" from "Agreement", is not
+  flagged when the missing piece is itself read next to it. When a dictionary word on the
+  same visible line (that line's own words, located in the page), at the same size, completes
+  it but the piece wasn't read, it is a warning. A fragment that is itself a word in the page
+  ("agreeme nt") is a real break and stays an error. Hidden text, tiny decoys and made-up words can't launder a typo.
+- **Modern CSS colours skipped the contrast check.** `oklch()`, `lab()` and `color(srgb ...)`
+  values were not parsed. A foreground was skipped and a background was assumed white. They are
+  now resolved to sRGB.
+- **OCR was slow under load.** Tesseract's OpenMP threads oversubscribed shared hosts. One page
+  took 6.1 s instead of 0.26 s, which pushed real pages past the 30 s timeout. Tesseract now
+  runs single-threaded unless `OMP_THREAD_LIMIT` is set.
+- **British spellings were hard FAILs.** "Harbour" and "centre" were flagged as error-severity
+  typos. On the benchmark this falsely failed half of the clean pages.
+
+### Security
+
+Shipped through the security cadence, with twenty-five adversarial review rounds. Every fix is pinned by a
+regression test built from the proof of concept.
+
+- **A page could grade itself clean by breaking the grader.** The DOM extractor ran in the
+  page's own JavaScript world. Overriding `Range.prototype.getClientRects` or
+  `RegExp.prototype.test` made it throw, and a broken page then graded PASS. Overriding
+  `querySelectorAll` faked a chart to suppress a "chart is missing" finding. Every grading probe
+  now runs in a CDP isolated world. If extraction still fails, the report gets an ERROR.
+- **The spell-check was an unbounded CPU sink.** Its suggestion search took up to 20 s per
+  long nonsense word, with no limit, and it ran on the server's event loop. Suggestions are now
+  skipped for long words and capped in count and time. Grading stages run in worker threads,
+  under a process-wide slot that stays held until the work really finishes, so cancelled
+  requests can't pile up work beyond `max_concurrent_renders`. The REST service now enforces
+  `request_timeout_s` as a hard per-request ceiling, including reading the request body;
+  before this, the setting was declared but never applied.
+- **Grading calls to the browser are bounded.** Every DevTools-protocol call the grader makes
+  has a timeout, so a page that stalls the browser ends in a render-timeout error instead of
+  hanging the CLI.
+- **Text-requirement checks are bounded.** Re-reading a quoted string at its glyph box has a
+  time budget, a total pixel cap and a short per-read OCR timeout. Running out is an ERROR. A
+  page built to defeat OCR used to hold the grader for over 30 s on a single requirement.
+- **The pixel contrast pass is bounded.** It caps samples, crops and time, and only text inside
+  the capture counts toward the caps. Running out is an ERROR, so a page full of image-backed
+  text can't stall the grader, and a long article doesn't hit the cap.
+- **A static page could stall grading into a timeout.** A few hundred `pointer-events: none`
+  overlays drove about 226,000 hit-tests and turned a sub-second render into a 60 s timeout. The
+  overlap pass is now bounded, and the whole extractor has a time budget.
+- **Unchecked elements graded as clean.** Past the 4,000-element cap the rest of the page was
+  silently ignored, so a defect placed after filler passed. Warning-level clips could also fill
+  a shared cap and push out an SVG-clipping ERROR. The cap is now 20,000
+  (`dom_max_elements`), SVG clips have their own cap, and hitting any limit grades as an ERROR.
+- **A pull request could run code in the Action.** The install step ran `python -m pip` and
+  `python -m playwright` from the checkout. For `-m`, Python searches the working directory
+  first, so a committed `pip/` package ran with the job's secrets. Installs now use isolated
+  mode from the runner temp directory. `agentvision doctor` uses isolated mode too.
+- **Contrast graded the declared colour, not the painted one.** Several kinds of near-invisible
+  text graded PASS:
+  - a translucent foreground such as `rgba(0,0,0,0.08)`, which was read as 21:1;
+  - `-webkit-text-fill-color` overriding `color`;
+  - `color: transparent`;
+  - text washed out by a `filter`.
+
+  The foreground alpha is now composited over the backdrop. The painted fill colour is used.
+  Text under a filter, blend mode, text stroke or text clip is measured from the real pixels.
+  Opacity anywhere up the ancestor chain counts too. Near-invisible text with no readable ink
+  under it is now an ERROR, where it used to be a "verify manually" warning.
+- **Hidden text could satisfy a quoted requirement.** Text placed off-screen, made transparent
+  or clipped away still counted as "the page shows 'Subscribe now'". Only visible text with
+  readable contrast now counts.
+- **A late redirect to a sign-in page was graded as the app.** With a saved session, the
+  login-wall check ran only right after navigation. It now runs again just before capture.
+- **`watch` dropped a failed vision pass silently.** It now adds an ERROR.
+- **A planted `.env` is ignored in CI.** The working-directory `.env` is no longer read when `CI`
+  or `GITHUB_ACTIONS` is set, unless `AGENTVISION_DOTENV=1`. **This changes the default under
+  CI.** The Action sets `AGENTVISION_DOTENV=0`.
+- **The allowlist file could hang the grader.** A FIFO as `spell_allow_file` blocked forever.
+  Only regular files are accepted now, and the size cap counts bytes.
+- **The Action treats its own output as untrusted.** The report quotes page text, so
+  workflow-command parsing is suspended while it prints. The job summary is HTML-escaped, and
+  the annotation's source string is encoded. Before this, a page line such as `::error::` was
+  interpreted by the runner in gate mode too. The resume token is printed on its own line, so
+  output without a trailing newline cannot swallow it.
+
 ## [0.12.0] — 2026-09-10
 
 Turn the eyes into **sight**. Until now AgentVision graded artifacts you *handed* it — HTML, a

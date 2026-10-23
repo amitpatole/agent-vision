@@ -74,7 +74,7 @@ class ClippedText(BaseModel):
     text: str = ""
     selector: str = ""
     tag: str = ""
-    kind: str = "clipped"  # svg_clipped | truncated
+    kind: str = "clipped"  # svg_clipped | truncated | container_clipped
     overflow_px: float = 0.0  # how far the content exceeds the clip boundary (image px)
 
 
@@ -90,6 +90,23 @@ class ContrastSample(BaseModel):
     passes_aa: bool
     passes_aaa: bool
     confidence: str = "high"  # 'high' over solid bg; 'low' over image/gradient/opacity
+    paint_effects: bool = False  # filter/blend/stroke/text-clip: computed colours unreliable
+    visible_frac: float = 1.0  # painted text left after document bounds + clipping ancestors
+    glyph_bbox: BBox | None = None  # union of the element's own text-glyph rects (image px)
+    glyph_rects: list[BBox] = Field(default_factory=list)  # each own-text line box (image px)
+    fg_rgba: tuple[float, float, float, float] | None = None  # painted fg colour + alpha
+    inactive: bool = False  # text of a disabled control (WCAG 1.4.3 exempt)
+    halo: bool = False  # opaque contrasting text-shadow halo (legible over photos)
+    shadow_only: bool = False  # only effect is a text-shadow: the fill colour is exact
+    in_overlay: bool = False  # the text belongs to a fixed/sticky overlay itself
+    covered_lines: list[int] = Field(default_factory=list)  # glyph_rects indices an overlay sits on
+    cover_colors: list[tuple[float, float, float, float]] = Field(default_factory=list)  # per covered line
+    line_words: list[list[str]] = Field(default_factory=list)  # words on each glyph_rects line
+    min_line_h: float = 0.0  # smallest rendered line height, CSS px (0 = unknown)
+    eff_font_px: float = 0.0  # painted font size: computed size x transform scale x zoom
+    in_ruby: bool = False  # ruby annotation (rt/rp) over a real base: small by design
+    sup_sub: bool = False  # superscript/subscript text (footnote markers)
+    block_key: int = 0  # nearest block container id (pools fragments on either axis)
     text: str = ""
     selector: str = ""
 
@@ -150,6 +167,30 @@ class RenderResult(BaseModel):
     clipped_text: list[ClippedText] = Field(
         default_factory=list,
         description="Text cut off by an SVG viewport or a DOM hard-overflow boundary.",
+    )
+    overlaps: list[ElementBox] = Field(
+        default_factory=list,
+        description="Text covered by a positioned element (bbox = the covered region; "
+                    "text = the covered text; selector = the occluding element).",
+    )
+    error_text: list[ElementBox] = Field(
+        default_factory=list,
+        description="Visible error copy on the page (e.g. 'Error 403', 'Playback failed').",
+    )
+    vocab_text: str = Field(
+        default="", description="Full visible text of sampled elements (spelling severity)."
+    )
+    form_fields: list[dict] = Field(
+        default_factory=list,
+        description="Visible form fields' value/placeholder text with its painted font size.",
+    )
+    extraction_error: str | None = Field(
+        default=None,
+        description="Why the DOM grading extractor failed, if it did (the DOM checks did not run).",
+    )
+    extraction_truncated: bool = Field(
+        default=False,
+        description="The extractor hit its time budget; some elements were not checked.",
     )
     overflow_x: float = Field(default=0.0, description="Horizontal layout overflow in image px.")
     visual_tags: list[str] = Field(

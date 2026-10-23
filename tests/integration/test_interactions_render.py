@@ -140,3 +140,15 @@ async def test_click_post_allowed_when_opted_in(local_server):
     res = await _click_and_wait(local_server, allow_mutations=True)
     assert sum(s.blocked_mutations for s in res.interaction_log) == 0
     assert _CountingHandler.posts >= 1, "opt-in should deliver the POST"
+
+
+async def test_late_redirect_to_login_wall_raises(tmp_path):
+    # Red-team R3: a client-side redirect AFTER navigation (during settle) landed on the sign-in
+    # page, which was then graded as the app. The login wall is re-checked before capture.
+    state = tmp_path / "state.json"
+    state.write_text('{"cookies": [], "origins": []}')
+    app = ("<html><body><h1>Dashboard</h1><script>setTimeout(function(){document.body."
+           "innerHTML='<form><input type=password name=p></form>'},200)</script></body></html>")
+    settings = load_settings(storage_state=state, ephemeral=True, settle_ms=800)
+    with pytest.raises(AuthExpiredError):
+        await do_render(app, settings=settings, source_type="html")

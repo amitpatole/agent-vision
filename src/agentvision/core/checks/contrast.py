@@ -16,7 +16,7 @@ from ...renderers.base import RenderResult
 def check_contrast_dom(render: RenderResult) -> list[Issue]:
     issues: list[Issue] = []
     for s in render.contrast_samples:
-        if s.passes_aa:
+        if s.passes_aa or s.inactive:  # inactive controls are WCAG 1.4.3-exempt
             continue
         if s.confidence == "low":
             # Non-solid background: computed-style contrast is unreliable here. Ceded to the

@@ -161,6 +161,50 @@ def _import_playwright():
     return async_playwright
 
 
+# Hard ceiling on the grading extractor, above its own in-page time budget.
+_EXTRACT_TIMEOUT_S = 20.0
+_CDP_STEP_TIMEOUT_S = 10.0
+_DETACHES: set = set()   # strong refs to fire-and-forget detach tasks
+
+
+async def _evaluate_isolated(page, fn_js: str, *, timeout_s: float, arg=None):
+    """Evaluate a grading function in a fresh CDP **isolated world**, not the page's main world.
+
+    The page shares the DOM with an isolated world but not its JavaScript: overriding
+    ``Range.prototype``, ``RegExp.prototype.test``, ``getComputedStyle`` or
+    ``Element.prototype.getBoundingClientRect`` in the page cannot reach the extractor, so a
+    page can neither make it throw (suppressing every signal) nor feed it forged geometry.
+    Any failure raises; the caller records it as a failed grade, never as "no defects".
+    """
+    # EVERY CDP call is bounded: a page that wedges the renderer must not hang the grader past
+    # its timeouts (an unbounded detach once outlived render_timeout_s indefinitely).
+    cdp = await asyncio.wait_for(page.context.new_cdp_session(page), timeout=_CDP_STEP_TIMEOUT_S)
+    try:
+        tree = await asyncio.wait_for(cdp.send("Page.getFrameTree"), timeout=_CDP_STEP_TIMEOUT_S)
+        frame_id = tree["frameTree"]["frame"]["id"]
+        world = await asyncio.wait_for(
+            cdp.send("Page.createIsolatedWorld",
+                     {"frameId": frame_id, "worldName": "agentvision-grader"}),
+            timeout=_CDP_STEP_TIMEOUT_S)
+        res = await asyncio.wait_for(cdp.send("Runtime.evaluate", {
+            "expression": f"({fn_js})({json.dumps(arg) if arg is not None else ''})",
+            "contextId": world["executionContextId"],
+            "returnByValue": True, "awaitPromise": True,
+        }), timeout=timeout_s)
+        if res.get("exceptionDetails"):
+            detail = res["exceptionDetails"].get("text", "exception")
+            raise RenderError(f"DOM extraction threw in the isolated world: {detail}")
+        return res.get("result", {}).get("value")
+    finally:
+        # Fire-and-forget, bounded: never let a detach that doesn't answer block the caller.
+        async def _detach():
+            try:
+                await asyncio.wait_for(cdp.detach(), timeout=2.0)
+            except BaseException:  # noqa: BLE001
+                pass
+        _DETACHES.add(t := asyncio.ensure_future(_detach()))
+        t.add_done_callback(_DETACHES.discard)
+
 class PlaywrightRenderer:
     SUPPORTED = {"html", "svg", "url"}
 
@@ -243,6 +287,12 @@ class PlaywrightRenderer:
         contrast: list[ContrastSample] = []
         broken: list[ElementBox] = []
         clipped: list[ClippedText] = []
+        overlaps: list[ElementBox] = []
+        error_text: list[ElementBox] = []
+        form_fields: list[dict] = []
+        vocab_text = ""
+        extraction_error: str | None = None
+        extraction_truncated = False
         overflow_x = 0.0
         visual_tags: list[str] = []
         visual_elements: list[ElementBox] = []
@@ -264,6 +314,12 @@ class PlaywrightRenderer:
                             contrast = page_result["contrast"]
                             broken = page_result["broken"]
                             clipped = page_result["clipped"]
+                            overlaps = page_result["overlaps"]
+                            error_text = page_result["error_text"]
+                            form_fields = page_result["form_fields"]
+                            vocab_text = page_result["vocab_text"]
+                            extraction_error = page_result["extraction_error"]
+                            extraction_truncated = page_result["extraction_truncated"]
                             console_errors = page_result["console_errors"]
                             failed = page_result["failed"]
                             overflow_x = page_result["overflow_x"]
@@ -279,7 +335,10 @@ class PlaywrightRenderer:
         return RenderResult(
             images=images, dom_boxes=dom_boxes, contrast_samples=contrast,
             console_errors=console_errors, failed_responses=failed,
-            broken_images=broken, clipped_text=clipped, overflow_x=overflow_x,
+            broken_images=broken, clipped_text=clipped, overlaps=overlaps,
+            error_text=error_text, form_fields=form_fields, vocab_text=vocab_text,
+            extraction_error=extraction_error,
+            extraction_truncated=extraction_truncated, overflow_x=overflow_x,
             visual_tags=visual_tags,
             visual_elements=visual_elements, interaction_log=interaction_log,
             source_type=resolved.kind,
@@ -346,7 +405,8 @@ class PlaywrightRenderer:
         # enough for it to draw before pausing it ("settle-then-freeze", not the reverse).
         has_canvas = False
         try:
-            has_canvas = bool(await page.evaluate("() => !!document.querySelector('canvas')"))
+            has_canvas = bool(await _evaluate_isolated(
+                page, "() => !!document.querySelector('canvas')", timeout_s=10))
         except Exception:  # noqa: BLE001
             pass
 
@@ -385,13 +445,36 @@ class PlaywrightRenderer:
                 except Exception:  # noqa: BLE001
                     pass
 
+        # Re-check the login wall right before grading: a client-side redirect after
+        # navigation (or an interaction) can land on the sign-in page, which must not be
+        # graded as the authenticated app.
+        if spec.storage_state_path and await self._looks_like_login(page):
+            url = page.url
+            await context.close()
+            raise AuthExpiredError(
+                "storage_state was supplied but the page reached a login wall before capture "
+                f"(the session is expired or invalid): {url}. Refresh the saved session."
+            )
+
         # Extract signals at scroll-top so doc-space rects map cleanly to the image.
-        await page.evaluate("() => window.scrollTo(0, 0)")
-        try:
-            data = await page.evaluate(EXTRACT_JS)
+        try:  # best effort: the extractor adds the scroll offset to every rect anyway
+            await _evaluate_isolated(page, "() => window.scrollTo(0, 0)", timeout_s=10)
         except Exception as e:  # noqa: BLE001
+            log.debug("scroll reset skipped: %s", e)
+        extraction_error: str | None = None
+        try:
+            data = await _evaluate_isolated(
+                page, EXTRACT_JS, timeout_s=_EXTRACT_TIMEOUT_S,
+                arg={"budgetMs": int(self.settings.dom_budget_ms),
+                     "maxElements": int(self.settings.dom_max_elements)})
+            if not isinstance(data, dict):
+                raise RenderError("DOM extraction returned no data")
+        except Exception as e:  # noqa: BLE001
+            # Fail closed: an empty extraction would read as "no defects" — record why instead.
             log.warning("DOM extraction failed: %s", e)
-            data = {"domBoxes": [], "contrast": [], "broken": [], "clipped": [], "overflowX": 0}
+            extraction_error = f"{type(e).__name__}: {e}"[:200]
+            data = {"domBoxes": [], "contrast": [], "broken": [], "clipped": [], "overlaps": [],
+                    "errorTexts": [], "overflowX": 0}
 
         img_path = out_dir / f"vp_{vp.label()}_{idx}.png"
         # animations="disabled" makes Playwright finish CSS animations/transitions and not
@@ -403,9 +486,11 @@ class PlaywrightRenderer:
             from ..imageguard import MAX_IMAGE_PIXELS
 
             try:
-                doc_h = int(await page.evaluate(
+                doc_h = int(await _evaluate_isolated(
+                    page,
                     "() => Math.max(document.documentElement.scrollHeight, document.body"
-                    " ? document.body.scrollHeight : 0)"
+                    " ? document.body.scrollHeight : 0)",
+                    timeout_s=10,
                 ))
             except Exception:  # noqa: BLE001
                 doc_h = vw
@@ -421,7 +506,7 @@ class PlaywrightRenderer:
             iw, ih = im.size
 
         try:
-            visuals = await page.evaluate(_VISUALS_JS) or []
+            visuals = await _evaluate_isolated(page, _VISUALS_JS, timeout_s=10) or []
         except Exception:  # noqa: BLE001
             visuals = []
         visual_elements = [
@@ -436,12 +521,21 @@ class PlaywrightRenderer:
         broken = [self._to_box(b, dsf) for b in data.get("broken", [])]
         contrast = [self._to_contrast(c, dsf) for c in data.get("contrast", [])]
         clipped = [self._to_clip(c, dsf) for c in data.get("clipped", [])]
+        overlaps = [self._to_box(b, dsf) for b in data.get("overlaps", [])]
+        error_text = [self._to_box(b, dsf) for b in data.get("errorTexts", [])]
         # Stash overflow signal on the result via a synthetic dom box list is messy;
         # we attach it through the page result dict for the checks layer.
         result = {
             "image": RenderedImage(path=str(img_path), viewport=vp, width=iw, height=ih),
             "dom_boxes": dom_boxes, "contrast": contrast, "broken": broken,
-            "clipped": clipped,
+            "clipped": clipped, "overlaps": overlaps, "error_text": error_text,
+            "vocab_text": str(data.get("vocabText", ""))[:320000],
+            "form_fields": [
+                {"bbox": _img_bbox(f["x"], f["y"], f["w"], f["h"], dsf), "text": str(f["text"]),
+                 "eff_font_px": float(f.get("effFontPx", 0) or 0), "selector": f.get("selector", "")}
+                for f in data.get("tinyFields", [])[:20]],
+            "extraction_error": extraction_error,
+            "extraction_truncated": bool(data.get("truncated")),
             "console_errors": console_errors, "failed": _dedupe_failed(failed),
             "overflow_x": float(data.get("overflowX", 0) or 0) * dsf,
             "visual_tags": list(visual_tags), "visual_elements": visual_elements,
@@ -498,9 +592,11 @@ class PlaywrightRenderer:
                         await page.wait_for_timeout(spec.settle_ms)
                     for i in range(frames):
                         try:
-                            media_raw = await page.evaluate(_MEDIA_JS) or []
-                        except Exception:  # noqa: BLE001
-                            media_raw = []
+                            media_raw = await _evaluate_isolated(
+                                page, _MEDIA_JS, timeout_s=10) or []
+                        except Exception as e:  # noqa: BLE001
+                            # Fail closed: missing media state would hide a stall/black frame.
+                            raise RenderError(f"Could not read media state: {e}") from e
                         img = out_dir / f"frame_{i}.png"
                         await page.screenshot(path=str(img), full_page=False)  # keep motion
                         with Image.open(img) as im:
@@ -617,8 +713,8 @@ class PlaywrightRenderer:
         if any(hint in url for hint in _LOGIN_URL_HINTS):
             return True
         try:
-            return bool(await page.evaluate(
-                "() => !!document.querySelector('input[type=password]')"))
+            return bool(await _evaluate_isolated(
+                page, "() => !!document.querySelector('input[type=password]')", timeout_s=10))
         except Exception:  # noqa: BLE001
             return False
 
@@ -793,6 +889,27 @@ class PlaywrightRenderer:
             bbox=_img_bbox(c["x"], c["y"], c["w"], c["h"], dsf),
             ratio=c["ratio"], fg=c["fg"], bg=c["bg"], font_px=c["fontPx"],
             large_text=c["large"], passes_aa=c["aa"], passes_aaa=c["aaa"],
+            visible_frac=float(c.get("visibleFrac", 1.0) or 0.0),
+            paint_effects=bool(c.get("effects", False)),
+            glyph_bbox=(_img_bbox(c["glyph"]["x"], c["glyph"]["y"], c["glyph"]["w"],
+                                  c["glyph"]["h"], dsf) if c.get("glyph") else None),
+            inactive=bool(c.get("inactive", False)),
+            halo=bool(c.get("halo", False)),
+            shadow_only=bool(c.get("shadowOnly", False)),
+            in_overlay=bool(c.get("inOverlay", False)),
+            covered_lines=[int(k) for k in (c.get("coveredLines") or [])][:40],
+            cover_colors=[(float(o[0]), float(o[1]), float(o[2]), float(o[3]))
+                          for o in (c.get("coverColors") or [])[:40] if o],
+            line_words=[[str(w) for w in ws][:300] for ws in (c.get("lineWords") or [])][:40],
+            min_line_h=float(c.get("minLineH", 0) or 0),
+            eff_font_px=float(c.get("effFontPx", 0) or 0),
+            in_ruby=bool(c.get("inRuby", False)),
+            sup_sub=bool(c.get("supSub", False)),
+            block_key=int(c.get("blockKey", 0) or 0),
+            glyph_rects=[_img_bbox(g["x"], g["y"], g["w"], g["h"], dsf)
+                         for g in (c.get("glyphs") or [])[:40]],
+            fg_rgba=((float(c["fgRgba"]["r"]), float(c["fgRgba"]["g"]), float(c["fgRgba"]["b"]),
+                      float(c["fgRgba"]["a"])) if c.get("fgRgba") else None),
             confidence=c["confidence"], text=c.get("text", ""), selector=c.get("selector", ""),
         )
 

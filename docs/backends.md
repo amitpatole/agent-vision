@@ -9,21 +9,40 @@ each, via per-provider schema adapters.
 | `anthropic` | `[anthropic]` | `ANTHROPIC_API_KEY` | Default. Model `claude-haiku-4-5`. |
 | `openai` | `[openai]` | `OPENAI_API_KEY` | Strict `json_schema` structured output. |
 | `gemini` | `[gemini]` | `GOOGLE_API_KEY` | `response_schema` structured output. |
-| `ollama` | `[openai]` | `OLLAMA_API_KEY` | OSS multimodal models via Ollama (local **or** Ollama Cloud). Default `gemma3:27b`. Tolerant JSON parsing. |
+| `ollama` | `[openai]` | cloud: `OLLAMA_API_KEY` · self-hosted: none | OSS multimodal models via Ollama (self-hosted **or** Ollama Cloud). Default `gemma3:27b`. Tolerant JSON parsing; an unparseable reply grades WARN, never PASS. |
 
 ### Ollama
 
-Use any multimodal Ollama model as the vision backend — great for OSS / self-hosted setups
-and for Ollama Cloud (no local GPU needed):
+Use any multimodal Ollama model as the vision backend. Two deployment shapes, chosen by
+`AGENTVISION_OLLAMA_BASE_URL`:
+
+**Self-hosted (no key, no egress off your network).** Point the base URL at your own Ollama
+server. No API key is needed:
 
 ```bash
-export OLLAMA_API_KEY=...                       # or put the key in ~/.config/ollama/key
-export AGENTVISION_OLLAMA_MODEL=gemma3:27b      # any multimodal model
-export AGENTVISION_OLLAMA_BASE_URL=https://ollama.com/v1   # default; or http://localhost:11434/v1
+export AGENTVISION_OLLAMA_BASE_URL=http://localhost:11434/v1   # or a LAN GPU box
+export AGENTVISION_OLLAMA_MODEL=qwen2.5vl:7b                    # any vision-capable model
 agentvision analyze page.html --backend ollama
 ```
 
-The key resolves from `OLLAMA_API_KEY`, falling back to `~/.config/ollama/key`.
+**Ollama Cloud.** The default base URL is `https://ollama.com/v1`, which needs a key from
+`OLLAMA_API_KEY` or `~/.config/ollama/key`:
+
+```bash
+export OLLAMA_API_KEY=...
+agentvision analyze page.html --backend ollama
+```
+
+**The cloud key only ever goes to `https://ollama.com`.** The key from `OLLAMA_API_KEY` or the
+key file is never sent to any other host, and never over plain `http`. Lookalike hosts such as
+`ollama.com.evil.net` count as other hosts. If you put an auth proxy in front of a self-hosted
+server, give it its own key in `AGENTVISION_OLLAMA_SELF_HOSTED_KEY`.
+
+**Malformed replies fail closed.** Small local models sometimes reply with prose instead of
+JSON. Such a reply adds a WARNING issue ("semantic grade is missing"), so it can never grade as
+a clean PASS. The [pilot benchmark](pilot.md#benchmark) reports how often each model does this.
+
+Which local model to pick on a 12 GB GPU is measured in the [pilot guide](pilot.md#benchmark).
 
 ## Selection
 

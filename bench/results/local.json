@@ -1,0 +1,319 @@
+{
+  "label": "local",
+  "backend": "local",
+  "model": "",
+  "score": {
+    "defects_flagged": "12/13",
+    "right_kind": "11/13",
+    "vision_right_kind": "0/13",
+    "clean_pass": "8/9",
+    "false_fail": "0/9",
+    "unparseable": "0/22",
+    "errors": 0,
+    "median_s": 1.78,
+    "max_s": 2.23
+  },
+  "rows": [
+    {
+      "id": "player_error",
+      "defect": "error_text",
+      "verdict": "warn",
+      "kinds": [
+        "error_text"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 2.1,
+      "summary": "Structural checks found 1 issue(s).",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "hero_low_contrast",
+      "defect": "contrast",
+      "verdict": "fail",
+      "kinds": [
+        "contrast"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 1.85,
+      "summary": "Structural checks found 1 issue(s).",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "schedule_overflow",
+      "defect": "overflow",
+      "verdict": "fail",
+      "kinds": [
+        "overflow"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 1.95,
+      "summary": "Structural checks found 1 issue(s).",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "headline_clipped",
+      "defect": "clipped",
+      "verdict": "warn",
+      "kinds": [
+        "clipped"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 1.76,
+      "summary": "Structural checks found 1 issue(s).",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "thumbnail_broken",
+      "defect": "broken_image",
+      "verdict": "fail",
+      "kinds": [
+        "broken_image"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 1.73,
+      "summary": "Structural checks found 1 issue(s).",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "badge_overlap",
+      "defect": "overlap",
+      "verdict": "warn",
+      "kinds": [
+        "overlap",
+        "typo"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 2.23,
+      "summary": "Structural checks found 2 issue(s).",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "blank_page",
+      "defect": "blank",
+      "verdict": "fail",
+      "kinds": [
+        "blank"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 1.57,
+      "summary": "Structural checks found 1 issue(s).",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "typo_headline",
+      "defect": "typo",
+      "verdict": "fail",
+      "kinds": [
+        "typo"
+      ],
+      "n_issues": 4,
+      "unparseable": false,
+      "elapsed_s": 1.96,
+      "summary": "Structural checks found 4 issue(s).",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "missing_subscribe",
+      "defect": "missing_element",
+      "verdict": "warn",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 1.92,
+      "summary": "Structural checks passed (no DOM/CV defects detected). Intent match (text-only, offline): 0/1 requirement(s) satisfied.",
+      "flagged": true,
+      "kind_hit": false,
+      "vision_hit": false
+    },
+    {
+      "id": "missing_subscribe_quoted",
+      "defect": "missing_element",
+      "verdict": "fail",
+      "kinds": [
+        "intent_mismatch"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 1.72,
+      "summary": "Structural checks found 1 issue(s). Intent match (text-only, offline): 0/1 requirement(s) satisfied.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "svg_label_clipped",
+      "defect": "clipped",
+      "verdict": "fail",
+      "kinds": [
+        "clipped",
+        "typo"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 1.69,
+      "summary": "Structural checks found 2 issue(s).",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "social_typo",
+      "defect": "typo",
+      "verdict": "fail",
+      "kinds": [
+        "typo"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 0.52,
+      "summary": "Structural checks found 2 issue(s).",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "social_low_contrast",
+      "defect": "contrast",
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 0.5,
+      "summary": "Structural checks passed (no DOM/CV defects detected).",
+      "flagged": false,
+      "kind_hit": false,
+      "vision_hit": false
+    },
+    {
+      "id": "player_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 2.04,
+      "summary": "Structural checks passed (no DOM/CV defects detected).",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "hero_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 1.96,
+      "summary": "Structural checks passed (no DOM/CV defects detected).",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "schedule_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 1.77,
+      "summary": "Structural checks passed (no DOM/CV defects detected).",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "headline_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 1.66,
+      "summary": "Structural checks passed (no DOM/CV defects detected).",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "carousel_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 1.76,
+      "summary": "Structural checks passed (no DOM/CV defects detected).",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "subscribe_ok",
+      "defect": null,
+      "verdict": "warn",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 1.78,
+      "summary": "Structural checks passed (no DOM/CV defects detected). Intent match (text-only, offline): 0/1 requirement(s) satisfied.",
+      "clean_pass": false,
+      "false_fail": false
+    },
+    {
+      "id": "subscribe_ok_quoted",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 2.04,
+      "summary": "Structural checks passed (no DOM/CV defects detected). Intent match (text-only, offline): 1/1 requirement(s) satisfied.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "chart_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 1.79,
+      "summary": "Structural checks passed (no DOM/CV defects detected).",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "social_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 0.53,
+      "summary": "Structural checks passed (no DOM/CV defects detected).",
+      "clean_pass": true,
+      "false_fail": false
+    }
+  ]
+}

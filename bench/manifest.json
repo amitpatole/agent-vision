@@ -1,0 +1,164 @@
+[
+  {
+    "id": "player_error",
+    "file": "player_error.html",
+    "defect": "error_text",
+    "note": "Player surface shows a playback error",
+    "expect": []
+  },
+  {
+    "id": "hero_low_contrast",
+    "file": "hero_low_contrast.html",
+    "defect": "contrast",
+    "note": "Body copy is light grey on white (about 1.5:1)",
+    "expect": []
+  },
+  {
+    "id": "schedule_overflow",
+    "file": "schedule_overflow.html",
+    "defect": "overflow",
+    "note": "TV schedule grid is far wider than the viewport",
+    "expect": []
+  },
+  {
+    "id": "headline_clipped",
+    "file": "headline_clipped.html",
+    "defect": "clipped",
+    "note": "Headline is cut off by a fixed-height overflow:hidden card",
+    "expect": []
+  },
+  {
+    "id": "thumbnail_broken",
+    "file": "thumbnail_broken.html",
+    "defect": "broken_image",
+    "note": "One carousel poster fails to load",
+    "expect": []
+  },
+  {
+    "id": "badge_overlap",
+    "file": "badge_overlap.html",
+    "defect": "overlap",
+    "note": "LIVE badge sits on top of the headline text",
+    "expect": []
+  },
+  {
+    "id": "blank_page",
+    "file": "blank_page.html",
+    "defect": "blank",
+    "note": "App shell rendered nothing",
+    "expect": []
+  },
+  {
+    "id": "typo_headline",
+    "file": "typo_headline.html",
+    "defect": "typo",
+    "note": "Several misspellings in the headline",
+    "expect": []
+  },
+  {
+    "id": "missing_subscribe",
+    "file": "missing_subscribe.html",
+    "defect": "missing_element",
+    "note": "Brief requires a Subscribe button; the page has none",
+    "expect": [
+      "must: a Subscribe button is visible"
+    ]
+  },
+  {
+    "id": "missing_subscribe_quoted",
+    "file": "missing_subscribe.html",
+    "defect": "missing_element",
+    "note": "Same page, brief quotes the label, so OCR can decide it deterministically",
+    "expect": [
+      "must: a \"Subscribe\" button is visible"
+    ]
+  },
+  {
+    "id": "svg_label_clipped",
+    "file": "svg_label_clipped.html",
+    "defect": "clipped",
+    "note": "Chart label starts outside the SVG viewBox and is cut off (the dogfood miss)",
+    "expect": []
+  },
+  {
+    "id": "social_typo",
+    "file": "social_typo.png",
+    "defect": "typo",
+    "note": "Raster social card with misspellings",
+    "expect": []
+  },
+  {
+    "id": "social_low_contrast",
+    "file": "social_low_contrast.png",
+    "defect": "contrast",
+    "note": "Raster social card with near-white text on white",
+    "expect": []
+  },
+  {
+    "id": "player_ok",
+    "file": "player_ok.html",
+    "defect": null,
+    "note": "Healthy player page",
+    "expect": []
+  },
+  {
+    "id": "hero_ok",
+    "file": "hero_ok.html",
+    "defect": null,
+    "note": "Readable promo hero",
+    "expect": []
+  },
+  {
+    "id": "schedule_ok",
+    "file": "schedule_ok.html",
+    "defect": null,
+    "note": "Schedule grid that fits",
+    "expect": []
+  },
+  {
+    "id": "headline_ok",
+    "file": "headline_ok.html",
+    "defect": null,
+    "note": "Headline card with room to breathe",
+    "expect": []
+  },
+  {
+    "id": "carousel_ok",
+    "file": "carousel_ok.html",
+    "defect": null,
+    "note": "Carousel with every poster loaded",
+    "expect": []
+  },
+  {
+    "id": "subscribe_ok",
+    "file": "subscribe_ok.html",
+    "defect": null,
+    "note": "Newsletter page with its Subscribe button",
+    "expect": [
+      "must: a Subscribe button is visible"
+    ]
+  },
+  {
+    "id": "subscribe_ok_quoted",
+    "file": "subscribe_ok.html",
+    "defect": null,
+    "note": "Same clean page, brief quotes the label",
+    "expect": [
+      "must: a \"Subscribe\" button is visible"
+    ]
+  },
+  {
+    "id": "chart_ok",
+    "file": "chart_ok.html",
+    "defect": null,
+    "note": "Chart with every label inside the canvas",
+    "expect": []
+  },
+  {
+    "id": "social_ok",
+    "file": "social_ok.png",
+    "defect": null,
+    "note": "Clean raster social card",
+    "expect": []
+  }
+]

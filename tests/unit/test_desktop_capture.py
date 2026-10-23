@@ -303,7 +303,7 @@ async def test_library_analyze_desktop_forces_ephemeral(tmp_path, monkeypatch):
         seen["cache_dir"] = str(settings.cache_dir)
         # short-circuit: return an empty render so analyze bails before any backend call
         from agentvision.renderers.base import RenderResult
-        return RenderResult(source_type="desktop"), [], None
+        return RenderResult(source_type="desktop"), [], None, []
 
     monkeypatch.setattr(az, "_render_and_ground", fake_render_and_ground)
     persistent = tmp_path / "persistent_cache"
@@ -370,7 +370,7 @@ async def test_analyze_desktop_invokes_egress_guard_on_real_path(monkeypatch):
                                   width=10, height=10)],
             source_type="desktop",
         )
-        return rr, [], None
+        return rr, [], None, []
 
     class _Cloud:
         name = "anthropic"

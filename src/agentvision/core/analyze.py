@@ -5,6 +5,8 @@ Also exposes ``check`` (the classic, no-LLM path).
 
 from __future__ import annotations
 
+import asyncio
+import threading
 from pathlib import Path
 
 from ..backends.base import AnalysisRequest
@@ -126,10 +128,231 @@ def _visual_crop_paths(image_path: str, elements, *, max_crops: int) -> list[str
     return out
 
 
+_CPU_SLOTS: threading.BoundedSemaphore | None = None
+_CPU_SLOTS_LOCK = threading.Lock()
+
+
+def _cpu_slot(n: int) -> threading.BoundedSemaphore:
+    global _CPU_SLOTS
+    with _CPU_SLOTS_LOCK:
+        if _CPU_SLOTS is None:
+            _CPU_SLOTS = threading.BoundedSemaphore(max(1, n))
+        return _CPU_SLOTS
+
+
+async def _in_worker(settings: Settings, fn, *args, **kwargs):
+    """Run a CPU-bound grading stage in a worker thread under a process-wide slot.
+
+    The slot is taken and released INSIDE the thread, so when a request is cancelled (the
+    REST deadline fires) its abandoned work keeps holding the slot until it really finishes:
+    cancelled requests can't stack up OCR/pixel work beyond ``max_concurrent_renders``.
+    """
+    slots = _cpu_slot(settings.max_concurrent_renders)
+
+    def _run():
+        with slots:
+            return fn(*args, **kwargs)
+
+    return await asyncio.to_thread(_run)
+
+
+def _legible_ocr_text(render_result: RenderResult, ocr_words: list) -> str:
+    """Page OCR words that are actually visible: each word's own pixels must show ink at
+    >= 2:1. Tesseract binarizes internally, so it reads text a human cannot see (254 on 255
+    under a 99%-opaque cover); such words must not satisfy a requirement."""
+    primary = render_result.primary
+    if not ocr_words or primary is None:
+        return ""
+    from PIL import Image
+
+    from .checks._pixel_contrast import worst_case_contrast
+
+    try:
+        img = Image.open(primary.path).convert("RGB")
+    except Exception:  # noqa: BLE001 — no pixels, no legible text (fail closed)
+        return ""
+    iw, ih = img.size
+    keep: list[str] = []
+    for w in ocr_words:
+        b = w.bbox
+        x0, y0 = max(0, int(b.x) - 2), max(0, int(b.y) - 2)
+        x1, y1 = min(iw, int(b.x + b.width) + 2), min(ih, int(b.y + b.height) + 2)
+        if x1 - x0 < 4 or y1 - y0 < 4:
+            continue
+        wc = worst_case_contrast(img.crop((x0, y0, x1, y1)))
+        if wc is not None and wc[0] >= _LEGIBLE:
+            keep.append(w.text)
+    return " ".join(keep)
+
+
+# A reader can see it at all (not a WCAG bar — contrast defects are graded separately).
+_LEGIBLE = 2.0
+
+
+def _claim_ocr_text(render_result: RenderResult, ocr_words: list,
+                    claims: list | None = None, notes: list | None = None) -> str | None:
+    """Ground truth for quoted requirements: text OCR reads in the captured pixels.
+
+    DOM text alone never counts: a page can keep a required string in its DOM while painting
+    it invisible, covered (even by a cover carrying other text) or off-screen. But page-level
+    Tesseract misses light-on-dark labels (a white "Subscribe" on a blue button). So for each
+    quoted string the page OCR missed, the DOM elements that claim to hold it are re-read
+    *at their own glyph box*: the crop is Otsu-binarized with ink forced dark, upscaled, and
+    OCR'd. The string counts only if OCR reads it there — a cover reads as the cover's text.
+    """
+    from .intent import _QUOTED, _norm
+
+    try:
+        from ..ocr import get_ocr_backend
+
+        if not get_ocr_backend().available():
+            return None  # OCR can't run here: quoted claims stay ungraded, not violated
+    except Exception:  # noqa: BLE001
+        return None
+    ocr_text = _legible_ocr_text(render_result, ocr_words)
+    have = _norm(ocr_text or "")
+    extra: list[str] = []
+    from .intent import contains_phrase
+
+    wanted = [q for c in (claims or []) for q in _QUOTED.findall(c.text)
+              if _norm(q) and not contains_phrase(have, _norm(q))]
+    primary = render_result.primary
+    if wanted and primary is not None:
+        try:
+            extra, exhausted = _corroborate_at_glyphs(render_result, primary.path, wanted)
+            if exhausted and notes is not None:
+                notes.append(Issue.make(
+                    IssueKind.OTHER, Severity.ERROR,
+                    "Text-requirement checks hit their time/size limit on this page, so some "
+                    "quoted requirements could not be confirmed in the pixels.",
+                    source=IssueSource.OCR, confidence=Confidence.HIGH,
+                    detail={"claim_corroboration_truncated": True},
+                ))
+        except Exception as e:  # noqa: BLE001 — no corroboration = not satisfied (fail closed)
+            log.warning("glyph OCR corroboration failed: %s", e)
+    return " ".join(t for t in [ocr_text or "", *extra] if t)
+
+
+# Bounds for glyph-crop OCR corroboration (an attacker page must not pin the grader's CPU).
+_CORROB_BUDGET_S = 12.0
+_CORROB_MAX_PIXELS = 4_000_000   # summed over every crop OCR'd (after upscaling)
+_CORROB_OCR_TIMEOUT_S = 5.0
+
+
+def _corroborate_at_glyphs(render_result: RenderResult, image_path: str,
+                           wanted: list[str]) -> tuple[list[str], bool]:
+    """Returns (phrases read at their glyph boxes, whether the budget ran out)."""
+    import time as _time
+
+    import numpy as np
+    from PIL import Image
+
+    from ..ocr import get_ocr_backend
+    from .checks._pixel_contrast import (
+        _luma,
+        _otsu_threshold,
+        halo_painted,
+        worst_case_contrast,
+    )
+    from .intent import _norm, contains_phrase
+
+    ocr = get_ocr_backend()
+    if not ocr.available():
+        return [], False
+    img = Image.open(image_path).convert("RGB")
+    t0 = _time.monotonic()
+    pixels = 0
+    iw, ih = img.size
+    out_dir = Path(image_path).parent
+    found: list[str] = []
+    for qi, q in enumerate(wanted[:10]):
+        nq = _norm(q)
+        cands = [c for c in render_result.contrast_samples
+                 if c.glyph_bbox is not None and contains_phrase(_norm(c.text), nq)][:5]
+        for ci, c in enumerate(cands):
+            g = c.glyph_bbox
+            assert g is not None
+            x0, y0 = max(0, int(g.x) - 6), max(0, int(g.y) - 6)
+            x1, y1 = min(iw, int(g.x + g.width) + 6), min(ih, int(g.y + g.height) + 6)
+            # Mostly in frame, readable size, bounded area (OCR cost).
+            if (x1 - x0) < 0.5 * g.width or (y1 - y0) < 0.5 * g.height or y1 - y0 < 8:
+                continue
+            if (x1 - x0) * (y1 - y0) > 4_000_000:
+                continue
+            area = (x1 - x0) * (y1 - y0) * (9 if (y1 - y0) < 60 else 1)
+            if (_time.monotonic() - t0 > _CORROB_BUDGET_S
+                    or pixels + area > _CORROB_MAX_PIXELS):
+                return found, True
+            pixels += area
+            crop = img.crop((x0, y0, x1, y1))
+            # Legibility FIRST: binarization makes even 1-luma-level text crisp, so OCR reading
+            # it proves nothing. The ink ACTUALLY painted must measure >= 2:1 (not the declared
+            # colour: under a 99% cover black-on-white still "computes" as 21:1). A halo
+            # counts only if it is visibly painted around the glyphs.
+            if c.halo and c.fg_rgba is not None:
+                need = 3.0 if c.large_text else 4.5
+                if not all(halo_painted(img, r, c.fg_rgba[:3], need)
+                           for r in (c.glyph_rects or [g])):
+                    continue
+            else:
+                wc = worst_case_contrast(crop)
+                if wc is None or wc[0] < _LEGIBLE:
+                    continue
+            lum = _luma(np.asarray(crop).reshape(-1, 3).astype(float))
+            bw = (lum > _otsu_threshold(lum)).reshape(crop.size[1], crop.size[0])
+            scale = 3 if crop.size[1] < 60 else 1
+            size = (crop.size[0] * scale, crop.size[1] * scale)
+            # Three readings: ink-dark binarization, its inverse, and plain grayscale (outlined
+            # or haloed glyphs binarize badly).
+            readings = [bw if bw.mean() >= 0.5 else ~bw, ~bw if bw.mean() >= 0.5 else bw]
+            imgs = [Image.fromarray((r * 255).astype("uint8")) for r in readings]
+            imgs.append(crop.convert("L"))
+            if c.fg_rgba is not None:
+                # Known-colour mask: pixels near the text's own fill colour are ink. Isolates
+                # white glyphs from a dark halo, which plain binarization merges.
+                px = np.asarray(crop).astype(float)
+                d = np.sqrt(((px - np.array(c.fg_rgba[:3])) ** 2).sum(-1))
+                imgs.append(Image.fromarray(np.where(d < 60, 0, 255).astype("uint8")))
+            for k, im in enumerate(imgs):
+                if _time.monotonic() - t0 > _CORROB_BUDGET_S:
+                    return found, True
+                path = out_dir / f"claim_{qi}_{ci}_{k}.png"
+                im.resize(size, Image.Resampling.LANCZOS).save(path)
+                try:
+                    try:
+                        text = ocr.run(str(path), timeout_s=_CORROB_OCR_TIMEOUT_S).text
+                    except TypeError:  # an OCR backend without per-call timeouts
+                        text = ocr.run(str(path)).text
+                except Exception:  # noqa: BLE001 — a timed-out reading is just "not read"
+                    text = ""
+                finally:
+                    path.unlink(missing_ok=True)
+                if contains_phrase(_norm(text), nq):
+                    found.append(q)
+                    break
+            if q in found:
+                break
+    return found, False
+
+
+def _explain_dom_only(results: dict, render_result: RenderResult) -> None:
+    """A required text that is in the DOM but not in the pixels stays VIOLATED; say why."""
+    from .intent import _QUOTED, _norm
+
+    dom = _norm(" ".join(b.text for b in render_result.dom_boxes if b.text))
+    for res in results.values():
+        if res.status.value != "violated":
+            continue
+        if any(_norm(q) and _norm(q) in dom for q in _QUOTED.findall(res.text)):
+            res.evidence += (" — it exists in the page DOM but is not visible in the captured "
+                             "image (hidden, covered, unreadable, or outside the capture: use "
+                             "--full-page for text below the fold)")
+
+
 async def _render_and_ground(
     source: str, settings: Settings, *, source_type: str, viewport: Viewport | None,
     full_page: bool | None, wait_for: str | None, use_ocr: bool, out_dir: Path | None,
-) -> tuple[RenderResult, list[Issue], str | None]:
+) -> tuple[RenderResult, list[Issue], str | None, list]:
     vps = [viewport] if viewport else None
     render_result = await render(
         source, settings=settings, source_type=source_type, viewports=vps,
@@ -139,17 +362,36 @@ async def _render_and_ground(
     image_path = primary.path if primary else None
 
     ocr_result = None
+    ocr_failure: str | None = None
     if use_ocr and image_path:
+        ocr = None
         try:
             from ..ocr import get_ocr_backend
 
             ocr = get_ocr_backend()
             if ocr.available():
-                ocr_result = ocr.run(image_path)
+                # CPU-bound stages run in a worker thread so a slow page never blocks the
+                # event loop (REST/MCP serve other requests meanwhile).
+                ocr_result = await _in_worker(settings, ocr.run, image_path)
         except Exception as e:  # noqa: BLE001
-            log.debug("OCR skipped: %s", e)
+            # OCR is installed but failed (timeout, corrupt raster, ...). Fail closed: the text
+            # checks it powers did not run, so the report must not read as a clean PASS.
+            if ocr is not None:
+                ocr_failure = f"{type(e).__name__}: {e}"[:200]
+            log.warning("OCR failed: %s", e)
 
-    grounded = run_all_checks(render_result, image_path, ocr_result)
+    grounded = await _in_worker(
+        settings, run_all_checks, render_result, image_path, ocr_result,
+        extra_words=settings.spell_vocabulary(), spell_variants=settings.spell_variants,
+    )
+    if ocr_failure:
+        grounded.append(Issue.make(
+            IssueKind.OTHER, Severity.ERROR,
+            "OCR failed, so text checks (typos, text requirements, canvas-text contrast) did "
+            f"not run: {ocr_failure}",
+            source=IssueSource.OCR, confidence=Confidence.HIGH,
+            detail={"ocr_failure": ocr_failure},
+        ))
 
     # Offline, deterministic PPTX slide inspection (unreadable contrast / off-slide / overlap)
     # using the OOXML geometry + the rendered per-slide pixels. No LLM, no egress.
@@ -172,7 +414,7 @@ async def _render_and_ground(
             log.debug("pptx inspection skipped: %s", e)
 
     ocr_text = ocr_result.text or None if ocr_result else None
-    return render_result, grounded, ocr_text
+    return render_result, grounded, ocr_text, (list(ocr_result.words) if ocr_result else [])
 
 
 async def analyze(
@@ -219,7 +461,7 @@ async def analyze(
                            instructions=instructions, use_vision=True,
                            source_type=source_type, out_dir=out_dir)
     grade_intent = brief is not None and not brief.is_empty()
-    render_result, grounded, ocr_text = await _render_and_ground(
+    render_result, grounded, ocr_text, ocr_words = await _render_and_ground(
         source, settings, source_type=source_type, viewport=viewport,
         full_page=full_page, wait_for=wait_for,
         use_ocr=use_ocr or grade_intent, out_dir=out_dir,
@@ -266,10 +508,12 @@ async def analyze(
     )
     report = await vision.analyze(req)
 
-    # Ground truth from DOM + OCR — overrules contradicted vision claims and grades text
-    # requirements deterministically.
-    dom_text = " ".join(b.text for b in render_result.dom_boxes if getattr(b, "text", ""))
-    haystack = " ".join(t for t in (ocr_text, dom_text) if t)
+    # Ground truth from OCR of the painted pixels — overrules contradicted vision claims and
+    # grades text requirements deterministically.
+    claim_notes: list[Issue] = []
+    haystack = await _in_worker(
+        settings, _claim_ocr_text, render_result, ocr_words, claims if grade_intent else None,
+        claim_notes)
 
     # Never let an advisory vision "missing"/intent claim survive when DOM/OCR proves the
     # element is present (text in DOM/OCR, or a named visual whose DOM tag exists).
@@ -278,6 +522,9 @@ async def analyze(
     )
     if dropped:
         report.issues = kept
+        report.verdict = verdict_from_issues(report.issues)
+    if claim_notes:  # corroboration ran out of budget: never a silent partial grade
+        report.issues.extend(claim_notes)
         report.verdict = verdict_from_issues(report.issues)
 
     if fallback_warning:
@@ -292,6 +539,7 @@ async def analyze(
 
     if grade_intent:
         ocr_results = check_claims_ocr(claims, haystack)
+        _explain_dom_only(ocr_results, render_result)
         report.issues.extend(ocr_violation_issues(ocr_results))
         semantic_graded = getattr(vision, "name", "local") != "local"
         conformance = build_conformance(
@@ -344,7 +592,7 @@ async def check(
         return await watch(source, settings=settings, brief=brief, use_vision=False,
                            source_type=source_type, out_dir=out_dir)
     grade_intent = brief is not None and not brief.is_empty()
-    render_result, grounded, ocr_text = await _render_and_ground(
+    render_result, grounded, ocr_text, ocr_words = await _render_and_ground(
         source, settings, source_type=source_type, viewport=viewport,
         full_page=full_page, wait_for=wait_for,
         use_ocr=use_ocr or grade_intent, out_dir=out_dir,
@@ -357,7 +605,13 @@ async def check(
 
         # Offline path: LocalBackend.complete_text() == "" → only explicit claims are used.
         claims = await derive_claims(brief, backend=LocalBackend())
-        ocr_results = check_claims_ocr(claims, ocr_text)
+        # Same ground truth as analyze(): OCR of the pixels, corroborated at glyph boxes.
+        claim_notes_c: list[Issue] = []
+        ocr_results = check_claims_ocr(
+            claims, await _in_worker(
+                settings, _claim_ocr_text, render_result, ocr_words, claims, claim_notes_c))
+        issues.extend(claim_notes_c)
+        _explain_dom_only(ocr_results, render_result)
         issues.extend(ocr_violation_issues(ocr_results))
         conformance = build_conformance(
             claims, issues, ocr_results, semantic_graded=False

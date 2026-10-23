@@ -215,7 +215,12 @@ def _run_report(coro, *, json_out: bool, handoff: bool, quiet: bool) -> None:
         if report.verdict == Verdict.FAIL:
             raise typer.Exit(code=2)
         return
-    report = asyncio.run(coro)
+    try:
+        report = asyncio.run(coro)
+    except AgentVisionError as e:
+        # Same contract as --quiet: a grading error is exit 3, never a traceback/exit 1.
+        typer.echo(f"error: {type(e).__name__}: {e}", err=True)
+        raise typer.Exit(code=3) from e
     _emit(report, json_out, handoff)
     _exit_for(report)
 

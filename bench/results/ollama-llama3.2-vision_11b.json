@@ -1,0 +1,150 @@
+{
+  "label": "ollama-llama3.2-vision_11b",
+  "backend": "ollama",
+  "model": "llama3.2-vision:11b",
+  "score": {
+    "defects_flagged": "0/13",
+    "right_kind": "0/13",
+    "vision_right_kind": "0/13",
+    "clean_pass": "0/9",
+    "false_fail": "0/9",
+    "unparseable": "0/22",
+    "errors": 22,
+    "median_s": 7.63,
+    "max_s": 17.66
+  },
+  "rows": [
+    {
+      "id": "player_error",
+      "defect": "error_text",
+      "error": "BackendError: Ollama API error: Error code: 500 - {'error': {'message': \"llama-server process has terminated: exit status 1: error loading model: unknown model architecture: 'mllama'\\nerror loading model: unknown model architecture: 'mllama'\", 'type': 'api_error', 'param': None, 'code': None}}",
+      "elapsed_s": 13.59
+    },
+    {
+      "id": "hero_low_contrast",
+      "defect": "contrast",
+      "error": "BackendError: Ollama API error: Error code: 500 - {'error': {'message': \"llama-server process has terminated: exit status 1: error loading model: unknown model architecture: 'mllama'\\nerror loading model: unknown model architecture: 'mllama'\", 'type': 'api_error', 'param': None, 'code': None}}",
+      "elapsed_s": 7.51
+    },
+    {
+      "id": "schedule_overflow",
+      "defect": "overflow",
+      "error": "BackendError: Ollama API error: Error code: 500 - {'error': {'message': \"llama-server process has terminated: exit status 1: error loading model: unknown model architecture: 'mllama'\\nerror loading model: unknown model architecture: 'mllama'\", 'type': 'api_error', 'param': None, 'code': None}}",
+      "elapsed_s": 17.66
+    },
+    {
+      "id": "headline_clipped",
+      "defect": "clipped",
+      "error": "BackendError: Ollama API error: Error code: 500 - {'error': {'message': \"llama-server process has terminated: exit status 1: error loading model: unknown model architecture: 'mllama'\\nerror loading model: unknown model architecture: 'mllama'\", 'type': 'api_error', 'param': None, 'code': None}}",
+      "elapsed_s": 14.86
+    },
+    {
+      "id": "thumbnail_broken",
+      "defect": "broken_image",
+      "error": "BackendError: Ollama API error: Error code: 500 - {'error': {'message': \"llama-server process has terminated: exit status 1: error loading model: unknown model architecture: 'mllama'\\nerror loading model: unknown model architecture: 'mllama'\", 'type': 'api_error', 'param': None, 'code': None}}",
+      "elapsed_s": 13.71
+    },
+    {
+      "id": "badge_overlap",
+      "defect": "overlap",
+      "error": "BackendError: Ollama API error: Error code: 500 - {'error': {'message': \"llama-server process has terminated: exit status 1: error loading model: unknown model architecture: 'mllama'\\nerror loading model: unknown model architecture: 'mllama'\", 'type': 'api_error', 'param': None, 'code': None}}",
+      "elapsed_s": 8.16
+    },
+    {
+      "id": "blank_page",
+      "defect": "blank",
+      "error": "BackendError: Ollama API error: Error code: 500 - {'error': {'message': \"llama-server process has terminated: exit status 1: error loading model: unknown model architecture: 'mllama'\\nerror loading model: unknown model architecture: 'mllama'\", 'type': 'api_error', 'param': None, 'code': None}}",
+      "elapsed_s": 16.6
+    },
+    {
+      "id": "typo_headline",
+      "defect": "typo",
+      "error": "BackendError: Ollama API error: Error code: 500 - {'error': {'message': \"llama-server process has terminated: exit status 1: error loading model: unknown model architecture: 'mllama'\\nerror loading model: unknown model architecture: 'mllama'\", 'type': 'api_error', 'param': None, 'code': None}}",
+      "elapsed_s": 15.05
+    },
+    {
+      "id": "missing_subscribe",
+      "defect": "missing_element",
+      "error": "BackendError: Ollama API error: Error code: 500 - {'error': {'message': \"llama-server process has terminated: exit status 1: error loading model: unknown model architecture: 'mllama'\\nerror loading model: unknown model architecture: 'mllama'\", 'type': 'api_error', 'param': None, 'code': None}}",
+      "elapsed_s": 15.9
+    },
+    {
+      "id": "missing_subscribe_quoted",
+      "defect": "missing_element",
+      "error": "BackendError: Ollama API error: Error code: 500 - {'error': {'message': \"llama-server process has terminated: exit status 1: error loading model: unknown model architecture: 'mllama'\\nerror loading model: unknown model architecture: 'mllama'\", 'type': 'api_error', 'param': None, 'code': None}}",
+      "elapsed_s": 9.68
+    },
+    {
+      "id": "svg_label_clipped",
+      "defect": "clipped",
+      "error": "BackendError: Ollama API error: Error code: 500 - {'error': {'message': \"llama-server process has terminated: exit status 1: error loading model: unknown model architecture: 'mllama'\\nerror loading model: unknown model architecture: 'mllama'\", 'type': 'api_error', 'param': None, 'code': None}}",
+      "elapsed_s": 7.47
+    },
+    {
+      "id": "social_typo",
+      "defect": "typo",
+      "error": "BackendError: Ollama API error: Error code: 500 - {'error': {'message': \"llama-server process has terminated: exit status 1: error loading model: unknown model architecture: 'mllama'\\nerror loading model: unknown model architecture: 'mllama'\", 'type': 'api_error', 'param': None, 'code': None}}",
+      "elapsed_s": 5.94
+    },
+    {
+      "id": "social_low_contrast",
+      "defect": "contrast",
+      "error": "BackendError: Ollama API error: Error code: 500 - {'error': {'message': \"llama-server process has terminated: exit status 1: error loading model: unknown model architecture: 'mllama'\\nerror loading model: unknown model architecture: 'mllama'\", 'type': 'api_error', 'param': None, 'code': None}}",
+      "elapsed_s": 5.8
+    },
+    {
+      "id": "player_ok",
+      "defect": null,
+      "error": "BackendError: Ollama API error: Error code: 500 - {'error': {'message': \"llama-server process has terminated: exit status 1: error loading model: unknown model architecture: 'mllama'\\nerror loading model: unknown model architecture: 'mllama'\", 'type': 'api_error', 'param': None, 'code': None}}",
+      "elapsed_s": 7.72
+    },
+    {
+      "id": "hero_ok",
+      "defect": null,
+      "error": "BackendError: Ollama API error: Error code: 500 - {'error': {'message': \"llama-server process has terminated: exit status 1: error loading model: unknown model architecture: 'mllama'\\nerror loading model: unknown model architecture: 'mllama'\", 'type': 'api_error', 'param': None, 'code': None}}",
+      "elapsed_s": 7.57
+    },
+    {
+      "id": "schedule_ok",
+      "defect": null,
+      "error": "BackendError: Ollama API error: Error code: 500 - {'error': {'message': \"llama-server process has terminated: exit status 1: error loading model: unknown model architecture: 'mllama'\\nerror loading model: unknown model architecture: 'mllama'\", 'type': 'api_error', 'param': None, 'code': None}}",
+      "elapsed_s": 7.55
+    },
+    {
+      "id": "headline_ok",
+      "defect": null,
+      "error": "BackendError: Ollama API error: Error code: 500 - {'error': {'message': \"llama-server process has terminated: exit status 1: error loading model: unknown model architecture: 'mllama'\\nerror loading model: unknown model architecture: 'mllama'\", 'type': 'api_error', 'param': None, 'code': None}}",
+      "elapsed_s": 7.63
+    },
+    {
+      "id": "carousel_ok",
+      "defect": null,
+      "error": "BackendError: Ollama API error: Error code: 500 - {'error': {'message': \"llama-server process has terminated: exit status 1: error loading model: unknown model architecture: 'mllama'\\nerror loading model: unknown model architecture: 'mllama'\", 'type': 'api_error', 'param': None, 'code': None}}",
+      "elapsed_s": 7.43
+    },
+    {
+      "id": "subscribe_ok",
+      "defect": null,
+      "error": "BackendError: Ollama API error: Error code: 500 - {'error': {'message': \"llama-server process has terminated: exit status 1: error loading model: unknown model architecture: 'mllama'\\nerror loading model: unknown model architecture: 'mllama'\", 'type': 'api_error', 'param': None, 'code': None}}",
+      "elapsed_s": 7.54
+    },
+    {
+      "id": "subscribe_ok_quoted",
+      "defect": null,
+      "error": "BackendError: Ollama API error: Error code: 500 - {'error': {'message': \"llama-server process has terminated: exit status 1: error loading model: unknown model architecture: 'mllama'\\nerror loading model: unknown model architecture: 'mllama'\", 'type': 'api_error', 'param': None, 'code': None}}",
+      "elapsed_s": 7.43
+    },
+    {
+      "id": "chart_ok",
+      "defect": null,
+      "error": "BackendError: Ollama API error: Error code: 500 - {'error': {'message': \"llama-server process has terminated: exit status 1: error loading model: unknown model architecture: 'mllama'\\nerror loading model: unknown model architecture: 'mllama'\", 'type': 'api_error', 'param': None, 'code': None}}",
+      "elapsed_s": 7.59
+    },
+    {
+      "id": "social_ok",
+      "defect": null,
+      "error": "BackendError: Ollama API error: Error code: 500 - {'error': {'message': \"llama-server process has terminated: exit status 1: error loading model: unknown model architecture: 'mllama'\\nerror loading model: unknown model architecture: 'mllama'\", 'type': 'api_error', 'param': None, 'code': None}}",
+      "elapsed_s": 5.41
+    }
+  ]
+}

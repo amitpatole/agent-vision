@@ -83,7 +83,11 @@ In increasing order of trust:
 1. **Vision** — the backend emits an `intent_mismatch` issue (citing `[#N]`) for each unmet
    requirement. Advisory, like all vision findings.
 2. **OCR text-presence** — quoted-text requirements are decided by what Tesseract actually
-   reads in the render. Model-independent ground truth; overrides the vision call.
+   reads in the render. Model-independent ground truth; overrides the vision call. When the
+   page-level read misses a label (light text on a coloured button is hard for OCR), the
+   element that holds it is re-read at its own glyph box, binarized and upscaled. Text that is
+   in the DOM but hidden, covered or outside the capture never counts. The evidence says so,
+   and suggests `--full-page` for text below the fold.
 3. **Verdict gate** — a violated `must` fails regardless of how the model scored it.
 
 ### Honesty / limits

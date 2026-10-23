@@ -31,8 +31,18 @@ CLASSIC_CAPABILITIES = [
 ]
 
 
+def _strip_format(text: str) -> str:
+    """Drop Unicode format characters (soft hyphen, zero-width, bidi marks, variation
+    selectors) so a word split by them reads as the word OCR sees."""
+    import unicodedata
+
+    return "".join(ch for ch in text if unicodedata.category(ch) != "Cf"
+                   and not ("\ufe00" <= ch <= "\ufe0f") and ch not in "\u034f\u180e")
+
+
 def run_all_checks(
-    render: RenderResult, image_path: str | Path | None, ocr: OcrResult | None = None
+    render: RenderResult, image_path: str | Path | None, ocr: OcrResult | None = None,
+    *, extra_words: frozenset[str] = frozenset(), spell_variants: bool = True,
 ) -> list[Issue]:
     issues: list[Issue] = []
     issues += check_contrast_dom(render)                  # solid-background samples (exact)
@@ -44,7 +54,33 @@ def run_all_checks(
         # filenames, code tokens) that a plain dictionary flags as high-confidence "typos",
         # which would hard-FAIL a perfectly normal screen. Skip spell-check for desktop sources.
         if render.source_type != "desktop":
-            issues += check_spelling_from_ocr(ocr)
+            # Only VISIBLE in-frame text (contrast samples), each with its glyph box: a hidden
+            # or off-screen word can't launder a typo as an "OCR split".
+            # Each visible line with ITS OWN words (from per-word rects in the page), so a word
+            # elsewhere in the paragraph can't complete an OCR fragment on this line.
+            dom_words = tuple(
+                (frozenset(words), line, s.font_px)
+                for s in render.contrast_samples
+                if s.visible_frac >= 0.5 and s.text
+                for line, words in zip(s.glyph_rects, s.line_words or [], strict=False)
+                if words
+            )
+            import re as _re
+
+            # Visible page text vocabulary (HTML sources): real typos are in it, OCR misreads
+            # are not. None for raster inputs (no DOM), which keep confidence-based severity.
+            page_vocab = None
+            if render.contrast_samples or render.vocab_text:
+                page_vocab = frozenset(
+                    w.lower() for w in _re.findall(r"[A-Za-z]+", render.vocab_text or "")
+                ) | frozenset(
+                    w.lower() for s in render.contrast_samples if s.visible_frac >= 0.5
+                    for w in _re.findall(r"[A-Za-z]+", _strip_format(s.text or ""))
+                )
+            issues += check_spelling_from_ocr(
+                ocr, extra_words=extra_words, variants=spell_variants, dom_words=dom_words,
+                page_vocab=page_vocab,
+            )
         issues += check_contrast_ocr(render, image_path, ocr)  # text painted into a <canvas>
     return issues
 

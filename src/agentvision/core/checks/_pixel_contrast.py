@@ -128,3 +128,136 @@ def worst_case_contrast(crop) -> tuple[float, float, tuple, tuple] | None:
         cands = [bg.mean(0)]
     worst_bg = min(cands, key=lambda c: contrast_ratio(ink_rgb, c))
     return contrast_ratio(ink_rgb, worst_bg), frac, tuple(ink_rgb), tuple(worst_bg)
+
+
+def exact_fg_contrast(crop, fg_rgb: tuple, alpha: float = 1.0) -> float | None:
+    """Contrast of a KNOWN text colour against the real backdrop pixels in ``crop``.
+
+    Unlike :func:`worst_case_contrast` (which assumes the minority cluster is the ink), the ink
+    cluster here is the one closest to ``fg_rgb``, so a bold headline filling most of its glyph
+    box is not mistaken for background. The backdrop is split into light/dark halves and the
+    worse one is used. Returns ``None`` when the crop has no second cluster to measure.
+    """
+    import numpy as np
+
+    arr = np.asarray(crop.convert("RGB")).reshape(-1, 3).astype(float)
+    if len(arr) < 64:
+        return None
+    g = _luma(arr)
+    cut = _otsu_threshold(g) + 0.5
+    a_cl, b_cl = arr[g <= cut], arr[g > cut]
+    if len(a_cl) < 10 or len(b_cl) < 10:
+        return None
+    fg = tuple(float(v) for v in fg_rgb[:3])
+    near_a = contrast_ratio(fg, a_cl.mean(0)) <= contrast_ratio(fg, b_cl.mean(0))
+    near = a_cl if near_a else b_cl
+    bg = b_cl if near_a else a_cl
+    if len(near) > 0.6 * len(arr):
+        # The text-coloured cluster dominates the line box: the backdrop itself is ~the text
+        # colour (black text on mostly-black stripes). Grade against that, not the minority.
+        return contrast_ratio(fg, tuple(near.mean(0)))
+    # Same rule per line-height tile: part of a line on a text-coloured backdrop (a gradient
+    # that is black for the first third) is invisible there even if the line as a whole isn't.
+    w, h = crop.size
+    if w >= 2 * h and h >= 8:
+        img = np.asarray(crop.convert("RGB")).astype(float)
+        gimg = _luma(img.reshape(-1, 3)).reshape(h, w)
+        near_low = near_a  # the fg-near cluster is the <= cut side when near_a
+        for x0 in range(0, w - h + 1, max(1, h // 2)):
+            tile_g = gimg[:, x0:x0 + h]
+            tile_near = (tile_g <= cut) if near_low else (tile_g > cut)
+            if tile_near.mean() > 0.6:
+                tpx = img[:, x0:x0 + h].reshape(-1, 3)[tile_near.reshape(-1)]
+                return contrast_ratio(fg, tuple(tpx.mean(0)))
+    bg_g = _luma(bg)
+    med = float(np.median(bg_g))
+    min_px = max(10, int(0.15 * len(bg)))
+    cands = [c.mean(0) for c in (bg[bg_g <= med], bg[bg_g > med]) if len(c) >= min_px]
+    if not cands:
+        cands = [bg.mean(0)]
+
+    def _painted(px):
+        return tuple(fg[i] * alpha + px[i] * (1 - alpha) for i in range(3))
+
+    return min(contrast_ratio(_painted(c), c) for c in cands)
+
+
+def _fill_contrast(rgb, fg):
+    import numpy as np
+
+    def _rl(v):
+        v = v / 255.0
+        return np.where(v <= 0.03928, v / 12.92, ((v + 0.055) / 1.055) ** 2.4)
+
+    px = rgb.reshape(-1, 3)
+    rl = 0.2126 * _rl(px[:, 0]) + 0.7152 * _rl(px[:, 1]) + 0.0722 * _rl(px[:, 2])
+    fr = 0.2126 * _rl(fg[0]) + 0.7152 * _rl(fg[1]) + 0.0722 * _rl(fg[2])
+    return (np.maximum(rl, fr) + 0.05) / (np.minimum(rl, fr) + 0.05)
+
+
+def halo_painted(img, rect, fg_rgb: tuple, need: float = 4.5) -> bool:
+    """A text halo is only real if it is painted AROUND THE GLYPHS. Compare the share of pixels
+    contrasting with the fill (>= 2:1) inside the line box against a band just above and
+    below it: a halo concentrates inside, backdrop texture (dots, noise) does not. If the
+    surrounding backdrop itself contrasts with the fill, the text is legible on its own.
+    Measured 2026-10-22: real halos 9-20% inside vs ~0% outside; a faint 1px outline <= 0.3%;
+    an off-screen shadow 0%; a dotted backdrop similar inside and out."""
+    import numpy as np
+
+    iw, ih = img.size
+    x0, x1 = max(0, int(rect.x)), min(iw, int(rect.x + rect.width))
+    y0, y1 = max(0, int(rect.y)), min(ih, int(rect.y + rect.height))
+    if x1 - x0 < 8 or y1 - y0 < 8:
+        return False
+    fg = np.array([float(v) for v in fg_rgb[:3]])
+    inside = np.asarray(img.crop((x0, y0, x1, y1)).convert("RGB")).astype(float)
+    band = max(4, (y1 - y0) // 2)
+    outs = []
+    if y0 - band >= 0:
+        outs.append(np.asarray(img.crop((x0, y0 - band, x1, y0)).convert("RGB")).astype(float))
+    if y1 + band <= ih:
+        outs.append(np.asarray(img.crop((x0, y1, x1, y1 + band)).convert("RGB")).astype(float))
+    if not outs:
+        return False
+    h = y1 - y0
+    in_cr = _fill_contrast(inside, fg).reshape(inside.shape[0], inside.shape[1])
+    in_c = in_cr >= 2.0
+    in_dark = in_cr >= need  # halo pixels must reach the text's own AA bar (3 large, 4.5 normal)
+    in_aa = in_cr >= need
+    # Backdrop pixels only (the glyphs themselves are the fill colour and never contrast).
+    backdrop = np.sqrt(((inside - fg) ** 2).sum(-1)) >= 40
+    out_cr = [_fill_contrast(o, fg).reshape(o.shape[0], o.shape[1]) for o in outs]
+    out_c = [o >= 2.0 for o in out_cr]
+    out_dark = [o >= need for o in out_cr]
+    # Judge each line-height tile on its own: a backdrop can contrast on one side only (a
+    # gradient hero), and texture can be local.
+    ok_tiles = tiles = 0
+    for tx in range(0, inside.shape[1], h):
+        sl = slice(tx, min(inside.shape[1], tx + h))
+        in_frac = float(in_c[:, sl].mean())
+        out_frac = float(np.concatenate([o[:, sl].reshape(-1) for o in out_c]).mean())
+        tiles += 1
+        # The backdrop INSIDE the line meeting the AA bar against the fill makes the text
+        # legible on its own (a dark band above/below the line proves nothing, and a 2:1
+        # mid-grey backdrop is not "legible").
+        bd = backdrop[:, sl]
+        bd_aa = float(in_aa[:, sl][bd].mean()) if bd.any() else 0.0
+        dark_in = float(in_dark[:, sl].mean())
+        dark_out = float(np.concatenate([o[:, sl].reshape(-1) for o in out_dark]).mean())
+        # Legible if: the backdrop itself meets AA against the fill; or a halo concentrates
+        # around the glyphs vs the bands (soft halo at >= 2:1 on a clean backdrop, or a dark
+        # one reaching the text's AA bar when the backdrop is mid-tone). Calibrated 2026-10-22 on real hero/byline halos vs fakes
+        # (off-screen, faint 1px, half-alpha over mid-grey, textured or banded backdrops).
+        # A halo SURROUNDS the glyphs, so its pixels spread across most rows and columns of
+        # the tile; a stripe or bar of backdrop crossing the line occupies a few rows only.
+        # Rows >= 30% (lowercase-only stretches of small text fill just the x-height); a
+        # backdrop stripe across a line covers <= ~27% of its rows.
+        def _spread(mask):
+            return float(mask.any(axis=1).mean()) >= 0.3 and float(mask.any(axis=0).mean()) >= 0.5
+
+        soft = (in_frac >= 0.04 and (in_frac >= 3.0 * out_frac or in_frac >= out_frac + 0.15)
+                and _spread(in_c[:, sl]))
+        dark = dark_in >= 0.03 and dark_in >= 3.0 * dark_out and _spread(in_dark[:, sl])
+        if bd_aa >= 0.5 or soft or dark:
+            ok_tiles += 1
+    return tiles > 0 and ok_tiles >= 0.8 * tiles
