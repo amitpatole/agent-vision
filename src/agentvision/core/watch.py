@@ -134,8 +134,16 @@ async def watch(
                 vrep = await vision.analyze(req)
                 issues = issues + vrep.issues
                 backend_name = f"watch+{vision.name}"
-            except Exception:  # noqa: BLE001
-                pass
+            except Exception as e:  # noqa: BLE001
+                # Fail closed: a vision pass that was requested but failed must not read as a
+                # clean temporal grade (a page could provoke the failure on purpose).
+                issues = issues + [Issue.make(
+                    IssueKind.OTHER, Severity.ERROR,
+                    "The vision pass over the sampled frames failed, so the semantic temporal "
+                    f"grade is missing: {type(e).__name__}: {str(e)[:160]}",
+                    source=IssueSource.VISION, confidence=Confidence.HIGH,
+                    detail={"vision_error": type(e).__name__},
+                )]
 
     verdict = verdict_from_issues(issues)
     # A machine-readable temporal signal rides on a leading INFO issue's detail.
