@@ -7,11 +7,11 @@
     "right_kind": "12/13",
     "vision_right_kind": "4/13",
     "clean_pass": "8/9",
-    "false_fail": "1/9",
-    "unparseable": "0/22",
+    "false_fail": "0/9",
+    "unparseable": "3/22",
     "errors": 0,
-    "median_s": 5.33,
-    "max_s": 14.02
+    "median_s": 3.69,
+    "max_s": 8.15
   },
   "rows": [
     {
@@ -23,8 +23,8 @@
       ],
       "n_issues": 1,
       "unparseable": false,
-      "elapsed_s": 7.3,
-      "summary": "No issues detected.",
+      "elapsed_s": 8.15,
+      "summary": "The page correctly displays a playback error message.",
       "flagged": true,
       "kind_hit": true,
       "vision_hit": false
@@ -35,14 +35,12 @@
       "verdict": "fail",
       "kinds": [
         "contrast",
-        "layout",
-        "overflow",
-        "typo"
+        "other"
       ],
-      "n_issues": 4,
-      "unparseable": false,
-      "elapsed_s": 9.84,
-      "summary": "The text area is too narrow and does not fully display the intended text.",
+      "n_issues": 2,
+      "unparseable": true,
+      "elapsed_s": 5.3,
+      "summary": "Vision model returned unparseable output; semantic grade is missing.",
       "flagged": true,
       "kind_hit": true,
       "vision_hit": false
@@ -52,12 +50,13 @@
       "defect": "overflow",
       "verdict": "fail",
       "kinds": [
+        "other",
         "overflow"
       ],
-      "n_issues": 1,
-      "unparseable": false,
-      "elapsed_s": 5.61,
-      "summary": "No issues detected.",
+      "n_issues": 2,
+      "unparseable": true,
+      "elapsed_s": 4.08,
+      "summary": "Vision model returned unparseable output; semantic grade is missing.",
       "flagged": true,
       "kind_hit": true,
       "vision_hit": false
@@ -71,8 +70,8 @@
       ],
       "n_issues": 2,
       "unparseable": false,
-      "elapsed_s": 5.33,
-      "summary": "The text is clipped and only partial content is visible.",
+      "elapsed_s": 4.97,
+      "summary": "The text is cut off and not fully visible due to a clipped view.",
       "flagged": true,
       "kind_hit": true,
       "vision_hit": true
@@ -82,12 +81,14 @@
       "defect": "broken_image",
       "verdict": "fail",
       "kinds": [
-        "broken_image"
+        "broken_image",
+        "error_text",
+        "typo"
       ],
-      "n_issues": 1,
+      "n_issues": 3,
       "unparseable": false,
-      "elapsed_s": 4.57,
-      "summary": "The image is visually free of defects and conforms to the requirements.",
+      "elapsed_s": 5.37,
+      "summary": "No issues detected.",
       "flagged": true,
       "kind_hit": true,
       "vision_hit": false
@@ -97,13 +98,14 @@
       "defect": "overlap",
       "verdict": "warn",
       "kinds": [
+        "layout",
         "overlap",
         "typo"
       ],
       "n_issues": 3,
       "unparseable": false,
-      "elapsed_s": 8.25,
-      "summary": "The layout is incomplete and text appears garbled.",
+      "elapsed_s": 4.98,
+      "summary": "The header has a slight alignment issue and the text is partially obscured.",
       "flagged": true,
       "kind_hit": true,
       "vision_hit": false
@@ -113,12 +115,13 @@
       "defect": "blank",
       "verdict": "fail",
       "kinds": [
-        "blank"
+        "blank",
+        "intent_mismatch"
       ],
-      "n_issues": 1,
+      "n_issues": 2,
       "unparseable": false,
-      "elapsed_s": 4.93,
-      "summary": "The rendered image appears blank and uniform with a pixel standard deviation of 0.00, likely indicating a failed render or empty page.",
+      "elapsed_s": 3.68,
+      "summary": "The rendered image is completely blank with uniform pixel values.",
       "flagged": true,
       "kind_hit": true,
       "vision_hit": false
@@ -128,13 +131,12 @@
       "defect": "typo",
       "verdict": "fail",
       "kinds": [
-        "intent_mismatch",
         "typo"
       ],
-      "n_issues": 9,
+      "n_issues": 8,
       "unparseable": false,
-      "elapsed_s": 14.02,
-      "summary": "The extracted text contains multiple misspellings.",
+      "elapsed_s": 7.41,
+      "summary": "The text is incorrectly spelled in various places, indicating potential issues with the content.",
       "flagged": true,
       "kind_hit": true,
       "vision_hit": true
@@ -148,8 +150,8 @@
       ],
       "n_issues": 1,
       "unparseable": false,
-      "elapsed_s": 6.59,
-      "summary": "The image is missing a Subscribe button, which is a requirement. Intent match: 0/1 requirement(s) satisfied.",
+      "elapsed_s": 3.69,
+      "summary": "No subscribe button or layout issue detected. Requirements likely not met. Intent match: 0/1 requirement(s) satisfied.",
       "flagged": true,
       "kind_hit": true,
       "vision_hit": true
@@ -161,13 +163,13 @@
       "kinds": [
         "intent_mismatch"
       ],
-      "n_issues": 1,
+      "n_issues": 2,
       "unparseable": false,
-      "elapsed_s": 7.22,
-      "summary": "The rendered image appears to meet the requirements and has no visible defects. Intent match: 0/1 requirement(s) satisfied.",
+      "elapsed_s": 4.45,
+      "summary": "The image is missing elements, as a subscribe button is required, but not present. Intent match: 0/1 requirement(s) satisfied.",
       "flagged": true,
       "kind_hit": true,
-      "vision_hit": false
+      "vision_hit": true
     },
     {
       "id": "svg_label_clipped",
@@ -175,13 +177,13 @@
       "verdict": "fail",
       "kinds": [
         "clipped",
-        "layout",
+        "other",
         "typo"
       ],
-      "n_issues": 4,
-      "unparseable": false,
-      "elapsed_s": 9.76,
-      "summary": "The chart layout is slightly tight, and there is some text clipping at the edge.",
+      "n_issues": 3,
+      "unparseable": true,
+      "elapsed_s": 5.71,
+      "summary": "Vision model returned unparseable output; semantic grade is missing.",
       "flagged": true,
       "kind_hit": true,
       "vision_hit": false
@@ -193,13 +195,13 @@
       "kinds": [
         "typo"
       ],
-      "n_issues": 3,
+      "n_issues": 2,
       "unparseable": false,
-      "elapsed_s": 3.6,
-      "summary": "The text appears clear, but there are minor spelling errors.",
+      "elapsed_s": 2.04,
+      "summary": "Content appears well rendered with correct text and no layout issues.",
       "flagged": true,
       "kind_hit": true,
-      "vision_hit": true
+      "vision_hit": false
     },
     {
       "id": "social_low_contrast",
@@ -208,8 +210,8 @@
       "kinds": [],
       "n_issues": 0,
       "unparseable": false,
-      "elapsed_s": 2.64,
-      "summary": "The image meets the requirements and has no detected issues.",
+      "elapsed_s": 1.96,
+      "summary": "The content is correctly displayed and free from readability issues.",
       "flagged": false,
       "kind_hit": false,
       "vision_hit": false
@@ -221,8 +223,8 @@
       "kinds": [],
       "n_issues": 0,
       "unparseable": false,
-      "elapsed_s": 4.5,
-      "summary": "No visually apparent defects were detected in the rendered image.",
+      "elapsed_s": 3.2,
+      "summary": "The image meets quality standards and there are no visible defects.",
       "clean_pass": true,
       "false_fail": false
     },
@@ -233,8 +235,8 @@
       "kinds": [],
       "n_issues": 0,
       "unparseable": false,
-      "elapsed_s": 4.46,
-      "summary": "The rendered image is clean and free of visible defects.",
+      "elapsed_s": 3.25,
+      "summary": "No visible layout or content defects.",
       "clean_pass": true,
       "false_fail": false
     },
@@ -245,8 +247,8 @@
       "kinds": [],
       "n_issues": 0,
       "unparseable": false,
-      "elapsed_s": 4.14,
-      "summary": "The rendered content accurately matches the expected format and content.",
+      "elapsed_s": 3.56,
+      "summary": "The render looks good and all the text content is clearly visible without any layout or design issues.",
       "clean_pass": true,
       "false_fail": false
     },
@@ -257,8 +259,8 @@
       "kinds": [],
       "n_issues": 0,
       "unparseable": false,
-      "elapsed_s": 4.3,
-      "summary": "No visible issues observed.",
+      "elapsed_s": 3.22,
+      "summary": "No visible defects detected.",
       "clean_pass": true,
       "false_fail": false
     },
@@ -269,24 +271,25 @@
       "kinds": [],
       "n_issues": 0,
       "unparseable": false,
-      "elapsed_s": 4.53,
-      "summary": "No visible defects detected",
+      "elapsed_s": 3.12,
+      "summary": "Layout appears correct with three tabs visible and readable text.",
       "clean_pass": true,
       "false_fail": false
     },
     {
       "id": "subscribe_ok",
       "defect": null,
-      "verdict": "fail",
+      "verdict": "warn",
       "kinds": [
-        "intent_mismatch"
+        "missing_element",
+        "other"
       ],
-      "n_issues": 1,
+      "n_issues": 2,
       "unparseable": false,
-      "elapsed_s": 5.96,
-      "summary": "The 'Subscribe' button is missing from the webpage where it was intended to be visible. Intent match: 0/1 requirement(s) satisfied.",
+      "elapsed_s": 4.26,
+      "summary": "The page appears to be missing a logo or branding, and there is no visible subscription confirmation message underneath the 'Subscribe' button. Intent match: 1/1 requirement(s) satisfied.",
       "clean_pass": false,
-      "false_fail": true
+      "false_fail": false
     },
     {
       "id": "subscribe_ok_quoted",
@@ -295,8 +298,8 @@
       "kinds": [],
       "n_issues": 0,
       "unparseable": false,
-      "elapsed_s": 5.66,
-      "summary": "The screenshot contains a 'Subscribe' button beneath the title 'The Morning Briefing' as intended. There are no layout, overflow, or content issues present. Intent match: 1/1 requirement(s) satisfied.",
+      "elapsed_s": 3.61,
+      "summary": "The screenshot meets the requirement of having a 'Subscribe' button visible and is free of layout issues and typos. Intent match: 1/1 requirement(s) satisfied.",
       "clean_pass": true,
       "false_fail": false
     },
@@ -307,8 +310,8 @@
       "kinds": [],
       "n_issues": 0,
       "unparseable": false,
-      "elapsed_s": 5.31,
-      "summary": "The rendered image matches the reference image and the text is correctly displayed.",
+      "elapsed_s": 3.22,
+      "summary": "The chart is clear and legible with no visible defects or issues.",
       "clean_pass": true,
       "false_fail": false
     },
@@ -319,8 +322,8 @@
       "kinds": [],
       "n_issues": 0,
       "unparseable": false,
-      "elapsed_s": 2.51,
-      "summary": "The layout is clear and text is readable. All text is fully visible and there are no errors.",
+      "elapsed_s": 1.74,
+      "summary": "No visible defects or issues.",
       "clean_pass": true,
       "false_fail": false
     }

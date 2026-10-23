@@ -15,8 +15,9 @@ settings = load_settings(vision_backend='anthropic', settle_ms=800)
 | `anthropic_model` | `AGENTVISION_ANTHROPIC_MODEL` | `'claude-haiku-4-5'` |  |
 | `openai_model` | `AGENTVISION_OPENAI_MODEL` | `'gpt-4o-mini'` |  |
 | `gemini_model` | `AGENTVISION_GEMINI_MODEL` | `'gemini-2.0-flash'` |  |
-| `ollama_model` | `AGENTVISION_OLLAMA_MODEL` | `'gemma3:27b'` |  |
+| `ollama_model` | `AGENTVISION_OLLAMA_MODEL` | `'kimi-k2.7-code'` | Led the Ollama Cloud [benchmark](pilot.md#benchmark). The old default `gemma3:27b` was retired from Ollama Cloud on 2026-07-15. On a self-hosted server, set a model you have pulled. |
 | `ollama_base_url` | `AGENTVISION_OLLAMA_BASE_URL` | `'https://ollama.com/v1'` | Ollama Cloud by default. Any other host (e.g. `http://localhost:11434/v1`) is treated as **self-hosted**: no key needed, and the cloud key is never sent to it. |
+| `ollama_max_tokens` | `AGENTVISION_OLLAMA_MAX_TOKENS` | `8192` | Completion budget for one Ollama grading call (256 to 65536). Thinking models spend part of it on reasoning. A reply cut off at this limit grades WARN with a message saying so, never PASS. |
 | `anthropic_api_key` | `ANTHROPIC_API_KEY` |  | Provider API key *(secret — never logged)* |
 | `openai_api_key` | `OPENAI_API_KEY` |  | Provider API key *(secret — never logged)* |
 | `google_api_key` | `GOOGLE_API_KEY` |  | Provider API key *(secret — never logged)* |

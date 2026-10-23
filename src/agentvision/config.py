@@ -26,7 +26,9 @@ DEFAULT_MODELS = {
     "anthropic": "claude-haiku-4-5",
     "openai": "gpt-4o-mini",
     "gemini": "gemini-2.0-flash",
-    "ollama": "gemma3:27b",
+    # gemma3:27b was retired from Ollama Cloud on 2026-07-15; kimi-k2.7-code led the bench/
+    # cloud sweep (3 runs: every defect flagged, no clean page failed, no unparseable reply).
+    "ollama": "kimi-k2.7-code",
 }
 
 # Fallback key-file locations if the conventional env var is unset.
@@ -63,6 +65,9 @@ class Settings(BaseSettings):
     gemini_model: str = DEFAULT_MODELS["gemini"]
     ollama_model: str = DEFAULT_MODELS["ollama"]
     ollama_base_url: str = "https://ollama.com/v1"
+    # Thinking models spend part of the completion budget on reasoning; 2048 cut kimi-k2.7-code
+    # off mid-JSON on busy pages. A cut-off reply still grades WARN, never PASS.
+    ollama_max_tokens: int = Field(default=8192, ge=256, le=65536)
 
     # Provider credentials (conventional names; never logged/persisted)
     anthropic_api_key: str | None = Field(default=None, validation_alias="ANTHROPIC_API_KEY")

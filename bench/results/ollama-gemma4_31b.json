@@ -1,0 +1,334 @@
+{
+  "label": "ollama-gemma4_31b",
+  "backend": "ollama",
+  "model": "gemma4:31b",
+  "score": {
+    "defects_flagged": "13/13",
+    "right_kind": "13/13",
+    "vision_right_kind": "11/13",
+    "clean_pass": "6/9",
+    "false_fail": "3/9",
+    "unparseable": "0/22",
+    "errors": 0,
+    "median_s": 3.16,
+    "max_s": 6.55
+  },
+  "rows": [
+    {
+      "id": "player_error",
+      "defect": "error_text",
+      "verdict": "fail",
+      "kinds": [
+        "error_text"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 6.55,
+      "summary": "The video player is displaying a critical playback error (Error 403), preventing the content from being viewed.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "hero_low_contrast",
+      "defect": "contrast",
+      "verdict": "fail",
+      "kinds": [
+        "blank",
+        "contrast"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 3.71,
+      "summary": "The page is largely empty and has a critical accessibility issue where the subtext is nearly invisible against the white background.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "schedule_overflow",
+      "defect": "overflow",
+      "verdict": "fail",
+      "kinds": [
+        "clipped",
+        "overflow"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 3.84,
+      "summary": "The page has several layout and content issues, including clipped text and content that overflows the screen.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "headline_clipped",
+      "defect": "clipped",
+      "verdict": "fail",
+      "kinds": [
+        "blank",
+        "clipped",
+        "typo"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 3.62,
+      "summary": "The page is almost entirely blank except for a single text box containing an incomplete sentence that is clipped by its container.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "thumbnail_broken",
+      "defect": "broken_image",
+      "verdict": "fail",
+      "kinds": [
+        "broken_image"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 3.13,
+      "summary": "The page contains a broken image for 'Quiz Night' and the layout is inconsistent due to the missing asset.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "badge_overlap",
+      "defect": "overlap",
+      "verdict": "fail",
+      "kinds": [
+        "overlap",
+        "typo"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 4.1,
+      "summary": "The 'LIVE NOW' badge is overlapping the main heading text, making the first word illegible and creating a layout defect.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "blank_page",
+      "defect": "blank",
+      "verdict": "fail",
+      "kinds": [
+        "blank"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 2.96,
+      "summary": "The render is a completely blank white page.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "typo_headline",
+      "defect": "typo",
+      "verdict": "fail",
+      "kinds": [
+        "typo"
+      ],
+      "n_issues": 8,
+      "unparseable": false,
+      "elapsed_s": 4.9,
+      "summary": "The page contains several spelling errors in the main headline and subtext, as previously identified, and no other visual layout issues were found.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "missing_subscribe",
+      "defect": "missing_element",
+      "verdict": "fail",
+      "kinds": [
+        "intent_mismatch"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 4.05,
+      "summary": "The page is missing a required 'Subscribe' button. Intent match: 0/1 requirement(s) satisfied.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "missing_subscribe_quoted",
+      "defect": "missing_element",
+      "verdict": "fail",
+      "kinds": [
+        "intent_mismatch"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 3.0,
+      "summary": "The required 'Subscribe' button is missing from the page. Intent match: 0/1 requirement(s) satisfied.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "svg_label_clipped",
+      "defect": "clipped",
+      "verdict": "fail",
+      "kinds": [
+        "clipped",
+        "typo"
+      ],
+      "n_issues": 4,
+      "unparseable": false,
+      "elapsed_s": 3.71,
+      "summary": "The chart contains a significant layout issue where the first category label is clipped, and a typo in the label text.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "social_typo",
+      "defect": "typo",
+      "verdict": "fail",
+      "kinds": [
+        "typo"
+      ],
+      "n_issues": 4,
+      "unparseable": false,
+      "elapsed_s": 1.68,
+      "summary": "The image contains two significant spelling errors in the main text: 'Premeire' and 'seasn'.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "social_low_contrast",
+      "defect": "contrast",
+      "verdict": "fail",
+      "kinds": [
+        "contrast"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 2.11,
+      "summary": "The text is virtually invisible due to extremely low contrast between the light gray text and the off-white background.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "player_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 2.76,
+      "summary": "The rendered artifact is a simple video player interface with a title and description. No visual defects, typos, or layout issues were detected.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "hero_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 3.83,
+      "summary": "The rendered page is clean, with no visual defects, typos, or layout issues. The text is clear and the button is properly styled.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "schedule_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 3.02,
+      "summary": "The rendered page is a clean, simple schedule layout. All text is legible, there are no layout defects, and the grid is well-organized.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "headline_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 3.01,
+      "summary": "The rendered artifact is a simple card containing a headline and a sub-headline. The layout is clean, the text is legible, and there are no visible defects or typos.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "carousel_ok",
+      "defect": null,
+      "verdict": "fail",
+      "kinds": [
+        "broken_image"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 3.08,
+      "summary": "The image placeholders for the 'Continue watching' section are broken; they are showing generic colored shapes (circles in rectangles) instead of actual video thumbnails or posters.",
+      "clean_pass": false,
+      "false_fail": true
+    },
+    {
+      "id": "subscribe_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 4.17,
+      "summary": "The rendered page correctly displays the title, descriptive text, and the required Subscribe button. No visual or text defects were found. Intent match: 1/1 requirement(s) satisfied.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "subscribe_ok_quoted",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 2.99,
+      "summary": "The rendered page correctly implements the requirements. The heading, description text, and the 'Subscribe' button are all visible and correctly formatted. Intent match: 1/1 requirement(s) satisfied.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "chart_ok",
+      "defect": null,
+      "verdict": "fail",
+      "kinds": [
+        "missing_element"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 3.16,
+      "summary": "The chart is missing a critical axis for quantitative measurement (X-axis), making the data bars meaningless.",
+      "clean_pass": false,
+      "false_fail": true
+    },
+    {
+      "id": "social_ok",
+      "defect": null,
+      "verdict": "fail",
+      "kinds": [
+        "layout",
+        "typo"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 2.71,
+      "summary": "The word 'Premiere' is misspelled as 'Premiere' (which is the noun/verb for a first performance, but in this context of 'Premiere this Friday', it is frequently intended as 'Premieres' or 'Premiering'",
+      "clean_pass": false,
+      "false_fail": true
+    }
+  ]
+}

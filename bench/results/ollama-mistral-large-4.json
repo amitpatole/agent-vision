@@ -1,0 +1,330 @@
+{
+  "label": "ollama-mistral-large-4",
+  "backend": "ollama",
+  "model": "mistral-large-4",
+  "score": {
+    "defects_flagged": "13/13",
+    "right_kind": "13/13",
+    "vision_right_kind": "6/13",
+    "clean_pass": "9/9",
+    "false_fail": "0/9",
+    "unparseable": "1/22",
+    "errors": 0,
+    "median_s": 27.14,
+    "max_s": 204.94
+  },
+  "rows": [
+    {
+      "id": "player_error",
+      "defect": "error_text",
+      "verdict": "fail",
+      "kinds": [
+        "error_text"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 18.09,
+      "summary": "The video player is in a hard failure state: the content area shows only a dark navy background with the message 'Error 403: Playback failed. This title is not available in your region.' instead of th",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "hero_low_contrast",
+      "defect": "contrast",
+      "verdict": "fail",
+      "kinds": [
+        "contrast"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 83.72,
+      "summary": "The page has a critical accessibility defect: the subtitle text 'Every episode, ad-free, from Friday. Start your free trial today and cancel anytime.' is rendered in very light gray (rgb(212,212,212))",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "schedule_overflow",
+      "defect": "overflow",
+      "verdict": "fail",
+      "kinds": [
+        "clipped",
+        "overflow"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 43.4,
+      "summary": "The TV schedule table uses fixed-width columns that exceed the viewport width, causing horizontal overflow. The fourth program entry (20:00) is clipped at the right edge: the time displays as '20:0' (",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "headline_clipped",
+      "defect": "clipped",
+      "verdict": "warn",
+      "kinds": [
+        "clipped",
+        "other"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 124.12,
+      "summary": "Vision model returned unparseable output; semantic grade is missing.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "thumbnail_broken",
+      "defect": "broken_image",
+      "verdict": "fail",
+      "kinds": [
+        "broken_image",
+        "layout",
+        "other"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 90.88,
+      "summary": "The \"Quiz Night\" tile in the \"Continue watching\" row has a broken image (posters/missing-quiz-night.jpg failed to load), causing the thumbnail to be completely missing. This collapses the tile vertica",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "badge_overlap",
+      "defect": "overlap",
+      "verdict": "warn",
+      "kinds": [
+        "blank",
+        "overlap",
+        "typo"
+      ],
+      "n_issues": 4,
+      "unparseable": false,
+      "elapsed_s": 90.0,
+      "summary": "The header card has a 'LIVE NOW' badge overlapping the headline text, obscuring the middle of 'Election night results special' and leaving only fragmented text visible. Additionally, the majority of t",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "blank_page",
+      "defect": "blank",
+      "verdict": "fail",
+      "kinds": [
+        "blank",
+        "other"
+      ],
+      "n_issues": 2,
+      "unparseable": true,
+      "elapsed_s": 5.62,
+      "summary": "Vision model returned unparseable output; semantic grade is missing.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "typo_headline",
+      "defect": "typo",
+      "verdict": "fail",
+      "kinds": [
+        "typo"
+      ],
+      "n_issues": 4,
+      "unparseable": false,
+      "elapsed_s": 28.0,
+      "summary": "The artifact contains multiple spelling errors in the headline ('Brekaing', 'Goverment', 'anounces') and subheadline ('houshold'). These text defects were previously detected in the grounded findings.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "missing_subscribe",
+      "defect": "missing_element",
+      "verdict": "fail",
+      "kinds": [
+        "intent_mismatch"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 9.99,
+      "summary": "The page displays only the title 'The Morning Briefing' and a tagline, but the required Subscribe button is completely missing from the view. Intent match: 0/1 requirement(s) satisfied.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "missing_subscribe_quoted",
+      "defect": "missing_element",
+      "verdict": "fail",
+      "kinds": [
+        "intent_mismatch"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 17.67,
+      "summary": "The page displays the heading 'The Morning Briefing' and the subtitle correctly with no spelling errors, but the entire rest of the page is blank white space. Most critically, the required Subscribe b",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "svg_label_clipped",
+      "defect": "clipped",
+      "verdict": "fail",
+      "kinds": [
+        "clipped",
+        "missing_element",
+        "typo"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 204.94,
+      "summary": "The bar chart 'Audience share by genre' has a clipped y-axis label (showing only 'entary and Factual' instead of 'Documentary and Factual') and is missing a critical x-axis scale with tick marks and n",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "social_typo",
+      "defect": "typo",
+      "verdict": "fail",
+      "kinds": [
+        "typo"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 76.24,
+      "summary": "The artifact contains two confirmed spelling errors in prominent text: the headline reads 'Premeire' (should be 'Premiere') and the subtitle reads 'seasn' (should be 'season'). Both defects were alrea",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "social_low_contrast",
+      "defect": "contrast",
+      "verdict": "fail",
+      "kinds": [
+        "contrast"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 60.55,
+      "summary": "The text content has extremely poor contrast against the white background, making it barely readable. The light gray text fails accessibility standards and appears washed out.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "player_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 7.58,
+      "summary": "The video player card renders cleanly: placeholder video frame, working-looking controls (play button, progress bar at ~25% matching the 12:04 / 48:10 timestamp), title 'Harbour, Season 2 Episode 4', ",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "hero_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 27.14,
+      "summary": "The rendered page shows a clean, minimal CTA section with a heading 'Stream the final season', descriptive subtext, and a 'Start free trial' button. All text is correctly spelled, legible with good co",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "schedule_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 16.13,
+      "summary": "The TV schedule for 'Tonight on Channel 4' renders correctly with a clean 2x3 grid layout. All six program entries (18:00 Evening News, 18:30 Weather, 19:00 Quiz Night, 20:00 Drama: Harbour, 21:00 Doc",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "headline_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 15.7,
+      "summary": "The rendered artifact shows a clean, bordered card in the top-left containing the headline 'Central bank holds rates steady as inflation cools' and the line 'Economists had expected a cut later in the",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "carousel_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 16.69,
+      "summary": "The screenshot shows a clean 'Continue watching' section with a heading and three properly aligned thumbnail cards labeled 'Harbour', 'Quiz Night', and 'Late News'. Layout is correct with no overlaps,",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "subscribe_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 14.14,
+      "summary": "The page shows a clean, minimal hero section with the heading 'The Morning Briefing', a descriptive subtitle, and a clearly visible blue 'Subscribe' button with white text. All text is spelled correct",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "subscribe_ok_quoted",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 19.97,
+      "summary": "The rendered page shows a clean hero section with the heading 'The Morning Briefing', a descriptive tagline, and a clearly visible dark blue 'Subscribe' button with white text. All visible text is cor",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "chart_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 29.24,
+      "summary": "The bar chart renders correctly with properly spelled text ('Audience share by genre', 'Documentary', 'Drama', 'Sport') and clear visual hierarchy. The layout is clean with no overlap or clipping. How",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "social_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 16.63,
+      "summary": "The image displays a clean promotional graphic with the text 'Premiere this Friday', 'Harbour returns for its final season', and 'Streaming only on Channel 4' in a clear, left-aligned layout with high",
+      "clean_pass": true,
+      "false_fail": false
+    }
+  ]
+}

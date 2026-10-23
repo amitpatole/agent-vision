@@ -118,15 +118,16 @@ def test_parse_findings_flags_garbage():
 
 
 class _FakeResp:
-    def __init__(self, content):
+    def __init__(self, content, finish_reason=None):
         msg = type("M", (), {"content": content})()
-        self.choices = [type("C", (), {"message": msg})()]
+        self.choices = [type("C", (), {"message": msg, "finish_reason": finish_reason})()]
 
 
-def _fake_client(content, seen):
+def _fake_client(content, seen, finish_reason=None):
     class _Completions:
         async def create(self, **kw):
-            return _FakeResp(content)
+            seen.update(max_tokens=kw.get("max_tokens"))
+            return _FakeResp(content, finish_reason)
 
     class _Client:
         def __init__(self, base_url, api_key):
@@ -139,15 +140,16 @@ def _fake_client(content, seen):
     return _Client
 
 
-async def _run(monkeypatch, tmp_path, content, base_url="http://192.0.2.10:11434/v1"):
+async def _run(monkeypatch, tmp_path, content, base_url="http://192.0.2.10:11434/v1",
+               finish_reason=None, **overrides):
     pytest.importorskip("openai")
     import openai
 
     seen: dict = {}
-    monkeypatch.setattr(openai, "AsyncOpenAI", _fake_client(content, seen))
+    monkeypatch.setattr(openai, "AsyncOpenAI", _fake_client(content, seen, finish_reason))
     img = tmp_path / "a.png"
     Image.new("RGB", (64, 64), "white").save(img)
-    s = load_settings(ollama_base_url=base_url)
+    s = load_settings(ollama_base_url=base_url, **overrides)
     report = await ob.OllamaBackend(s).analyze(AnalysisRequest(image_path=str(img)))
     return report, seen
 
@@ -164,3 +166,24 @@ async def test_parseable_clean_reply_passes(monkeypatch, tmp_path, cloud_key_fil
     report, _ = await _run(monkeypatch, tmp_path,
                            '{"verdict":"pass","summary":"clean","issues":[]}')
     assert report.verdict == Verdict.PASS
+
+
+async def test_truncated_reply_says_so_and_is_never_pass(monkeypatch, tmp_path, cloud_key_file):
+    # kimi-k2.7-code on Ollama Cloud: reasoning ate the budget and the JSON was cut off.
+    report, _ = await _run(monkeypatch, tmp_path, '{"verdict":"fail","summary":"The bad',
+                           finish_reason="length")
+    assert report.verdict != Verdict.PASS
+    assert any("cut off at the token limit" in i.message for i in report.issues)
+
+
+async def test_max_tokens_is_configurable(monkeypatch, tmp_path, cloud_key_file):
+    _, seen = await _run(monkeypatch, tmp_path, '{"verdict":"pass","summary":"ok","issues":[]}')
+    assert seen["max_tokens"] == 8192  # thinking models need headroom beyond 2048
+    _, seen = await _run(monkeypatch, tmp_path, '{"verdict":"pass","summary":"ok","issues":[]}',
+                         ollama_max_tokens=1024)
+    assert seen["max_tokens"] == 1024
+
+
+def test_default_model_is_not_retired():
+    # gemma3:27b was retired from Ollama Cloud on 2026-07-15; the default must be a live model.
+    assert load_settings().ollama_model == "kimi-k2.7-code"

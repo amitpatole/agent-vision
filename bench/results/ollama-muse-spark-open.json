@@ -1,0 +1,341 @@
+{
+  "label": "ollama-muse-spark-open",
+  "backend": "ollama",
+  "model": "muse-spark-open",
+  "score": {
+    "defects_flagged": "13/13",
+    "right_kind": "13/13",
+    "vision_right_kind": "3/13",
+    "clean_pass": "6/9",
+    "false_fail": "1/9",
+    "unparseable": "0/22",
+    "errors": 0,
+    "median_s": 8.39,
+    "max_s": 13.87
+  },
+  "rows": [
+    {
+      "id": "player_error",
+      "defect": "error_text",
+      "verdict": "warn",
+      "kinds": [
+        "error_text"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 8.39,
+      "summary": "Page is in a blocked error state - video player displays 'Error 403: Playback failed. This title is not available in your region.' and no video content is playable. The only visible content is the pla",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "hero_low_contrast",
+      "defect": "contrast",
+      "verdict": "fail",
+      "kinds": [
+        "blank",
+        "contrast",
+        "missing_element"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 7.65,
+      "summary": "Page is mostly blank with unreadable subtext. Only a heading and CTA are visible, leaving ~75% of the viewport as empty white space, which suggests missing hero imagery/content failed to load or rende",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "schedule_overflow",
+      "defect": "overflow",
+      "verdict": "fail",
+      "kinds": [
+        "clipped",
+        "overflow"
+      ],
+      "n_issues": 4,
+      "unparseable": false,
+      "elapsed_s": 9.3,
+      "summary": "Schedule grid extends beyond viewport causing rightmost column to be clipped; time label '20:00' and program title are visibly truncated at the right edge.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "headline_clipped",
+      "defect": "clipped",
+      "verdict": "warn",
+      "kinds": [
+        "clipped"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 10.97,
+      "summary": "No visual defects in current render. The headline text fits fully inside the bordered container with proper wrapping on two lines and no overflow, clipping, or mid-word truncation. The previously repo",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "thumbnail_broken",
+      "defect": "broken_image",
+      "verdict": "fail",
+      "kinds": [
+        "broken_image",
+        "layout",
+        "typo"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 13.58,
+      "summary": "The middle 'Quiz Night' card in the 'Continue watching' row fails to render its poster thumbnail, showing a broken image icon plus duplicate alt text, which breaks card-size consistency and horizontal",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "badge_overlap",
+      "defect": "overlap",
+      "verdict": "fail",
+      "kinds": [
+        "clipped",
+        "layout",
+        "overlap",
+        "typo"
+      ],
+      "n_issues": 4,
+      "unparseable": false,
+      "elapsed_s": 13.87,
+      "summary": "The headline 'Election night results special' is illegible because the red 'LIVE NOW' badge is positioned on top of the heading text, leaving only fragments 'El' and 'ght results special' visible.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "blank_page",
+      "defect": "blank",
+      "verdict": "fail",
+      "kinds": [
+        "blank",
+        "missing_element"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 7.24,
+      "summary": "Confirmed blank render: the 1280x800 viewport is uniformly white with no elements, text, or graphics visible, indicating a failed or empty page load.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "typo_headline",
+      "defect": "typo",
+      "verdict": "fail",
+      "kinds": [
+        "typo"
+      ],
+      "n_issues": 4,
+      "unparseable": false,
+      "elapsed_s": 11.92,
+      "summary": "No new visual defects beyond the four already-flagged spelling errors (Brekaing, Goverment, anounces, houshold). Text is legible, layout is consistent, and no overlap, clipping, or missing elements we",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "missing_subscribe",
+      "defect": "missing_element",
+      "verdict": "fail",
+      "kinds": [
+        "intent_mismatch"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 4.83,
+      "summary": "Page shows title and description but no Subscribe button is visible anywhere in the 1280x800 viewport, failing requirement #1. Intent match: 0/1 requirement(s) satisfied.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "missing_subscribe_quoted",
+      "defect": "missing_element",
+      "verdict": "fail",
+      "kinds": [
+        "intent_mismatch"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 6.97,
+      "summary": "Page shows only heading and description, but the required 'Subscribe' button is missing from the viewport. Intent match: 0/1 requirement(s) satisfied.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "svg_label_clipped",
+      "defect": "clipped",
+      "verdict": "fail",
+      "kinds": [
+        "clipped",
+        "layout",
+        "missing_element",
+        "typo"
+      ],
+      "n_issues": 4,
+      "unparseable": false,
+      "elapsed_s": 8.82,
+      "summary": "Chart title renders but primary category label is truncated due to insufficient left margin, and the chart lacks any quantitative scale or data values making the bars uninterpretable. The small chart ",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "social_typo",
+      "defect": "typo",
+      "verdict": "fail",
+      "kinds": [
+        "typo"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 10.88,
+      "summary": "No new defects beyond the two already-flagged misspellings. Text is legible, layout is not clipped or overlapping, contrast is sufficient, and no additional typos, broken images, or missing elements w",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "social_low_contrast",
+      "defect": "contrast",
+      "verdict": "fail",
+      "kinds": [
+        "blank",
+        "contrast"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 6.25,
+      "summary": "Main promotional text is rendered in extremely low-contrast light gray on white, making it nearly unreadable, and the page appears blank/empty with no background imagery, suggesting missing content.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "player_ok",
+      "defect": null,
+      "verdict": "warn",
+      "kinds": [
+        "layout"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 11.41,
+      "summary": "Page renders with no text errors, clipping, or overlapping; video chrome, title and description are legible. However content is left-aligned occupying ~50% of the 1280px width, leaving a large blank w",
+      "clean_pass": false,
+      "false_fail": false
+    },
+    {
+      "id": "hero_ok",
+      "defect": null,
+      "verdict": "warn",
+      "kinds": [
+        "blank"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 11.16,
+      "summary": "Content renders legibly with no overlap/clipping, but ~75% of the 1280x800 viewport is empty white below the header/CTA, which looks incomplete/unfinished for a landing hero.",
+      "clean_pass": false,
+      "false_fail": false
+    },
+    {
+      "id": "schedule_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 6.0,
+      "summary": "Simple 3x2 TV schedule grid renders cleanly with no overlapping, clipping, or text errors. All six time slots and titles are legible and aligned.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "headline_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 5.27,
+      "summary": "Image shows a simple card with headline and subtext rendered correctly. No overlap, clipping, contrast, or text errors visible; layout is clean though minimal.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "carousel_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 7.53,
+      "summary": "The 'Continue watching' section renders correctly with three evenly spaced cards ('Harbour', 'Quiz Night', 'Late News'), each with a title below a thumbnail placeholder. Layout is clean with no overla",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "subscribe_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 4.66,
+      "summary": "Requirement satisfied: 'Subscribe' button is clearly visible as a blue button with white text under the heading and description. No layout, text, or visual defects detected. Intent match: 1/1 requirem",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "subscribe_ok_quoted",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 4.58,
+      "summary": "Requirement satisfied: 'Subscribe' button is clearly visible as a blue button with white text below the heading and description. No visual defects, layout issues, or text errors detected. Intent match",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "chart_ok",
+      "defect": null,
+      "verdict": "fail",
+      "kinds": [
+        "layout",
+        "missing_element"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 8.51,
+      "summary": "Horizontal bar chart shows relative bar lengths for Documentary/Drama/Sport but provides no quantitative context - no x-axis scale, ticks, axis label, or value labels - so audience share cannot be rea",
+      "clean_pass": false,
+      "false_fail": true
+    },
+    {
+      "id": "social_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 4.29,
+      "summary": "Image displays three lines of black text on a light background with good contrast and legibility. No overflow, clipping, overlap, broken images, or spelling errors detected. Layout is minimal with gen",
+      "clean_pass": true,
+      "false_fail": false
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 """Ollama vision backend (OpenAI-compatible endpoint).
 
 Lets AgentVision "see" with an open-source multimodal model served by Ollama (local or
-Ollama Cloud) — the offline/OSS option for semantic critique. Default model: gemma3:27b.
+Ollama Cloud) — the offline/OSS option for semantic critique. Default model: kimi-k2.7-code.
 
 Two deployment shapes, decided by ``ollama_base_url``:
 
@@ -47,6 +47,8 @@ _CLOUD_HOSTS = frozenset({"ollama.com", "www.ollama.com"})
 # The OpenAI SDK insists on a non-empty key; a self-hosted Ollama ignores it.
 _SELF_HOSTED_PLACEHOLDER_KEY = "ollama"
 _UNPARSEABLE = "Vision model returned unparseable output; semantic grade is missing."
+_TRUNCATED = ("Vision model reply was cut off at the token limit; semantic grade is missing. "
+              "Raise AGENTVISION_OLLAMA_MAX_TOKENS.")
 
 
 def is_cloud_url(base_url: str) -> bool:
@@ -137,7 +139,7 @@ class OllamaBackend:
         try:
             resp = await client.chat.completions.create(
                 model=model,
-                max_tokens=2048,
+                max_tokens=self.settings.ollama_max_tokens,
                 messages=[
                     {"role": "system", "content": SYSTEM_PROMPT},
                     {"role": "user", "content": user_content},
@@ -158,8 +160,10 @@ class OllamaBackend:
             # Fail closed: a missing semantic grade must not read as a clean PASS.
             from ..models.report import Confidence, Issue, IssueKind, IssueSource, Severity
 
+            finish = getattr(resp.choices[0], "finish_reason", None)
+            why = _TRUNCATED if finish == "length" else _UNPARSEABLE
             grounded.append(Issue.make(
-                IssueKind.OTHER, Severity.WARNING, _UNPARSEABLE,
+                IssueKind.OTHER, Severity.WARNING, why,
                 confidence=Confidence.HIGH, source=IssueSource.VISION,
             ))
         return findings_to_report(

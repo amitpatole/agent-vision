@@ -2,6 +2,42 @@
 
 All notable changes to AgentVision are documented here.
 
+## [0.14.0] — 2026-10-23
+
+**Every vision model on Ollama Cloud, measured, and two quiet passes closed.** The benchmark now
+covers all twelve chat-capable vision models on the Ollama Cloud subscription, run against
+the same 22-case corpus as the self-hosted models. Running it surfaced two grading bugs.
+
+### Fixed
+
+- **A vision critique of a present chart no longer vanishes.** The rule that overrules a model
+  for calling a present element "missing" fired on any message that mentioned a chart, image
+  or canvas when the page had one. "The chart lacks an X-axis" was deleted, and the report read
+  PASS with zero issues while the model's own summary described the defect. Now only a claim
+  that the element itself is absent ("the chart is missing", "no chart") is overruled, and
+  when it is, the summary says so.
+- **A model WARN with no listed issues stays WARN.** Only a model FAIL was kept from becoming
+  PASS before.
+- **Thinking models were cut off mid-reply.** Each Ollama grading call allowed a fixed 2048
+  tokens, and reasoning models spend part of that before answering. `kimi-k2.6` returned
+  unusable output on 10 of 22 pages. The limit is now 8192 and configurable. A reply that stops
+  at the limit adds a WARNING that says it was cut off and names the setting to raise.
+
+### Changed
+
+- **Default Ollama model is `kimi-k2.7-code`.** The old default `gemma3:27b` was retired from
+  Ollama Cloud on 2026-07-15, so `--backend ollama` with default settings failed. Over three
+  benchmark runs `kimi-k2.7-code` flagged all 39 defects and passed all 27 clean pages. Users
+  of a self-hosted server already set their own model and are not affected.
+
+### Added
+
+- **`AGENTVISION_OLLAMA_MAX_TOKENS`** (`ollama_max_tokens`, default 8192, 256 to 65536). See
+  [Configuration](docs/configuration.md).
+- **Cloud results in the [pilot benchmark](docs/pilot.md#benchmark)** for every vision model
+  on the subscription, with repeat runs for the two leading models, and a cloud option in the
+  pilot deployment guide for teams whose policy allows screenshots to leave the network.
+
 ## [0.13.0] — 2026-10-23
 
 **Pilot readiness: self-hosted vision, a labelled benchmark, and no silent PASS.** This release

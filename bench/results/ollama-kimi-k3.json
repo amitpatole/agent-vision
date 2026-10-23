@@ -1,0 +1,333 @@
+{
+  "label": "ollama-kimi-k3",
+  "backend": "ollama",
+  "model": "kimi-k3",
+  "score": {
+    "defects_flagged": "12/13",
+    "right_kind": "12/13",
+    "vision_right_kind": "4/13",
+    "clean_pass": "8/9",
+    "false_fail": "0/9",
+    "unparseable": "0/22",
+    "errors": 0,
+    "median_s": 6.71,
+    "max_s": 11.29
+  },
+  "rows": [
+    {
+      "id": "player_error",
+      "defect": "error_text",
+      "verdict": "warn",
+      "kinds": [
+        "error_text",
+        "missing_element",
+        "other"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 10.74,
+      "summary": "A video player page displays a 403 playback error overlay (already detected). Beyond that, the controls bar contradicts the failure state: the play button and progress bar show 12:04 of 48:10 elapsed ",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "hero_low_contrast",
+      "defect": "contrast",
+      "verdict": "fail",
+      "kinds": [
+        "blank",
+        "contrast",
+        "other"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 11.29,
+      "summary": "Page renders without breakage: heading, subtitle, and CTA button are clean and correctly laid out. However, the subtitle text is very low contrast (already flagged) and the vast majority of the viewpo",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "schedule_overflow",
+      "defect": "overflow",
+      "verdict": "fail",
+      "kinds": [
+        "blank",
+        "clipped",
+        "overflow"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 6.71,
+      "summary": "The schedule row extends past the right edge of the viewport: the fourth programme column is cut off mid-text, showing '20:0' and 'Dra' instead of the full time and title. The rest of the visible layo",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "headline_clipped",
+      "defect": "clipped",
+      "verdict": "warn",
+      "kinds": [
+        "blank",
+        "clipped"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 11.11,
+      "summary": "A small bordered card containing the headline 'Central bank holds rates steady as inflation cools faster than' renders in the top-left corner. Text is legible with no typos, but the visible sentence e",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "thumbnail_broken",
+      "defect": "broken_image",
+      "verdict": "fail",
+      "kinds": [
+        "broken_image",
+        "layout",
+        "typo"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 8.67,
+      "summary": "A 'Continue watching' row with three cards. The middle 'Quiz Night' card's poster failed to load (already-detected), which also collapses that card's layout: instead of a same-size thumbnail, the card",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "badge_overlap",
+      "defect": "overlap",
+      "verdict": "fail",
+      "kinds": [
+        "overlap",
+        "typo"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 10.24,
+      "summary": "A red 'LIVE NOW' badge is absolutely positioned on top of the card heading, obscuring the middle of the title so it renders as 'El[blocked]ght results special' instead of 'Election night results speci",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "blank_page",
+      "defect": "blank",
+      "verdict": "fail",
+      "kinds": [
+        "blank"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 5.22,
+      "summary": "The entire 1280x800 viewport renders as a uniform light-gray blank page with zero visible content \u2014 no text, elements, images, or error messages anywhere. This confirms the grounded finding of a blank",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "typo_headline",
+      "defect": "typo",
+      "verdict": "fail",
+      "kinds": [
+        "typo"
+      ],
+      "n_issues": 4,
+      "unparseable": false,
+      "elapsed_s": 9.34,
+      "summary": "The page renders with proper layout, spacing, and contrast \u2014 a bold headline followed by a body paragraph, no overlap, clipping, or overflow. However, the visible text contains four misspellings alrea",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "missing_subscribe",
+      "defect": "missing_element",
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 5.4,
+      "summary": "The page shows only the heading 'The Morning Briefing' and a tagline; the required Subscribe button is missing. (1 vision finding(s) overruled: DOM/OCR shows the element is present.) Intent match: 1/1",
+      "flagged": false,
+      "kind_hit": false,
+      "vision_hit": false
+    },
+    {
+      "id": "missing_subscribe_quoted",
+      "defect": "missing_element",
+      "verdict": "fail",
+      "kinds": [
+        "intent_mismatch"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 6.35,
+      "summary": "The page renders a heading 'The Morning Briefing' and a description line cleanly, but no 'Subscribe' button is visible anywhere on the page, violating requirement #1. Intent match: 0/1 requirement(s) ",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "svg_label_clipped",
+      "defect": "clipped",
+      "verdict": "fail",
+      "kinds": [
+        "clipped",
+        "typo"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 9.88,
+      "summary": "Horizontal bar chart renders with three bars, but the first category label ('Documentary and Factual') is cut off at the left edge of the chart (visible only as '...entary and Factual'), and the chart",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "social_typo",
+      "defect": "typo",
+      "verdict": "fail",
+      "kinds": [
+        "typo"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 5.61,
+      "summary": "Layout is clean and text is legible with no overflow, overlap, or rendering problems. However, the two already-flagged typos are confirmed valid: the headline reads \"Premeire this Friday\" (should be \"",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "social_low_contrast",
+      "defect": "contrast",
+      "verdict": "fail",
+      "kinds": [
+        "contrast",
+        "layout"
+      ],
+      "n_issues": 5,
+      "unparseable": false,
+      "elapsed_s": 5.82,
+      "summary": "All text is rendered in a very light gray on a near-white background, making it extremely low-contrast and hard to read. A teal accent bar sits detached at the bottom with no associated element. Layou",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "player_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 8.11,
+      "summary": "The page renders a video player card with placeholder art (yellow circle on dark teal), a control bar with play button, progress bar, and '12:04 / 48:10' time, followed by the title 'Harbour, Season 2",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "hero_ok",
+      "defect": null,
+      "verdict": "warn",
+      "kinds": [
+        "blank"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 8.95,
+      "summary": "Text content and button render correctly with no typos, overlaps, or contrast problems, but the page is almost entirely blank \u2014 all content is cramped in the top-left corner (~top 170px) and the remai",
+      "clean_pass": false,
+      "false_fail": false
+    },
+    {
+      "id": "schedule_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 9.46,
+      "summary": "The schedule page renders cleanly: a heading 'Tonight on Channel 4' followed by a 3-column \u00d7 2-row grid of program cards (18:00 Evening News, 18:30 Weather, 19:00 Quiz Night, 20:00 Drama: Harbour, 21:",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "headline_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 6.34,
+      "summary": "The page renders a bordered box containing a headline \"Central bank holds rates steady as inflation cools\" and a subheading \"Economists had expected a cut later in the year.\" Both text strings are leg",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "carousel_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 5.46,
+      "summary": "The page renders a 'Continue watching' section with three evenly spaced thumbnail cards (dark teal with a tan circle) labeled 'Harbour', 'Quiz Night', and 'Late News'. Layout is clean, text is legible",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "subscribe_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 4.92,
+      "summary": "The page renders cleanly: a bold heading 'The Morning Briefing', a correctly spelled subtitle paragraph, and a clearly visible blue 'Subscribe' button with readable white text. Requirement [#1] (a vis",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "subscribe_ok_quoted",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 4.87,
+      "summary": "The page renders cleanly: a heading 'The Morning Briefing', a descriptive paragraph, and a clearly visible blue 'Subscribe' button with legible white text. No layout, contrast, overflow, or text defec",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "chart_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 5.22,
+      "summary": "Horizontal bar chart renders correctly with title 'Audience share by genre' and three labeled bars (Documentary, Drama, Sport). All text is legible and spelled correctly, bars are properly aligned wit",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "social_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 5.59,
+      "summary": "The artifact is a clean promotional card with a bold heading 'Premiere this Friday', two lines of supporting text ('Harbour returns for its final season', 'Streaming only on Channel 4'), and a small t",
+      "clean_pass": true,
+      "false_fail": false
+    }
+  ]
+}

@@ -1,0 +1,329 @@
+{
+  "label": "ollama-minimax-m3.1-flash",
+  "backend": "ollama",
+  "model": "minimax-m3.1-flash",
+  "score": {
+    "defects_flagged": "13/13",
+    "right_kind": "13/13",
+    "vision_right_kind": "3/13",
+    "clean_pass": "8/9",
+    "false_fail": "0/9",
+    "unparseable": "0/22",
+    "errors": 0,
+    "median_s": 6.64,
+    "max_s": 39.74
+  },
+  "rows": [
+    {
+      "id": "player_error",
+      "defect": "error_text",
+      "verdict": "warn",
+      "kinds": [
+        "error_text"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 11.4,
+      "summary": "The artifact remains unacceptable because of the already-recorded playback failure; no additional visual, text, or layout defects are visible.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "hero_low_contrast",
+      "defect": "contrast",
+      "verdict": "fail",
+      "kinds": [
+        "contrast"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 15.75,
+      "summary": "The already-detected subtitle contrast problem remains the only clear visual defect; no additional layout, overflow, missing-element, image, or text issues are visible.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "schedule_overflow",
+      "defect": "overflow",
+      "verdict": "fail",
+      "kinds": [
+        "clipped",
+        "overflow"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 9.81,
+      "summary": "The final schedule entry is visibly clipped at the right edge, leaving its time and program title incomplete.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "headline_clipped",
+      "defect": "clipped",
+      "verdict": "warn",
+      "kinds": [
+        "clipped"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 39.74,
+      "summary": "The headline still has the already-reported clipped/incomplete wording, but no additional visible defects were found.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "thumbnail_broken",
+      "defect": "broken_image",
+      "verdict": "fail",
+      "kinds": [
+        "broken_image",
+        "typo"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 17.09,
+      "summary": "The second card visibly duplicates the title \u201cQuiz Night\u201d and disrupts the otherwise consistent card layout.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "badge_overlap",
+      "defect": "overlap",
+      "verdict": "warn",
+      "kinds": [
+        "overlap",
+        "typo"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 7.77,
+      "summary": "No additional visual defects were found beyond the already-detected heading typo and LIVE NOW badge overlap.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "blank_page",
+      "defect": "blank",
+      "verdict": "fail",
+      "kinds": [
+        "blank"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 4.28,
+      "summary": "The viewport is entirely blank, confirming the already-detected critical blank-render issue. No text or other visual elements are visible.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "typo_headline",
+      "defect": "typo",
+      "verdict": "fail",
+      "kinds": [
+        "typo"
+      ],
+      "n_issues": 4,
+      "unparseable": false,
+      "elapsed_s": 8.54,
+      "summary": "No additional visual defects detected beyond the already-identified typographical errors.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "missing_subscribe",
+      "defect": "missing_element",
+      "verdict": "fail",
+      "kinds": [
+        "intent_mismatch"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 4.08,
+      "summary": "The page renders the Morning Briefing heading and description, but the required Subscribe button is absent. Intent match: 0/1 requirement(s) satisfied.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "missing_subscribe_quoted",
+      "defect": "missing_element",
+      "verdict": "fail",
+      "kinds": [
+        "intent_mismatch"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 5.17,
+      "summary": "The page renders the title and description correctly, but the required Subscribe button is absent. Intent match: 0/1 requirement(s) satisfied.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "svg_label_clipped",
+      "defect": "clipped",
+      "verdict": "fail",
+      "kinds": [
+        "clipped",
+        "layout",
+        "missing_element",
+        "typo"
+      ],
+      "n_issues": 5,
+      "unparseable": false,
+      "elapsed_s": 35.94,
+      "summary": "The chart remains difficult to interpret because it lacks a quantitative scale, contains a misplaced horizontal rule, and is compressed into the upper-left of the viewport.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "social_typo",
+      "defect": "typo",
+      "verdict": "fail",
+      "kinds": [
+        "typo"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 7.33,
+      "summary": "No additional visual defects found beyond the two already-detected typos. The layout, spacing, contrast, and text containment are clean.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "social_low_contrast",
+      "defect": "contrast",
+      "verdict": "fail",
+      "kinds": [
+        "contrast"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 5.56,
+      "summary": "The layout is clean and the text is correct, but all three gray text lines have extremely low contrast against the white background and are difficult to read.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "player_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 7.76,
+      "summary": "The video player and episode details are clearly rendered, properly aligned, and free of visible layout, overflow, contrast, image, or text defects.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "hero_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 6.5,
+      "summary": "The page renders cleanly with a legible heading, supporting text, and a properly styled call-to-action button. No visible clipping, overlap, broken elements, or text errors are present.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "schedule_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 4.74,
+      "summary": "The Channel 4 schedule renders correctly with a clear heading, six readable programme cards, consistent spacing, and no visible clipping, overlap, typo, or broken elements.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "headline_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 4.51,
+      "summary": "The rendered card is visually clean, with correctly wrapped, readable text and no visible defects, errors, or missing elements.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "carousel_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 4.72,
+      "summary": "The page renders cleanly with a clear \u201cContinue watching\u201d heading, three evenly aligned cards, readable labels, and no visible overflow, overlap, clipping, broken imagery, or text errors.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "subscribe_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 3.7,
+      "summary": "The page renders cleanly, all visible text is correct, and the Subscribe button is clearly visible as required. Intent match: 1/1 requirement(s) satisfied.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "subscribe_ok_quoted",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 3.58,
+      "summary": "The page renders cleanly with readable text, no clipping or overlap, and a clearly visible \"Subscribe\" button satisfying the requirement. Intent match: 1/1 requirement(s) satisfied.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "chart_ok",
+      "defect": null,
+      "verdict": "warn",
+      "kinds": [
+        "missing_element"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 6.64,
+      "summary": "The chart is clean and legible, but it omits the quantitative scale needed to interpret the audience shares.",
+      "clean_pass": false,
+      "false_fail": false
+    },
+    {
+      "id": "social_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 2.58,
+      "summary": "The artwork is clean and readable, with correctly spelled text, balanced spacing, high contrast, and no clipping, overlap, missing, or broken elements.",
+      "clean_pass": true,
+      "false_fail": false
+    }
+  ]
+}

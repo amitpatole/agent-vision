@@ -9,7 +9,7 @@ each, via per-provider schema adapters.
 | `anthropic` | `[anthropic]` | `ANTHROPIC_API_KEY` | Default. Model `claude-haiku-4-5`. |
 | `openai` | `[openai]` | `OPENAI_API_KEY` | Strict `json_schema` structured output. |
 | `gemini` | `[gemini]` | `GOOGLE_API_KEY` | `response_schema` structured output. |
-| `ollama` | `[openai]` | cloud: `OLLAMA_API_KEY` · self-hosted: none | OSS multimodal models via Ollama (self-hosted **or** Ollama Cloud). Default `gemma3:27b`. Tolerant JSON parsing; an unparseable reply grades WARN, never PASS. |
+| `ollama` | `[openai]` | cloud: `OLLAMA_API_KEY` · self-hosted: none | OSS multimodal models via Ollama (self-hosted **or** Ollama Cloud). Default `kimi-k2.7-code`. Tolerant JSON parsing; an unparseable or cut-off reply grades WARN, never PASS. |
 
 ### Ollama
 
@@ -42,7 +42,16 @@ server, give it its own key in `AGENTVISION_OLLAMA_SELF_HOSTED_KEY`.
 JSON. Such a reply adds a WARNING issue ("semantic grade is missing"), so it can never grade as
 a clean PASS. The [pilot benchmark](pilot.md#benchmark) reports how often each model does this.
 
-Which local model to pick on a 12 GB GPU is measured in the [pilot guide](pilot.md#benchmark).
+**Thinking models need headroom.** Many cloud models reason before they answer, and the
+reasoning comes out of the same completion budget. Each call allows 8192 tokens
+(`AGENTVISION_OLLAMA_MAX_TOKENS`). At the old fixed 2048, `kimi-k2.7-code` was cut off mid-JSON
+on busy pages. A reply that stops at the limit adds a WARNING that says so and names the
+setting to raise.
+
+**Which model.** On Ollama Cloud the default `kimi-k2.7-code` flagged every defect and passed
+every clean page over three benchmark runs. For a self-hosted 12 GB GPU, `qwen2.5vl:7b` is the
+measured pick. Both are in the [pilot guide](pilot.md#benchmark), along with every other
+vision model on the Ollama Cloud subscription.
 
 ## Selection
 

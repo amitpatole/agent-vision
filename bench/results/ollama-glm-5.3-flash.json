@@ -1,0 +1,337 @@
+{
+  "label": "ollama-glm-5.3-flash",
+  "backend": "ollama",
+  "model": "glm-5.3-flash",
+  "score": {
+    "defects_flagged": "13/13",
+    "right_kind": "12/13",
+    "vision_right_kind": "4/13",
+    "clean_pass": "8/9",
+    "false_fail": "0/9",
+    "unparseable": "0/22",
+    "errors": 0,
+    "median_s": 9.17,
+    "max_s": 28.23
+  },
+  "rows": [
+    {
+      "id": "player_error",
+      "defect": "error_text",
+      "verdict": "warn",
+      "kinds": [
+        "error_text",
+        "missing_element"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 18.31,
+      "summary": "The page is a video-player detail view whose playback has failed: the entire player surface (~832x420 navy area) shows 'Error 403: Playback failed. This title is not available in your region.' with no",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "hero_low_contrast",
+      "defect": "contrast",
+      "verdict": "fail",
+      "kinds": [
+        "blank",
+        "contrast",
+        "typo"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 28.23,
+      "summary": "The hero renders minimally, but the page looks incomplete: (1) the subtitle is nearly unreadable \u2014 already flagged at 1.48:1 contrast, (2) roughly the lower 75% of the 1280x800 viewport is blank white",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "schedule_overflow",
+      "defect": "overflow",
+      "verdict": "fail",
+      "kinds": [
+        "clipped",
+        "overflow"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 12.07,
+      "summary": "A TV schedule page with a row of four program cards. The fourth card is cut off at the right viewport edge: its time label is clipped to '20:0' (presumably '20:00') and its title to 'Dra' (presumably ",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "headline_clipped",
+      "defect": "clipped",
+      "verdict": "fail",
+      "kinds": [
+        "blank",
+        "clipped",
+        "typo"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 22.36,
+      "summary": "The render shows only a single bordered text box in the top-left containing the headline 'Central bank holds rates steady as inflation cools faster than', which ends mid-sentence \u2014 the sentence is sem",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "thumbnail_broken",
+      "defect": "broken_image",
+      "verdict": "fail",
+      "kinds": [
+        "broken_image",
+        "layout",
+        "missing_element",
+        "typo"
+      ],
+      "n_issues": 4,
+      "unparseable": false,
+      "elapsed_s": 17.61,
+      "summary": "The 'Continue watching' row has a broken thumbnail for the 'Quiz Night' item (confirms the grounded broken-image finding): it renders as a tiny broken-image icon with alt text instead of a full 240x13",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "badge_overlap",
+      "defect": "overlap",
+      "verdict": "warn",
+      "kinds": [
+        "blank",
+        "overlap",
+        "typo"
+      ],
+      "n_issues": 4,
+      "unparseable": false,
+      "elapsed_s": 17.93,
+      "summary": "The page renders only a single small card in the top-left corner (~585x160 px); roughly 85% of the 1280x800 viewport is blank whitespace with no other content. The card's headline is obscured by the r",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "blank_page",
+      "defect": "blank",
+      "verdict": "fail",
+      "kinds": [
+        "blank"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 4.63,
+      "summary": "The entire 1280x800 render is a uniform blank white page (pixel std=0.00). No headers, text, charts, images, or any visible content are present anywhere in the viewport \u2014 this confirms the grounded fi",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "typo_headline",
+      "defect": "typo",
+      "verdict": "fail",
+      "kinds": [
+        "typo"
+      ],
+      "n_issues": 4,
+      "unparseable": false,
+      "elapsed_s": 7.58,
+      "summary": "No new visual defects beyond the already-grounded ones. Layout is clean \u2014 headline and paragraph render without overlap, clipping, contrast, or spacing problems, and the rest of the page is intentiona",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "missing_subscribe",
+      "defect": "missing_element",
+      "verdict": "warn",
+      "kinds": [
+        "blank"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 6.63,
+      "summary": "The page renders a heading 'The Morning Briefing' and its description correctly with no typos, but the required Subscribe button is not visible anywhere, and the page below the two lines of text is en",
+      "flagged": true,
+      "kind_hit": false,
+      "vision_hit": false
+    },
+    {
+      "id": "missing_subscribe_quoted",
+      "defect": "missing_element",
+      "verdict": "fail",
+      "kinds": [
+        "intent_mismatch"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 4.99,
+      "summary": "The page renders the heading 'The Morning Briefing' and its subtitle correctly, but the required 'Subscribe' button is not visible anywhere in the 1280x800 viewport \u2014 the area below the intro text is ",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "svg_label_clipped",
+      "defect": "clipped",
+      "verdict": "fail",
+      "kinds": [
+        "clipped",
+        "typo"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 25.94,
+      "summary": "The chart renders with its title and three bars (Drama, Sport, plus a long category label), but the first category label is clipped at the left edge of the SVG so only 'entary and Factual' is visible;",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "social_typo",
+      "defect": "typo",
+      "verdict": "fail",
+      "kinds": [
+        "typo"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 9.17,
+      "summary": "The card renders cleanly otherwise: heading, two body lines, and the teal accent bar are all legible with good contrast and no layout, clipping, or overflow problems. However, the two already-grounded",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "social_low_contrast",
+      "defect": "contrast",
+      "verdict": "fail",
+      "kinds": [
+        "contrast",
+        "missing_element"
+      ],
+      "n_issues": 4,
+      "unparseable": false,
+      "elapsed_s": 14.25,
+      "summary": "Social/OG promo card reads 'Premiere this Friday / Harbour returns for its final season / Streaming only on Channel 4' with a teal accent bar. Spelling is correct, but virtually all text is rendered i",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "player_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 12.71,
+      "summary": "The video player mockup renders cleanly: the player container, poster frame, and control bar are laid out without overlap or clipping. The title 'Harbour, Season 2 Episode 4' and description 'The crew",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "hero_ok",
+      "defect": null,
+      "verdict": "warn",
+      "kinds": [
+        "missing_element",
+        "typo"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 15.8,
+      "summary": "The hero content (heading 'Stream the final season', subline, and blue 'Start free trial' button) renders cleanly with no overlap or clipping. However, roughly 90% of the 1280x800 viewport is complete",
+      "clean_pass": false,
+      "false_fail": false
+    },
+    {
+      "id": "schedule_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 5.78,
+      "summary": "The TV schedule page renders cleanly: a bold 'Tonight on Channel 4' heading followed by a uniform 3x2 grid of programme cards (18:00 Evening News, 18:30 Weather, 19:00 Quiz Night, 20:00 Drama: Harbour",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "headline_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 9.04,
+      "summary": "A single bordered card renders correctly in the top-left of the viewport: the headline \"Central bank holds rates steady as inflation cools\" wraps cleanly onto two lines inside the card border, and the",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "carousel_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 6.35,
+      "summary": "The 'Continue watching' section renders cleanly: a bold heading and three video cards (Harbour, Quiz Night, Late News), each with a dark teal thumbnail and centered gold play-button circle, with legib",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "subscribe_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 5.79,
+      "summary": "The page renders correctly: the heading 'The Morning Briefing' and the subtitle text are fully visible with no typos, truncation, or layout problems. The requirement [#1] is satisfied \u2014 a blue 'Subscr",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "subscribe_ok_quoted",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 4.6,
+      "summary": "The page renders cleanly: the heading 'The Morning Briefing', the subtitle text, and a blue 'Subscribe' button are all visible with no typos, overlap, clipping, or contrast problems. The only checklis",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "chart_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 9.09,
+      "summary": "The page renders a clean horizontal bar chart titled 'Audience share by genre' with three correctly labeled categories (Documentary, Drama, Sport) and proportionally sized teal bars. No typos, overlap",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "social_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 5.51,
+      "summary": "Clean minimal announcement card: bold headline 'Premiere this Friday', two subtitle lines, and a teal accent bar. All text is crisp, high-contrast, correctly spelled, and fully within bounds; layout i",
+      "clean_pass": true,
+      "false_fail": false
+    }
+  ]
+}

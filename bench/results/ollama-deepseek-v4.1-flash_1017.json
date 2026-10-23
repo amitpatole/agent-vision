@@ -1,0 +1,349 @@
+{
+  "label": "ollama-deepseek-v4.1-flash_1017",
+  "backend": "ollama",
+  "model": "deepseek-v4.1-flash:1017",
+  "score": {
+    "defects_flagged": "13/13",
+    "right_kind": "12/13",
+    "vision_right_kind": "6/13",
+    "clean_pass": "5/9",
+    "false_fail": "0/9",
+    "unparseable": "0/22",
+    "errors": 0,
+    "median_s": 5.33,
+    "max_s": 8.85
+  },
+  "rows": [
+    {
+      "id": "player_error",
+      "defect": "error_text",
+      "verdict": "warn",
+      "kinds": [
+        "error_text",
+        "layout",
+        "missing_element"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 7.01,
+      "summary": "The player area renders in a permanent error state: a blank dark-blue poster region displays 'Error 403: Playback failed. This title is not available in your region.' (already detected) while the titl",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "hero_low_contrast",
+      "defect": "contrast",
+      "verdict": "fail",
+      "kinds": [
+        "contrast",
+        "layout"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 4.67,
+      "summary": "The hero block renders cleanly (headline, subtext, and a single call-to-action button, no overlap or clipping), but the subtext is nearly invisible against the white background (already flagged) and t",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "schedule_overflow",
+      "defect": "overflow",
+      "verdict": "fail",
+      "kinds": [
+        "clipped",
+        "layout",
+        "overflow"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 5.33,
+      "summary": "The schedule page renders its header and four time-slot cards, but the fourth card is cut off at the right edge of the viewport, truncating its time label and programme title mid-word. The large horiz",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "headline_clipped",
+      "defect": "clipped",
+      "verdict": "fail",
+      "kinds": [
+        "blank",
+        "clipped"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 3.84,
+      "summary": "The page renders as an almost entirely empty white canvas: only a small bordered box in the top-left contains a truncated headline. The headline is cut off mid-phrase and the rest of the viewport (rou",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "thumbnail_broken",
+      "defect": "broken_image",
+      "verdict": "fail",
+      "kinds": [
+        "broken_image",
+        "layout",
+        "typo"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 5.53,
+      "summary": "The 'Continue watching' row renders, but the second card's poster is broken: its image collapses to an inline alt-text stub (91x18), so card 2 is mis-sized and its 'Quiz Night' caption floats up above",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "badge_overlap",
+      "defect": "overlap",
+      "verdict": "fail",
+      "kinds": [
+        "layout",
+        "overlap",
+        "typo"
+      ],
+      "n_issues": 4,
+      "unparseable": false,
+      "elapsed_s": 6.14,
+      "summary": "The card renders but its heading is badly broken: the red 'LIVE NOW' badge sits on top of the headline, hiding 'lection ni' so it reads 'E\u2026ght results special'. The card is also pinned to the top-left",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "blank_page",
+      "defect": "blank",
+      "verdict": "fail",
+      "kinds": [
+        "blank"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 5.08,
+      "summary": "The 1280x800 render is a completely uniform white frame \u2014 no text, images, navigation, or any UI is visible. Confirming the grounded blank-render finding: nothing can be reviewed for layout, contrast,",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "typo_headline",
+      "defect": "typo",
+      "verdict": "fail",
+      "kinds": [
+        "layout",
+        "typo"
+      ],
+      "n_issues": 5,
+      "unparseable": false,
+      "elapsed_s": 4.7,
+      "summary": "The artifact is a minimal page with a headline and one supporting sentence. Four spelling errors are present in the headline and body text (already reported by grounded findings). Beyond those, the on",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "missing_subscribe",
+      "defect": "missing_element",
+      "verdict": "warn",
+      "kinds": [
+        "layout"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 4.28,
+      "summary": "The page renders only the heading 'The Morning Briefing' and one subtitle line; there is no Subscribe button (requirement #1 unmet) and the rest of the 1280x800 viewport is empty white space, making t",
+      "flagged": true,
+      "kind_hit": false,
+      "vision_hit": false
+    },
+    {
+      "id": "missing_subscribe_quoted",
+      "defect": "missing_element",
+      "verdict": "fail",
+      "kinds": [
+        "intent_mismatch",
+        "missing_element"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 6.47,
+      "summary": "The page renders a heading and subtitle on an otherwise blank white page; the required Subscribe button is not present. Intent match: 0/1 requirement(s) satisfied.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "svg_label_clipped",
+      "defect": "clipped",
+      "verdict": "fail",
+      "kinds": [
+        "clipped",
+        "layout",
+        "missing_element",
+        "typo"
+      ],
+      "n_issues": 5,
+      "unparseable": false,
+      "elapsed_s": 6.31,
+      "summary": "The horizontal bar chart renders, but the first category label is cut off at the left edge of the SVG (already flagged), and the chart provides no axis, tick marks, or value labels, so the bar lengths",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "social_typo",
+      "defect": "typo",
+      "verdict": "fail",
+      "kinds": [
+        "layout",
+        "typo"
+      ],
+      "n_issues": 4,
+      "unparseable": false,
+      "elapsed_s": 3.59,
+      "summary": "Text content is legible and the two misspellings already flagged ('Premeire', 'seasn') are confirmed present. Beyond those, the layout issues are: a detached teal accent rule floating in empty space w",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "social_low_contrast",
+      "defect": "contrast",
+      "verdict": "fail",
+      "kinds": [
+        "blank",
+        "contrast",
+        "other"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 8.85,
+      "summary": "The banner renders as near-white text on a white background, making all copy effectively unreadable; there is also no visible background image, logo, or branding, suggesting the backdrop image failed ",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "player_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 7.0,
+      "summary": "A clean video-player card: a 16:9 poster (teal with centered yellow circle) letterboxed inside a dark navy player, a progress bar with red elapsed fill and '12:04 / 48:10' timecode, a play button, and",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "hero_ok",
+      "defect": null,
+      "verdict": "warn",
+      "kinds": [
+        "layout"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 5.88,
+      "summary": "A minimal hero section renders cleanly: bold heading, one-line supporting copy, and a solid blue CTA button, all legible with good contrast and no clipping, overlap, or text errors. The only concern i",
+      "clean_pass": false,
+      "false_fail": false
+    },
+    {
+      "id": "schedule_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 3.87,
+      "summary": "The schedule grid renders cleanly: a clear heading \"Tonight on Channel 4\" and six time cards (18:00 Evening News, 18:30 Weather, 19:00 Quiz Night, 20:00 Drama: Harbour, 21:00 Documentary, 22:00 Late N",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "headline_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 6.79,
+      "summary": "The rendered artifact is a simple bordered card at the top-left of the page showing the headline \"Central bank holds rates steady as inflation cools\" and the subhead \"Economists had expected a cut lat",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "carousel_ok",
+      "defect": null,
+      "verdict": "warn",
+      "kinds": [
+        "layout",
+        "other"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 4.49,
+      "summary": "The 'Continue watching' section renders cleanly with three cards (Harbour, Quiz Night, Late News) and no broken layout, overlap, or text errors. The main concerns are cosmetic: all three thumbnails ar",
+      "clean_pass": false,
+      "false_fail": false
+    },
+    {
+      "id": "subscribe_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 3.59,
+      "summary": "The rendered page shows the heading \"The Morning Briefing\", a one-line description, and a clearly visible dark-blue \"Subscribe\" button. Text is legible, no typos, no clipping, overlap, or broken eleme",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "subscribe_ok_quoted",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 4.82,
+      "summary": "The page renders cleanly: heading \"The Morning Briefing\", a one-line description, and a clearly visible blue \"Subscribe\" button. All text is legible with high contrast, no overflow, clipping, broken i",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "chart_ok",
+      "defect": null,
+      "verdict": "warn",
+      "kinds": [
+        "layout",
+        "missing_element"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 6.36,
+      "summary": "The bar chart renders cleanly with correct labels and no text errors, but it contains no numeric values or axis, so the actual audience shares cannot be read, and the chart only occupies a small top-l",
+      "clean_pass": false,
+      "false_fail": false
+    },
+    {
+      "id": "social_ok",
+      "defect": null,
+      "verdict": "warn",
+      "kinds": [
+        "layout"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 3.3,
+      "summary": "The card is legible and defect-free in terms of text rendering, but the composition is visually unbalanced: all content is confined to the left ~56% of the 1200x630 canvas, leaving a large empty right",
+      "clean_pass": false,
+      "false_fail": false
+    }
+  ]
+}
