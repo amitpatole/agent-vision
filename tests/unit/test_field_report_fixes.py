@@ -151,3 +151,47 @@ def test_new_render_defaults():
     assert s.freeze_animations is True    # freeze rAF/animations before capture
     assert s.settle_ms == 400             # let client-rendered data populate
     assert s.vision_max_edge_px == 2000   # downscale oversized screenshots
+
+
+def test_suppress_keeps_critique_of_a_present_chart():
+    # bench chart_ok, gemma4:31b: an <svg> proves the chart exists, not that it has an axis.
+    for msg in (
+        "The chart lacks an X-axis with scale/labels or individual data labels on the bars",
+        "The bar chart is missing a numerical axis",
+        "the chart is missing its legend",
+        "no axis labels on the chart",
+    ):
+        issues = [_vis(IssueKind.MISSING_ELEMENT, msg)]
+        kept, dropped = suppress_contradicted_vision(issues, None, visual_tags=["svg", "img"])
+        assert kept and not dropped, msg
+
+
+def test_suppress_still_drops_absent_visual_claims():
+    for msg in (
+        "the chart is missing",
+        "no chart is shown",
+        "the equity curve chart is not visible",
+        "missing equity curve chart",
+        "the page lacks a chart",
+        "the chart is missing from the page",
+    ):
+        issues = [_vis(IssueKind.MISSING_ELEMENT, msg)]
+        kept, dropped = suppress_contradicted_vision(issues, None, visual_tags=["svg"])
+        assert dropped and not kept, msg
+
+
+def test_model_warn_without_issues_is_not_a_pass():
+    from agentvision.backends.base import AnalysisRequest
+    from agentvision.backends.prompt import VisionFindings, findings_to_report
+    from agentvision.models.report import Verdict
+
+    req = AnalysisRequest(image_path="x.png")
+    for v in (Verdict.WARN, Verdict.FAIL):
+        f = VisionFindings(verdict=v, summary="something looks off", issues=[])
+        rep = findings_to_report(f, req, backend="ollama", model="m", grounded=[],
+                                 image_size=(10, 10), elapsed_ms=1)
+        assert rep.verdict == Verdict.WARN
+    f = VisionFindings(verdict=Verdict.PASS, summary="ok", issues=[])
+    rep = findings_to_report(f, req, backend="ollama", model="m", grounded=[],
+                             image_size=(10, 10), elapsed_ms=1)
+    assert rep.verdict == Verdict.PASS
