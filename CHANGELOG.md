@@ -2,7 +2,7 @@
 
 All notable changes to AgentVision are documented here.
 
-## [0.13.0rc1] — 2026-10-22
+## [0.13.0] — 2026-10-23
 
 **Pilot readiness: self-hosted vision, a labelled benchmark, and no silent PASS.** This release
 gets AgentVision ready for an advisory pilot inside a media and communications pipeline. Vision
