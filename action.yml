@@ -32,6 +32,13 @@ inputs:
     description: "pip extras to install (e.g. render, all, render,anthropic)."
     required: false
     default: "render"
+  mode:
+    description: >-
+      gate (default): a FAIL verdict fails the build. advisory: never fails the build; a FAIL
+      or an error becomes a warning annotation plus a job summary (for a pilot, or while you
+      calibrate on your own artifacts).
+    required: false
+    default: "gate"
   python-version:
     description: "Python version."
     required: false
@@ -45,13 +52,18 @@ runs:
         python-version: ${{ inputs.python-version }}
     - name: Install AgentVision + Chromium
       shell: bash
+      # Never run `python -m` from the (possibly untrusted) checkout: for -m, Python puts the
+      # cwd first on sys.path, so a committed pip/ or playwright/ package would run instead.
+      # Install from the runner temp dir AND in isolated mode (-I), belt and braces.
+      working-directory: ${{ runner.temp }}
       env:
         EXTRAS: ${{ inputs.extras }}
+        PIP_DISABLE_PIP_VERSION_CHECK: "1"
       run: |
-        python -m pip install --upgrade pip
-        pip install "agentvision[${EXTRAS}]"
-        python -m playwright install --with-deps chromium
-    - name: Run AgentVision (fails the build on a FAIL verdict)
+        python -I -m pip install --upgrade pip
+        python -I -m pip install "agentvision[${EXTRAS}]"
+        python -I -m playwright install --with-deps chromium
+    - name: Run AgentVision (gate mode fails the build on a FAIL verdict)
       shell: bash
       env:
         # Inputs come through the environment (never interpolated into the command) so a
@@ -62,8 +74,13 @@ runs:
         AV_BRIEF: ${{ inputs.brief }}
         AV_EXPECT: ${{ inputs.expect }}
         AV_ARGS: ${{ inputs.args }}
+        AV_MODE: ${{ inputs.mode }}
+        # The working directory is the (possibly untrusted) checkout: never let a planted
+        # .env redirect backends or relax sandbox/file settings.
+        AGENTVISION_DOTENV: "0"
       run: |
         set -euo pipefail
+        case "$AV_MODE" in gate|advisory) ;; *) echo "::error::mode must be gate or advisory"; exit 3 ;; esac
         cmd=( agentvision "$AV_COMMAND" "$AV_SOURCE" --backend "$AV_BACKEND" --quiet )
         [ -n "$AV_BRIEF" ] && cmd+=( --brief "$AV_BRIEF" )
         if [ -n "$AV_EXPECT" ]; then
@@ -71,5 +88,28 @@ runs:
             [ -n "$line" ] && cmd+=( --expect "$line" )
           done <<< "$AV_EXPECT"
         fi
+        out="$(mktemp)"
+        rc=0
+        # The report quotes text from the UNTRUSTED artifact. Suspend workflow-command parsing
+        # while it prints, so a page line like "::error::" or "::add-mask::" is inert.
+        stop="$(openssl rand -hex 16 2>/dev/null || od -An -tx1 -N16 /dev/urandom | tr -d ' \n')"
+        echo "::stop-commands::${stop}"
         # shellcheck disable=SC2086
-        "${cmd[@]}" $AV_ARGS
+        "${cmd[@]}" $AV_ARGS 2>&1 | tee "$out" || rc=${PIPESTATUS[0]}
+        printf '\n::%s::\n' "$stop"   # leading newline: never glued onto unterminated output
+        if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then
+          {
+            echo "### AgentVision (${AV_MODE}) · exit ${rc}"
+            echo "<pre>"
+            head -c 60000 "$out" | sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g'
+            echo "</pre>"
+          } >> "$GITHUB_STEP_SUMMARY"
+        fi
+        if [ "$AV_MODE" = "advisory" ] && [ "$rc" -ne 0 ]; then
+          label=$([ "$rc" -eq 2 ] && echo "FAIL verdict" || echo "error (exit $rc)")
+          # Encode per the workflow-command spec so the source string can't start a new command.
+          src=$(printf '%s' "$AV_SOURCE" | head -c 200 | sed -e 's/%/%25/g' | tr -d '\r' | sed -e ':a;N;$!ba;s/\n/%0A/g')
+          echo "::warning title=AgentVision advisory::${label} on ${src}; not failing the build (mode: advisory)."
+          exit 0
+        fi
+        exit "$rc"

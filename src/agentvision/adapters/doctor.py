@@ -104,7 +104,8 @@ async def run_doctor(fix: bool = False) -> bool:
 
     if fix:
         print("Installing Chromium browser …")
-        subprocess.run([sys.executable, "-m", "playwright", "install", "chromium"])
+        # -I: isolated mode, so a planted playwright/ in the cwd cannot be imported instead.
+        subprocess.run([sys.executable, "-I", "-m", "playwright", "install", "chromium"])
         print()
 
     ok = True

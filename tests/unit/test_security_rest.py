@@ -92,3 +92,34 @@ def test_serve_refuses_nonloopback_without_token(monkeypatch):
     monkeypatch.delenv("AGENTVISION_API_TOKEN", raising=False)
     with pytest.raises(SystemExit):
         rest.serve(host="0.0.0.0", port=0)
+
+
+def test_request_timeout_is_enforced(monkeypatch):
+    """Red-team R11: request_timeout_s was declared but never applied."""
+    import asyncio
+
+    pytest.importorskip("fastapi")
+    from fastapi.testclient import TestClient
+
+    import agentvision.adapters.rest as rest
+    import agentvision.core as core
+
+    async def slow(*a, **k):
+        await asyncio.sleep(5)
+
+    monkeypatch.setenv("AGENTVISION_REQUEST_TIMEOUT_S", "0.5")
+    monkeypatch.setattr(core, "check", slow)
+    client = TestClient(rest.build_app())
+    r = client.post("/check", json={"source": "<html><body>x</body></html>"})
+    assert r.status_code == 504
+
+
+def test_deadline_covers_slow_request_body(monkeypatch):
+    """Red-team R12: the deadline must be the outermost layer so a trickled body times out."""
+    pytest.importorskip("fastapi")
+    import agentvision.adapters.rest as rest
+
+    monkeypatch.setenv("AGENTVISION_REQUEST_TIMEOUT_S", "0.5")
+    app = rest.build_app()
+    # Outermost user middleware = the deadline (Starlette: last added wraps everything).
+    assert app.user_middleware[0].cls is rest._RequestDeadline
