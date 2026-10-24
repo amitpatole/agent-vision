@@ -1,0 +1,351 @@
+{
+  "label": "openai-gpt-5.4-nano",
+  "backend": "openai",
+  "model": "gpt-5.4-nano",
+  "score": {
+    "defects_flagged": "13/13",
+    "right_kind": "13/13",
+    "vision_right_kind": "11/13",
+    "clean_pass": "3/9",
+    "false_fail": "0/9",
+    "unparseable": "0/22",
+    "errors": 0,
+    "median_s": 3.91,
+    "max_s": 5.67
+  },
+  "rows": [
+    {
+      "id": "player_error",
+      "defect": "error_text",
+      "verdict": "warn",
+      "kinds": [
+        "contrast",
+        "error_text",
+        "layout",
+        "other"
+      ],
+      "n_issues": 4,
+      "unparseable": false,
+      "elapsed_s": 5.67,
+      "summary": "Page shows a large playback error banner over the player area, but the episode title and description render correctly. Minor layout/accessibility concerns: error text alignment/spacing and the player ",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "hero_low_contrast",
+      "defect": "contrast",
+      "verdict": "fail",
+      "kinds": [
+        "contrast",
+        "typo"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 4.15,
+      "summary": "Page looks mostly correct (title/subtitle/button), but there is likely missing/garbled content near the top-right and an accessibility contrast issue already noted for gray text.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "schedule_overflow",
+      "defect": "overflow",
+      "verdict": "fail",
+      "kinds": [
+        "clipped",
+        "overflow"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 3.62,
+      "summary": "The page layout is cut off on the right and appears truncated; horizontal overflow exists (already detected). Text content is partially missing/truncated, especially the rightmost time slot label.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "headline_clipped",
+      "defect": "clipped",
+      "verdict": "fail",
+      "kinds": [
+        "clipped"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 3.37,
+      "summary": "The page shows a single headline card, but the headline text is cut off due to clipping, leaving the article title incomplete.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "thumbnail_broken",
+      "defect": "broken_image",
+      "verdict": "fail",
+      "kinds": [
+        "broken_image",
+        "layout",
+        "typo"
+      ],
+      "n_issues": 5,
+      "unparseable": false,
+      "elapsed_s": 5.48,
+      "summary": "Continue watching tiles show duplicated/misaligned text, and one card title is missing due to a broken image. There is also visual misalignment/spacing between the tiles.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "badge_overlap",
+      "defect": "overlap",
+      "verdict": "fail",
+      "kinds": [
+        "other",
+        "overlap",
+        "typo"
+      ],
+      "n_issues": 4,
+      "unparseable": false,
+      "elapsed_s": 5.13,
+      "summary": "Main visible content is a \u201cLIVE NOW\u201d banner and a short description, but the header text appears cut/garbled at the left and there are major issues already noted (overlap and likely misspelling). No o",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "blank_page",
+      "defect": "blank",
+      "verdict": "fail",
+      "kinds": [
+        "blank"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 3.96,
+      "summary": "The screenshot is entirely blank/white with no visible UI or text, indicating a failed or empty render.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "typo_headline",
+      "defect": "typo",
+      "verdict": "fail",
+      "kinds": [
+        "typo"
+      ],
+      "n_issues": 8,
+      "unparseable": false,
+      "elapsed_s": 4.4,
+      "summary": "The page renders a simple news headline and subheading, but the visible text contains multiple clear spelling/garbling errors and should be corrected.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "missing_subscribe",
+      "defect": "missing_element",
+      "verdict": "fail",
+      "kinds": [
+        "intent_mismatch"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 4.0,
+      "summary": "Page renders a headline and description, but the required Subscribe button is not visible. No other clear visual/text defects detected. Intent match: 0/1 requirement(s) satisfied.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "missing_subscribe_quoted",
+      "defect": "missing_element",
+      "verdict": "fail",
+      "kinds": [
+        "intent_mismatch"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 3.37,
+      "summary": "The page renders the headline and description, but the required \u201cSubscribe\u201d button is not visible. Intent match: 0/1 requirement(s) satisfied.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "svg_label_clipped",
+      "defect": "clipped",
+      "verdict": "fail",
+      "kinds": [
+        "clipped",
+        "typo"
+      ],
+      "n_issues": 4,
+      "unparseable": false,
+      "elapsed_s": 3.72,
+      "summary": "The chart area has visible text/canvas issues (cut-off label) and likely a misspelled category label. Layout otherwise appears simple and uncluttered.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "social_typo",
+      "defect": "typo",
+      "verdict": "fail",
+      "kinds": [
+        "layout",
+        "typo"
+      ],
+      "n_issues": 5,
+      "unparseable": false,
+      "elapsed_s": 2.66,
+      "summary": "The main text contains visible spelling/garbled words (\u201cPremeire\u201d, \u201cseasn\u201d). Layout otherwise appears clean with good contrast.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "social_low_contrast",
+      "defect": "contrast",
+      "verdict": "fail",
+      "kinds": [
+        "contrast",
+        "layout"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 2.66,
+      "summary": "The page shows extremely low-contrast/washed-out text (white-on-white/light gray), making the main headline and subtext hard to read. Layout appears overly sparse with large empty space and a small un",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "player_ok",
+      "defect": null,
+      "verdict": "warn",
+      "kinds": [
+        "contrast",
+        "layout",
+        "missing_element"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 4.52,
+      "summary": "Layout looks mostly consistent, but the video area appears blank/unstyled (no thumbnail/control styling mismatch), leaving a large empty space and a small, incomplete-looking control bar. Text element",
+      "clean_pass": false,
+      "false_fail": false
+    },
+    {
+      "id": "hero_ok",
+      "defect": null,
+      "verdict": "warn",
+      "kinds": [
+        "typo"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 3.8,
+      "summary": "The page shows a simple hero section with heading, supporting copy, and a CTA button. However, there appears to be extraneous/garbled text (\u201cSTU\u201d) at the top-right area, which likely indicates leftove",
+      "clean_pass": false,
+      "false_fail": false
+    },
+    {
+      "id": "schedule_ok",
+      "defect": null,
+      "verdict": "warn",
+      "kinds": [
+        "layout"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 4.02,
+      "summary": "Page layout and content are mostly correct, but the schedule grid looks sparsely filled relative to the visible title OCR text, suggesting an item may be missing or not displayed as intended. (1 visio",
+      "clean_pass": false,
+      "false_fail": false
+    },
+    {
+      "id": "headline_ok",
+      "defect": null,
+      "verdict": "warn",
+      "kinds": [
+        "layout"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 4.02,
+      "summary": "The page renders a small bordered card in the top-left with readable text, but there is a large amount of empty space and the headline wraps awkwardly, leaving a dangling line. No obvious broken asset",
+      "clean_pass": false,
+      "false_fail": false
+    },
+    {
+      "id": "carousel_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [
+        "other"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 3.91,
+      "summary": "The page layout looks generally correct, but the main content appears very sparse (only a section header and three tiles), which may indicate missing UI elements. No obvious text typos are visible. (1",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "subscribe_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 3.17,
+      "summary": "Layout is clean and readable; the Subscribe button is visible as required. No visible typos, clipping, broken assets, or overlap detected. Intent match: 1/1 requirement(s) satisfied.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "subscribe_ok_quoted",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 3.37,
+      "summary": "The page displays the expected headline, description, and a visible \u201cSubscribe\u201d button with no apparent layout, clipping, or text issues. Intent match: 1/1 requirement(s) satisfied.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "chart_ok",
+      "defect": null,
+      "verdict": "warn",
+      "kinds": [
+        "intent_mismatch"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 3.34,
+      "summary": "The page renders a simple bar chart with correct title and labels, but there is extra unused space and the chart has no visible axis/totals/legend, which may make the visualization incomplete dependin",
+      "clean_pass": false,
+      "false_fail": false
+    },
+    {
+      "id": "social_ok",
+      "defect": null,
+      "verdict": "warn",
+      "kinds": [
+        "intent_mismatch",
+        "layout",
+        "missing_element"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 2.86,
+      "summary": "The layout renders a simple headline block on a white background, but it looks incomplete/placeholder-like: there is no supporting content visible besides the text and a small underline, suggesting mi",
+      "clean_pass": false,
+      "false_fail": false
+    }
+  ]
+}

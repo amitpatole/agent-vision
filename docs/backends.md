@@ -7,8 +7,8 @@ each, via per-provider schema adapters.
 |---|---|---|---|
 | `local` | (base) | none | Structural/heuristic only. No egress. Always available. |
 | `anthropic` | `[anthropic]` | `ANTHROPIC_API_KEY` | Default. Model `claude-haiku-4-5`. |
-| `openai` | `[openai]` | `OPENAI_API_KEY` | Strict `json_schema` structured output. |
-| `gemini` | `[gemini]` | `GOOGLE_API_KEY` | `response_schema` structured output. |
+| `openai` | `[openai]` | `OPENAI_API_KEY` | Strict `json_schema` structured output. Default `gpt-5.4-mini`. |
+| `gemini` | `[gemini]` | `GOOGLE_API_KEY` | `response_schema` structured output. Default `gemini-3.5-flash-lite`. |
 | `ollama` | `[openai]` | cloud: `OLLAMA_API_KEY` · self-hosted: none | OSS multimodal models via Ollama (self-hosted **or** Ollama Cloud). Default `kimi-k2.7-code`. Tolerant JSON parsing; an unparseable or cut-off reply grades WARN, never PASS. |
 
 ### Ollama
@@ -69,20 +69,26 @@ Defaults are config-overridable:
 
 ```bash
 export AGENTVISION_ANTHROPIC_MODEL=claude-sonnet-4-6   # or claude-opus-4-8
-export AGENTVISION_OPENAI_MODEL=gpt-4o
-export AGENTVISION_GEMINI_MODEL=gemini-2.0-flash
+export AGENTVISION_OPENAI_MODEL=gpt-5.5
+export AGENTVISION_GEMINI_MODEL=gemini-3.5-flash-lite
 ```
+
+The OpenAI and Gemini defaults are the models that led their provider in the
+[pilot benchmark](pilot.md#hosted-providers) over three runs. Each call allows 8192 completion
+tokens (`AGENTVISION_OPENAI_MAX_TOKENS`, `AGENTVISION_GEMINI_MAX_TOKENS`), because newer models
+reason before they answer and that comes out of the same budget. A reply cut off at the limit
+raises an error naming the setting to raise.
 
 The Anthropic default is **Haiku** because `analyze` runs frequently inside the loop;
 upgrade to Sonnet/Opus for harder visual judgments.
 
 !!! note "Intent-checklist grading wants a stronger vision model"
-    The small/cheap default models (e.g. OpenAI `gpt-4o-mini`) are tuned for the fast in-loop
+    Small, cheap models are tuned for the fast in-loop
     `analyze` pass, and on a **detailed intent checklist** they can produce *self-contradictory*
     findings on a clean artifact — passing "no clipped text" and then flagging clipped text on the
     same image, or calling a plainly light background "not light." When you grade against a
     `--brief`/`--expect` checklist (conformance), prefer a stronger model
-    (`AGENTVISION_OPENAI_MODEL=gpt-4o`, `AGENTVISION_ANTHROPIC_MODEL=claude-sonnet-4-6`). AgentVision
+    (`AGENTVISION_OPENAI_MODEL=gpt-5.5`, `AGENTVISION_ANTHROPIC_MODEL=claude-sonnet-4-6`). AgentVision
     already suppresses a vision "missing"/intent claim that DOM/OCR **proves** is present, so the
     deterministic ground truth overrules a weak model where it can — but a purely visual judgment
     is only as reliable as the model making it.

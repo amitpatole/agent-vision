@@ -1,0 +1,326 @@
+{
+  "label": "openai-gpt-5.5",
+  "backend": "openai",
+  "model": "gpt-5.5",
+  "score": {
+    "defects_flagged": "13/13",
+    "right_kind": "13/13",
+    "vision_right_kind": "3/13",
+    "clean_pass": "9/9",
+    "false_fail": "0/9",
+    "unparseable": "0/22",
+    "errors": 0,
+    "median_s": 6.43,
+    "max_s": 12.04
+  },
+  "rows": [
+    {
+      "id": "player_error",
+      "defect": "error_text",
+      "verdict": "warn",
+      "kinds": [
+        "error_text"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 8.95,
+      "summary": "The page has a visible playback/region error already noted in the provided findings. I found no additional distinct visual or text defects beyond that.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "hero_low_contrast",
+      "defect": "contrast",
+      "verdict": "fail",
+      "kinds": [
+        "contrast"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 9.92,
+      "summary": "No additional visible defects found beyond the already-detected low-contrast body text issue.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "schedule_overflow",
+      "defect": "overflow",
+      "verdict": "fail",
+      "kinds": [
+        "clipped",
+        "overflow"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 11.42,
+      "summary": "The schedule row is visibly cut off at the right edge; the final program's time and title are only partially visible.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "headline_clipped",
+      "defect": "clipped",
+      "verdict": "warn",
+      "kinds": [
+        "clipped"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 8.34,
+      "summary": "No additional visual or text defects found beyond the already-detected clipped headline.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "thumbnail_broken",
+      "defect": "broken_image",
+      "verdict": "fail",
+      "kinds": [
+        "broken_image",
+        "layout",
+        "typo"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 12.04,
+      "summary": "The page has a visible broken middle card and the grid layout does not preserve a consistent poster/card size for that item.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "badge_overlap",
+      "defect": "overlap",
+      "verdict": "warn",
+      "kinds": [
+        "overlap",
+        "typo"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 8.26,
+      "summary": "No additional defects found beyond the already-detected overlapping LIVE NOW badge and garbled/misspelled title text; those visible issues are sufficient to fail the artifact.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "blank_page",
+      "defect": "blank",
+      "verdict": "fail",
+      "kinds": [
+        "blank"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 3.43,
+      "summary": "The screenshot is a completely blank white page; no additional visual details are present beyond the already-detected blank render.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "typo_headline",
+      "defect": "typo",
+      "verdict": "fail",
+      "kinds": [
+        "typo"
+      ],
+      "n_issues": 4,
+      "unparseable": false,
+      "elapsed_s": 6.43,
+      "summary": "The page is visually clean with no layout, overflow, contrast, or clipping problems observed, but the already-detected spelling errors are visible and should be fixed before shipping. No additional is",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "missing_subscribe",
+      "defect": "missing_element",
+      "verdict": "fail",
+      "kinds": [
+        "intent_mismatch"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 5.38,
+      "summary": "The page displays the newsletter title and description, but the required Subscribe button is missing. Intent match: 0/1 requirement(s) satisfied.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "missing_subscribe_quoted",
+      "defect": "missing_element",
+      "verdict": "fail",
+      "kinds": [
+        "intent_mismatch"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 3.56,
+      "summary": "The page displays the briefing heading and description, but the required Subscribe button is not visible. Intent match: 0/1 requirement(s) satisfied.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "svg_label_clipped",
+      "defect": "clipped",
+      "verdict": "fail",
+      "kinds": [
+        "clipped",
+        "typo"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 10.26,
+      "summary": "The screenshot has the already-detected clipped/garbled first genre label, but I do not see additional distinct visual or text defects beyond those findings.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "social_typo",
+      "defect": "typo",
+      "verdict": "fail",
+      "kinds": [
+        "typo"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 7.19,
+      "summary": "The image has the already-detected spelling errors; I found no additional visual, layout, or text defects beyond those grounded findings.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "social_low_contrast",
+      "defect": "contrast",
+      "verdict": "fail",
+      "kinds": [
+        "contrast"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 6.7,
+      "summary": "The layout is clean, but all visible text is extremely low contrast against the white background, making the promo difficult to read.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "player_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 6.21,
+      "summary": "The rendered page appears visually sound: video player, controls, title, and description are readable and laid out without visible clipping, overlap, or text errors.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "hero_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 5.39,
+      "summary": "The rendered page appears visually correct: heading, descriptive text, and call-to-action button are readable, aligned, and not clipped or overlapping.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "schedule_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 4.07,
+      "summary": "The schedule page is visually clean and readable. All listed programs and times are visible, aligned in a consistent grid, with no apparent clipping, overlap, broken elements, or text errors.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "headline_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 5.76,
+      "summary": "The rendered card is readable with no visible layout, clipping, contrast, or text defects.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "carousel_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 5.04,
+      "summary": "The page renders cleanly with a clear heading and three continue-watching items. No visible layout, clipping, contrast, typo, or broken-image defects are apparent.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "subscribe_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 3.54,
+      "summary": "The page renders cleanly and the required Subscribe button is visible. No visual or text defects found. Intent match: 1/1 requirement(s) satisfied.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "subscribe_ok_quoted",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 4.0,
+      "summary": "The page is clean and the required Subscribe button is visible. No visual or text defects observed. Intent match: 1/1 requirement(s) satisfied.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "chart_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 6.65,
+      "summary": "The chart renders cleanly with readable title, labels, and bars. No visible layout, clipping, overlap, contrast, or text defects were found.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "social_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 5.68,
+      "summary": "The rendered image appears clean: text is readable, well-spaced, and not clipped or overlapping. No clear visual or text defects are visible.",
+      "clean_pass": true,
+      "false_fail": false
+    }
+  ]
+}

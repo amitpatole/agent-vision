@@ -63,7 +63,8 @@ class OpenAIBackend:
         try:
             resp = await client.chat.completions.create(
                 model=model,
-                max_tokens=2048,
+                # GPT-5+ rejects max_tokens; max_completion_tokens works on every chat model.
+                max_completion_tokens=self.settings.openai_max_tokens,
                 response_format=openai_response_format(),
                 messages=[
                     {"role": "system", "content": SYSTEM_PROMPT},
@@ -80,6 +81,9 @@ class OpenAIBackend:
             await client.close()
 
         elapsed = int((time.monotonic() - t0) * 1000)
+        if getattr(resp.choices[0], "finish_reason", None) == "length":
+            raise BackendError(
+                "OpenAI reply was cut off at the token limit; raise AGENTVISION_OPENAI_MAX_TOKENS.")
         content = resp.choices[0].message.content or "{}"
         try:
             findings = VisionFindings.model_validate(json.loads(content))
@@ -101,7 +105,7 @@ class OpenAIBackend:
         try:
             resp = await client.chat.completions.create(
                 model=self.settings.openai_model,
-                max_tokens=1024,
+                max_completion_tokens=self.settings.openai_max_tokens,
                 messages=[
                     {"role": "system", "content": system},
                     {"role": "user", "content": user},

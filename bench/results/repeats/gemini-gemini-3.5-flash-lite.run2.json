@@ -1,0 +1,324 @@
+{
+  "label": "gemini-gemini-3.5-flash-lite",
+  "backend": "gemini",
+  "model": "gemini-3.5-flash-lite",
+  "score": {
+    "defects_flagged": "13/13",
+    "right_kind": "13/13",
+    "vision_right_kind": "12/13",
+    "clean_pass": "9/9",
+    "false_fail": "0/9",
+    "unparseable": "0/22",
+    "errors": 0,
+    "median_s": 4.15,
+    "max_s": 9.15
+  },
+  "rows": [
+    {
+      "id": "player_error",
+      "defect": "error_text",
+      "verdict": "warn",
+      "kinds": [
+        "error_text"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 7.93,
+      "summary": "The video player interface renders correctly with the title, description, and player controls matching the expected layout without any defects.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "hero_low_contrast",
+      "defect": "contrast",
+      "verdict": "fail",
+      "kinds": [
+        "contrast"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 4.87,
+      "summary": "The subtitle text has severe low-contrast issues making it nearly unreadable against the white background.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "schedule_overflow",
+      "defect": "overflow",
+      "verdict": "fail",
+      "kinds": [
+        "overflow",
+        "typo"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 6.61,
+      "summary": "The TV schedule grid overflows horizontally, cutting off the text in the 20:00 block ('Dra' instead of Drama) and causing layout issues.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "headline_clipped",
+      "defect": "clipped",
+      "verdict": "fail",
+      "kinds": [
+        "clipped"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 3.96,
+      "summary": "The headline text is cut off abruptly at the end ('faster than') and is incompletely rendered inside a clipped container.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "thumbnail_broken",
+      "defect": "broken_image",
+      "verdict": "fail",
+      "kinds": [
+        "broken_image"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 4.09,
+      "summary": "The 'Continue watching' section contains a broken image for 'Quiz Night' with a missing source file, causing a broken image icon to appear instead of the poster artwork.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "badge_overlap",
+      "defect": "overlap",
+      "verdict": "fail",
+      "kinds": [
+        "overlap",
+        "typo"
+      ],
+      "n_issues": 4,
+      "unparseable": false,
+      "elapsed_s": 4.91,
+      "summary": "The UI contains a serious text overlap and rendering issue where the red 'LIVE NOW' badge completely covers the beginning of the title text, resulting in unreadable garbled text ('Elyaepht results spe",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "blank_page",
+      "defect": "blank",
+      "verdict": "fail",
+      "kinds": [
+        "blank"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 4.11,
+      "summary": "The rendered page is completely blank, indicating a failed render or empty application.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "typo_headline",
+      "defect": "typo",
+      "verdict": "fail",
+      "kinds": [
+        "typo"
+      ],
+      "n_issues": 8,
+      "unparseable": false,
+      "elapsed_s": 5.01,
+      "summary": "The page contains multiple spelling errors in the heading and subheading ('Brekaing', 'Goverment', 'anounces', 'houshold').",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "missing_subscribe",
+      "defect": "missing_element",
+      "verdict": "fail",
+      "kinds": [
+        "intent_mismatch"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 4.15,
+      "summary": "The page displays a title and subtitle for 'The Morning Briefing', but is completely missing the required Subscribe button. Intent match: 0/1 requirement(s) satisfied.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "missing_subscribe_quoted",
+      "defect": "missing_element",
+      "verdict": "fail",
+      "kinds": [
+        "intent_mismatch"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 4.59,
+      "summary": "The page only contains a header and subtitle, but is completely missing the required Subscribe button. Intent match: 0/1 requirement(s) satisfied.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "svg_label_clipped",
+      "defect": "clipped",
+      "verdict": "fail",
+      "kinds": [
+        "clipped",
+        "typo"
+      ],
+      "n_issues": 4,
+      "unparseable": false,
+      "elapsed_s": 4.64,
+      "summary": "The horizontal bar chart has significant layout and text clipping issues. The category label 'Documentary and Factual' is heavily clipped on the left edge by the SVG viewport boundary, showing only 'e",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "social_typo",
+      "defect": "typo",
+      "verdict": "fail",
+      "kinds": [
+        "typo"
+      ],
+      "n_issues": 4,
+      "unparseable": false,
+      "elapsed_s": 2.29,
+      "summary": "The image contains multiple spelling errors ('Premeire' and 'seasn').",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "social_low_contrast",
+      "defect": "contrast",
+      "verdict": "fail",
+      "kinds": [
+        "contrast"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 2.36,
+      "summary": "The text on the page has very poor contrast against the white background, making it extremely difficult or impossible to read. Additionally, there is a spelling typo ('Premiere' should likely be 'Prem",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "player_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 4.11,
+      "summary": "The video player interface, title, and description render cleanly with correct layout, typography, and no visible defects.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "hero_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 4.52,
+      "summary": "The rendered page looks clean, correctly aligned, and matches the expected simple promotional banner layout without any visual defects or typos.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "schedule_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 4.91,
+      "summary": "The page displays the TV schedule for Channel 4 clearly with properly formatted cards and correct text alignment.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "headline_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 3.96,
+      "summary": "The rendered card displays correctly with no visual defects, correct typography, and proper layout.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "carousel_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 3.99,
+      "summary": "The page displays the 'Continue watching' section with three placeholder video cards correctly aligned and labeled 'Harbour', 'Quiz Night', and 'Late News' without any visual defects.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "subscribe_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 3.88,
+      "summary": "The page successfully renders the header, description, and Subscribe button as required. Intent match: 1/1 requirement(s) satisfied.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "subscribe_ok_quoted",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 3.95,
+      "summary": "The page renders correctly with the required header, subtitle, and subscribe button. Intent match: 1/1 requirement(s) satisfied.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "chart_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 9.15,
+      "summary": "The chart rendered successfully with proper labels and horizontal bars for audience share by genre. The layout and visual presentation are clean and correct.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "social_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 2.1,
+      "summary": "The rendered text and layout are clean, readable, and properly aligned without any visual defects or typos.",
+      "clean_pass": true,
+      "false_fail": false
+    }
+  ]
+}

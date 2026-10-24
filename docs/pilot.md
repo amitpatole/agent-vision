@@ -92,7 +92,7 @@ Use the GitHub Action in advisory mode. It never fails the build. A FAIL or an e
 warning annotation, and the full report goes to the job summary:
 
 ```yaml
-- uses: amitpatole/agent-vision@v0.14.0
+- uses: amitpatole/agent-vision@v0.15.0
   with:
     source: dist/newsletter.html
     command: check
@@ -191,9 +191,40 @@ What the numbers say:
 - **Neither layer catches low-contrast text baked into a social-card PNG.** Raster contrast is
   a known gap today.
 
+### Hosted providers
+
+The OpenAI and Gemini backends were measured on 2026-10-24 against the same corpus, after the
+0.15.0 fixes. Before those fixes the OpenAI backend could not call any GPT-5 or later model,
+and the Gemini default `gemini-2.0-flash` had been withdrawn.
+
+| Backend | Defects flagged | Right issue kind | Found by the model itself | Clean pages passed | Clean pages falsely failed | Errors | Median time |
+|---|---|---|---|---|---|---|---|
+| **`gpt-5.4-mini`** (3 runs) | **39 of 39** | 39 of 39 | 27 of 39 | **27 of 27** | 0 of 27 | 0 of 66 | 3.9 s |
+| **`gemini-3.5-flash-lite`** (3 runs) | **39 of 39** | 39 of 39 | **35 of 39** | 26 of 27 | 1 of 27 | 0 of 66 | 4.2 s |
+| `gpt-5.5` | 13 of 13 | 13 of 13 | 3 of 13 | 9 of 9 | 0 of 9 | 0 of 22 | 6.4 s |
+| `gpt-5.6-luna` | 13 of 13 | 13 of 13 | 3 of 13 | 9 of 9 | 0 of 9 | 0 of 22 | 5.3 s |
+| `gpt-6-luna` | 13 of 13 | 13 of 13 | 3 of 13 | 8 of 9 | 0 of 9 | 0 of 22 | 6.4 s |
+| `gpt-6.1-sol` | 12 of 13 | 12 of 13 | 2 of 13 | 8 of 9 | 0 of 9 | 1 of 22 | 5.6 s |
+| `gpt-5.4-nano` | 13 of 13 | 13 of 13 | 11 of 13 | 3 of 9 | 0 of 9 | 0 of 22 | 3.9 s |
+| `gemini-3.1-flash-lite` | 13 of 13 | 13 of 13 | 12 of 13 | 6 of 9 | 1 of 9 | 1 of 22 | 7.9 s |
+| `gpt-4o-mini` (old default) | 12 of 13 | 12 of 13 | 12 of 13 | 6 of 9 | 3 of 9 | 0 of 22 | 4.0 s |
+
+- **The new defaults are the best of each provider.** `gpt-5.4-mini` passed every clean page
+  on all three runs. `gemini-3.5-flash-lite` found 35 of 39 defects on its own, more than any
+  other default.
+- **Bigger models are not better graders here.** `gpt-5.5`, `gpt-5.6-luna` and the GPT-6 models
+  pass clean pages but leave nearly all the finding to the deterministic checks. `gpt-6.1-sol`
+  also ran out of its 8192-token budget once, which the report states as an error.
+- **The old OpenAI default fails a third of clean pages.** `gpt-4o-mini` falsely failed 3 of 9.
+- **Larger Gemini models were not measured.** The test key is on Google's free tier, which
+  allows 20 requests a day for `gemini-3.8-flash` and none for `gemini-3.1-pro-preview` or
+  `gemini-4-argon`. Those runs hit the quota and are not reported.
+- **Anthropic was not measured.** No Anthropic key was available, so the `claude-haiku-4-5`
+  default is unverified in this release.
+
 **Recommendation for the pilot:** run `check` (deterministic) everywhere. Add `analyze` on
 surfaces where layout judgement matters. If screenshots may leave your network, use Ollama Cloud
-with the default `kimi-k2.7-code`. If they may not, use `qwen2.5vl:7b` on your own GPU, the
+with the default `kimi-k2.7-code`, or the OpenAI or Gemini defaults, which scored about the same. If they may not, use `qwen2.5vl:7b` on your own GPU, the
 best self-hosted option here. Quote every required text.
 
 ## Acceptance criteria

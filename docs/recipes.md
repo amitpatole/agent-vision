@@ -12,7 +12,7 @@ agentvision check dist/index.html --full-page --quiet
 Or as a [GitHub Action](integrations.md#in-your-ci-workflow):
 
 ```yaml
-- uses: amitpatole/agent-vision@v0.14.0
+- uses: amitpatole/agent-vision@v0.15.0
   with: { source: dist/index.html, command: check, args: --full-page }
 ```
 

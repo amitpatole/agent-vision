@@ -1,0 +1,326 @@
+{
+  "label": "openai-gpt-5.4-mini",
+  "backend": "openai",
+  "model": "gpt-5.4-mini",
+  "score": {
+    "defects_flagged": "13/13",
+    "right_kind": "13/13",
+    "vision_right_kind": "11/13",
+    "clean_pass": "9/9",
+    "false_fail": "0/9",
+    "unparseable": "0/22",
+    "errors": 0,
+    "median_s": 3.56,
+    "max_s": 4.74
+  },
+  "rows": [
+    {
+      "id": "player_error",
+      "defect": "error_text",
+      "verdict": "warn",
+      "kinds": [
+        "error_text"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 4.74,
+      "summary": "The page renders, but the video area is blocked by a playback error instead of showing content.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "hero_low_contrast",
+      "defect": "contrast",
+      "verdict": "fail",
+      "kinds": [
+        "contrast",
+        "typo"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 3.76,
+      "summary": "The page renders cleanly overall, but the subheadline is very low contrast and there is a visible OCR/text mismatch suggesting garbled text in the hero area.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "schedule_overflow",
+      "defect": "overflow",
+      "verdict": "fail",
+      "kinds": [
+        "clipped",
+        "overflow",
+        "typo"
+      ],
+      "n_issues": 4,
+      "unparseable": false,
+      "elapsed_s": 3.87,
+      "summary": "The TV schedule renders, but the rightmost program column is cut off and the final time label is truncated.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "headline_clipped",
+      "defect": "clipped",
+      "verdict": "warn",
+      "kinds": [
+        "clipped"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 3.56,
+      "summary": "The page mostly renders correctly, but the headline is visibly truncated/cut off on the right edge of its container.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "thumbnail_broken",
+      "defect": "broken_image",
+      "verdict": "fail",
+      "kinds": [
+        "broken_image"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 3.89,
+      "summary": "The page mostly renders correctly, but there is an additional broken poster placeholder visible in the first row and the title text appears duplicated next to it.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "badge_overlap",
+      "defect": "overlap",
+      "verdict": "fail",
+      "kinds": [
+        "overlap",
+        "typo"
+      ],
+      "n_issues": 4,
+      "unparseable": false,
+      "elapsed_s": 4.11,
+      "summary": "The headline text is visibly corrupted and the live badge overlaps it, making the hero area incorrect.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "blank_page",
+      "defect": "blank",
+      "verdict": "fail",
+      "kinds": [
+        "blank"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 3.08,
+      "summary": "The render appears completely blank with no visible UI, content, or controls.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "typo_headline",
+      "defect": "typo",
+      "verdict": "fail",
+      "kinds": [
+        "typo"
+      ],
+      "n_issues": 8,
+      "unparseable": false,
+      "elapsed_s": 4.22,
+      "summary": "The page renders cleanly, but the headline and body contain multiple visible spelling errors that need correction.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "missing_subscribe",
+      "defect": "missing_element",
+      "verdict": "fail",
+      "kinds": [
+        "intent_mismatch"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 4.5,
+      "summary": "The page shows the newsletter title and description, but no visible Subscribe button as required. Intent match: 0/1 requirement(s) satisfied.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "missing_subscribe_quoted",
+      "defect": "missing_element",
+      "verdict": "fail",
+      "kinds": [
+        "intent_mismatch"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 3.47,
+      "summary": "The page renders the Morning Briefing heading and description, but the required Subscribe button is not visible. Intent match: 0/1 requirement(s) satisfied.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "svg_label_clipped",
+      "defect": "clipped",
+      "verdict": "fail",
+      "kinds": [
+        "clipped",
+        "typo"
+      ],
+      "n_issues": 4,
+      "unparseable": false,
+      "elapsed_s": 4.23,
+      "summary": "The chart is visible, but the first category label is clipped and rendered with a text typo/garble.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "social_typo",
+      "defect": "typo",
+      "verdict": "fail",
+      "kinds": [
+        "typo"
+      ],
+      "n_issues": 4,
+      "unparseable": false,
+      "elapsed_s": 2.32,
+      "summary": "The layout is clean overall, but there are visible text spelling errors that should be corrected before shipping.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "social_low_contrast",
+      "defect": "contrast",
+      "verdict": "warn",
+      "kinds": [
+        "contrast"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 2.22,
+      "summary": "The banner is mostly clean, but the headline and supporting text are extremely low-contrast on the white background, making the content hard to read.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "player_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 3.83,
+      "summary": "The page renders cleanly with the expected title, description, and video player controls visible; no obvious layout, text, or rendering defects are present.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "hero_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 3.49,
+      "summary": "The page renders cleanly with the headline, supporting text, and CTA button visible and correctly laid out. No clear visual defects were found.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "schedule_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 3.44,
+      "summary": "The Channel 4 schedule page renders cleanly with no visible layout, overflow, clipping, or text defects.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "headline_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 3.49,
+      "summary": "The page renders cleanly with the headline and subheadline visible and no obvious layout, overflow, or text defects.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "carousel_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 3.46,
+      "summary": "The page renders cleanly with the expected heading and three continue-watching cards; no visible layout, clipping, or text defects.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "subscribe_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 3.48,
+      "summary": "The page renders cleanly with the required Subscribe button visible and no obvious layout or text defects. Intent match: 1/1 requirement(s) satisfied.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "subscribe_ok_quoted",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 3.84,
+      "summary": "The page renders cleanly and the required Subscribe button is visible. No clear visual defects or text issues found. Intent match: 1/1 requirement(s) satisfied.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "chart_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 3.42,
+      "summary": "The chart renders cleanly with the title and three genre bars visible; no clear layout, text, or rendering defects are apparent.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "social_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 1.99,
+      "summary": "The artwork renders cleanly with the headline, subheading, and footer line all visible and readable. No clear layout, clipping, or text defects found.",
+      "clean_pass": true,
+      "false_fail": false
+    }
+  ]
+}

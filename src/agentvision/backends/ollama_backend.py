@@ -180,7 +180,7 @@ class OllamaBackend:
         try:
             resp = await client.chat.completions.create(
                 model=self.settings.ollama_model,
-                max_tokens=1024,
+                max_tokens=self.settings.ollama_max_tokens,
                 messages=[
                     {"role": "system", "content": system},
                     {"role": "user", "content": user},

@@ -13,11 +13,13 @@ settings = load_settings(vision_backend='anthropic', settle_ms=800)
 |---|---|---|---|
 | `vision_backend` | `AGENTVISION_VISION_BACKEND` |  | anthropic\|openai\|gemini\|local |
 | `anthropic_model` | `AGENTVISION_ANTHROPIC_MODEL` | `'claude-haiku-4-5'` |  |
-| `openai_model` | `AGENTVISION_OPENAI_MODEL` | `'gpt-4o-mini'` |  |
-| `gemini_model` | `AGENTVISION_GEMINI_MODEL` | `'gemini-2.0-flash'` |  |
+| `openai_model` | `AGENTVISION_OPENAI_MODEL` | `'gpt-5.4-mini'` | Led the OpenAI [benchmark](pilot.md#hosted-providers). The old default `gpt-4o-mini` shuts down on 2027-01-14. |
+| `gemini_model` | `AGENTVISION_GEMINI_MODEL` | `'gemini-3.5-flash-lite'` | Led the Gemini [benchmark](pilot.md#hosted-providers). The old default `gemini-2.0-flash` now returns 404. |
 | `ollama_model` | `AGENTVISION_OLLAMA_MODEL` | `'kimi-k2.7-code'` | Led the Ollama Cloud [benchmark](pilot.md#benchmark). The old default `gemma3:27b` was retired from Ollama Cloud on 2026-07-15. On a self-hosted server, set a model you have pulled. |
 | `ollama_base_url` | `AGENTVISION_OLLAMA_BASE_URL` | `'https://ollama.com/v1'` | Ollama Cloud by default. Any other host (e.g. `http://localhost:11434/v1`) is treated as **self-hosted**: no key needed, and the cloud key is never sent to it. |
 | `ollama_max_tokens` | `AGENTVISION_OLLAMA_MAX_TOKENS` | `8192` | Completion budget for one Ollama grading call (256 to 65536). Thinking models spend part of it on reasoning. A reply cut off at this limit grades WARN with a message saying so, never PASS. |
+| `openai_max_tokens` | `AGENTVISION_OPENAI_MAX_TOKENS` | `8192` | Completion budget for one OpenAI call, sent as `max_completion_tokens` (GPT-5 and later reject `max_tokens`). A reply cut off at this limit raises an error that says so. |
+| `gemini_max_tokens` | `AGENTVISION_GEMINI_MAX_TOKENS` | `8192` | Output budget for one Gemini call. Thinking tokens count against it. A reply cut off at this limit raises an error that says so. |
 | `anthropic_api_key` | `ANTHROPIC_API_KEY` |  | Provider API key *(secret — never logged)* |
 | `openai_api_key` | `OPENAI_API_KEY` |  | Provider API key *(secret — never logged)* |
 | `google_api_key` | `GOOGLE_API_KEY` |  | Provider API key *(secret — never logged)* |

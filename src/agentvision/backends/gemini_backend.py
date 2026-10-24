@@ -63,7 +63,7 @@ class GeminiBackend:
                     system_instruction=SYSTEM_PROMPT,
                     response_mime_type="application/json",
                     response_schema=VisionFindings,
-                    max_output_tokens=2048,
+                    max_output_tokens=self.settings.gemini_max_tokens,
                 ),
             )
         except genai.errors.ClientError as e:
@@ -75,6 +75,10 @@ class GeminiBackend:
             raise BackendError(f"Gemini API error: {e}") from e
 
         elapsed = int((time.monotonic() - t0) * 1000)
+        cands = getattr(resp, "candidates", None) or []
+        if cands and "MAX_TOKENS" in str(getattr(cands[0], "finish_reason", "")):
+            raise BackendError(
+                "Gemini reply was cut off at the token limit; raise AGENTVISION_GEMINI_MAX_TOKENS.")
         findings = getattr(resp, "parsed", None)
         if not isinstance(findings, VisionFindings):
             try:
@@ -99,7 +103,7 @@ class GeminiBackend:
                 model=self.settings.gemini_model,
                 contents=[user],
                 config=types.GenerateContentConfig(
-                    system_instruction=system, max_output_tokens=1024
+                    system_instruction=system, max_output_tokens=self.settings.gemini_max_tokens
                 ),
             )
         except genai.errors.ClientError as e:

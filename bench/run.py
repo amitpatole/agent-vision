@@ -93,6 +93,8 @@ async def main_run(a) -> None:
     overrides = {"ephemeral": True}
     if a.backend == "ollama":
         overrides.update(ollama_model=a.model, ollama_base_url=a.base_url)
+    elif a.backend in ("openai", "gemini", "anthropic"):
+        overrides[f"{a.backend}_model"] = a.model
     settings = load_settings(**overrides)
     rows = []
     for c in cases:
