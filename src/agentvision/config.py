@@ -24,8 +24,10 @@ APP_NAME = "agentvision"
 # `analyze` runs frequently inside the loop; users can upgrade via config/env.
 DEFAULT_MODELS = {
     "anthropic": "claude-haiku-4-5",
-    "openai": "gpt-4o-mini",
-    "gemini": "gemini-2.0-flash",
+    # gpt-4o-mini shuts down 2027-01-14 and gemini-2.0-flash already returns 404. Both
+    # replacements led their provider in the bench/ sweep over three runs each.
+    "openai": "gpt-5.4-mini",
+    "gemini": "gemini-3.5-flash-lite",
     # gemma3:27b was retired from Ollama Cloud on 2026-07-15; kimi-k2.7-code led the bench/
     # cloud sweep (3 runs: every defect flagged, no clean page failed, no unparseable reply).
     "ollama": "kimi-k2.7-code",
@@ -68,6 +70,10 @@ class Settings(BaseSettings):
     # Thinking models spend part of the completion budget on reasoning; 2048 cut kimi-k2.7-code
     # off mid-JSON on busy pages. A cut-off reply still grades WARN, never PASS.
     ollama_max_tokens: int = Field(default=8192, ge=256, le=65536)
+    # Same reason for the hosted providers: GPT-5+ and Gemini 2.5+ reason before answering, and
+    # that comes out of the completion budget.
+    openai_max_tokens: int = Field(default=8192, ge=256, le=65536)
+    gemini_max_tokens: int = Field(default=8192, ge=256, le=65536)
 
     # Provider credentials (conventional names; never logged/persisted)
     anthropic_api_key: str | None = Field(default=None, validation_alias="ANTHROPIC_API_KEY")

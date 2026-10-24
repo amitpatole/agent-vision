@@ -1,0 +1,318 @@
+{
+  "label": "openai-gpt-6.1-sol",
+  "backend": "openai",
+  "model": "gpt-6.1-sol",
+  "score": {
+    "defects_flagged": "12/13",
+    "right_kind": "12/13",
+    "vision_right_kind": "2/13",
+    "clean_pass": "8/9",
+    "false_fail": "0/9",
+    "unparseable": "0/22",
+    "errors": 1,
+    "median_s": 5.58,
+    "max_s": 80.41
+  },
+  "rows": [
+    {
+      "id": "player_error",
+      "defect": "error_text",
+      "verdict": "warn",
+      "kinds": [
+        "error_text"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 7.57,
+      "summary": "The already-detected playback error remains visible. No additional layout, readability, or text defects were found.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "hero_low_contrast",
+      "defect": "contrast",
+      "verdict": "fail",
+      "kinds": [
+        "contrast"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 6.97,
+      "summary": "No additional visual or text defects found beyond the already-detected low-contrast description.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "schedule_overflow",
+      "defect": "overflow",
+      "verdict": "fail",
+      "kinds": [
+        "overflow"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 6.1,
+      "summary": "The already-detected horizontal overflow cuts off the fourth schedule entry at the right edge. No additional independent visual or text defects are visible.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "headline_clipped",
+      "defect": "clipped",
+      "verdict": "warn",
+      "kinds": [
+        "clipped"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 5.65,
+      "summary": "No additional visible defects beyond the already-detected headline clipping.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "thumbnail_broken",
+      "defect": "broken_image",
+      "verdict": "fail",
+      "kinds": [
+        "broken_image",
+        "layout"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 8.15,
+      "summary": "The middle card collapses instead of preserving the row\u2019s consistent poster dimensions.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "badge_overlap",
+      "defect": "overlap",
+      "verdict": "warn",
+      "kinds": [
+        "overlap",
+        "typo"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 5.6,
+      "summary": "The already-detected badge/headline overlap is confirmed. No additional visible defects found; the apparent garbled headline text is caused by that overlap, not a separate spelling error.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "blank_page",
+      "defect": "blank",
+      "verdict": "fail",
+      "kinds": [
+        "blank"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 4.34,
+      "summary": "Confirmed the already-detected blank render: the entire viewport is white with no visible content. No additional findings.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "typo_headline",
+      "defect": "typo",
+      "verdict": "fail",
+      "kinds": [
+        "typo"
+      ],
+      "n_issues": 4,
+      "unparseable": false,
+      "elapsed_s": 5.54,
+      "summary": "The already-detected spelling errors remain visible. No additional text or layout defects were found.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "missing_subscribe",
+      "defect": "missing_element",
+      "verdict": "fail",
+      "kinds": [
+        "intent_mismatch"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 5.58,
+      "summary": "The required Subscribe button is missing; only the heading and description are visible. Intent match: 0/1 requirement(s) satisfied.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "missing_subscribe_quoted",
+      "defect": "missing_element",
+      "error": "BackendError: OpenAI reply was cut off at the token limit; raise AGENTVISION_OPENAI_MAX_TOKENS.",
+      "elapsed_s": 80.41
+    },
+    {
+      "id": "svg_label_clipped",
+      "defect": "clipped",
+      "verdict": "fail",
+      "kinds": [
+        "clipped",
+        "missing_element",
+        "typo"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 8.67,
+      "summary": "Beyond the already-detected label clipping, the chart lacks quantitative labels needed to interpret audience share.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "social_typo",
+      "defect": "typo",
+      "verdict": "fail",
+      "kinds": [
+        "typo"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 3.86,
+      "summary": "The two already-detected spelling errors need correction. No additional text or visual defects are visible.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "social_low_contrast",
+      "defect": "contrast",
+      "verdict": "fail",
+      "kinds": [
+        "contrast"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 5.32,
+      "summary": "All promotional text has very low contrast against the white background.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "player_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 5.43,
+      "summary": "The video player, controls, episode title, and description render cleanly. No visible layout, clipping, contrast, or text defects.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "hero_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 5.08,
+      "summary": "The heading, supporting text, and trial button are readable and properly aligned. No visible layout defects or text errors.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "schedule_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 4.28,
+      "summary": "The schedule is clearly readable and consistently aligned. No visible layout defects, clipping, overlap, or text errors were found.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "headline_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 4.47,
+      "summary": "The card is rendered cleanly with readable text, consistent spacing, and no visible clipping, overlap, or spelling errors.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "carousel_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 6.0,
+      "summary": "The heading and three cards are aligned and fully visible. All visible text is readable and correctly spelled; no clear visual defects are present.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "subscribe_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 5.37,
+      "summary": "The Subscribe button is clearly visible and readable. No visible layout or text defects found. Intent match: 1/1 requirement(s) satisfied.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "subscribe_ok_quoted",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 5.1,
+      "summary": "The Subscribe button is clearly visible and readable. No visible layout or text defects. Intent match: 1/1 requirement(s) satisfied.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "chart_ok",
+      "defect": null,
+      "verdict": "warn",
+      "kinds": [
+        "missing_element"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 8.62,
+      "summary": "The chart is clean and readable, but its audience-share values cannot be determined.",
+      "clean_pass": false,
+      "false_fail": false
+    },
+    {
+      "id": "social_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 2.93,
+      "summary": "All visible text is correctly spelled, legible, and unclipped. The layout is clean, with no visible defects.",
+      "clean_pass": true,
+      "false_fail": false
+    }
+  ]
+}

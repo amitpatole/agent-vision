@@ -1,0 +1,327 @@
+{
+  "label": "gemini-gemini-3.1-flash-lite",
+  "backend": "gemini",
+  "model": "gemini-3.1-flash-lite",
+  "score": {
+    "defects_flagged": "13/13",
+    "right_kind": "13/13",
+    "vision_right_kind": "12/13",
+    "clean_pass": "6/9",
+    "false_fail": "1/9",
+    "unparseable": "0/22",
+    "errors": 1,
+    "median_s": 7.93,
+    "max_s": 23.54
+  },
+  "rows": [
+    {
+      "id": "player_error",
+      "defect": "error_text",
+      "verdict": "fail",
+      "kinds": [
+        "error_text"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 8.11,
+      "summary": "The video player is displaying a functional playback error (403), preventing the user from watching the content. This prevents the primary purpose of the page.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "hero_low_contrast",
+      "defect": "contrast",
+      "verdict": "fail",
+      "kinds": [
+        "contrast",
+        "typo"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 16.73,
+      "summary": "The subtitle text has severe contrast issues making it unreadable, and there is unexpected, garbled text 'TUS CCRUC' appearing next to the header.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "schedule_overflow",
+      "defect": "overflow",
+      "verdict": "fail",
+      "kinds": [
+        "layout",
+        "overflow",
+        "typo"
+      ],
+      "n_issues": 4,
+      "unparseable": false,
+      "elapsed_s": 23.54,
+      "summary": "The schedule layout has cut-off text and a horizontal overflow issue. The text '20:00' and 'Drama' are truncated.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "headline_clipped",
+      "defect": "clipped",
+      "verdict": "fail",
+      "kinds": [
+        "clipped"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 6.95,
+      "summary": "The headline text is truncated and grammatically incomplete, suggesting a layout error or incomplete data rendering.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "thumbnail_broken",
+      "defect": "broken_image",
+      "verdict": "fail",
+      "kinds": [
+        "broken_image",
+        "typo"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 9.23,
+      "summary": "The 'Continue watching' section contains a broken image for 'Quiz Night', and there is duplicate text ('Quiz Night') displayed above the title. The layout of the items is also inconsistent due to the ",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "badge_overlap",
+      "defect": "overlap",
+      "verdict": "fail",
+      "kinds": [
+        "overlap",
+        "typo"
+      ],
+      "n_issues": 4,
+      "unparseable": false,
+      "elapsed_s": 9.51,
+      "summary": "The main headline is corrupted with garbled text ('Elyaepht') and the 'LIVE NOW' badge is overlapping the text, making it unreadable.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "blank_page",
+      "defect": "blank",
+      "verdict": "fail",
+      "kinds": [
+        "blank"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 6.12,
+      "summary": "The provided image is entirely blank, indicating a complete failure to render the intended content.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "typo_headline",
+      "defect": "typo",
+      "verdict": "fail",
+      "kinds": [
+        "typo"
+      ],
+      "n_issues": 8,
+      "unparseable": false,
+      "elapsed_s": 4.69,
+      "summary": "The heading and body text contain several critical spelling errors that need to be corrected.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "missing_subscribe",
+      "defect": "missing_element",
+      "verdict": "fail",
+      "kinds": [
+        "intent_mismatch"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 3.9,
+      "summary": "The required 'Subscribe' button is completely missing from the interface. Intent match: 0/1 requirement(s) satisfied.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "missing_subscribe_quoted",
+      "defect": "missing_element",
+      "verdict": "fail",
+      "kinds": [
+        "intent_mismatch"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 4.06,
+      "summary": "The page is missing the required subscription call-to-action button, leaving the interface incomplete based on the requirements. Intent match: 0/1 requirement(s) satisfied.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "svg_label_clipped",
+      "defect": "clipped",
+      "verdict": "fail",
+      "kinds": [
+        "clipped",
+        "layout",
+        "typo"
+      ],
+      "n_issues": 5,
+      "unparseable": false,
+      "elapsed_s": 9.92,
+      "summary": "The bar chart has several layout and text rendering issues. The genre label 'Documentary and Factual' is truncated and misspelled, and the y-axis labels are misaligned with their respective bars.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "social_typo",
+      "defect": "typo",
+      "verdict": "fail",
+      "kinds": [
+        "typo"
+      ],
+      "n_issues": 4,
+      "unparseable": false,
+      "elapsed_s": 15.37,
+      "summary": "The text contains spelling errors that need to be corrected.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "social_low_contrast",
+      "defect": "contrast",
+      "verdict": "fail",
+      "kinds": [
+        "contrast",
+        "layout"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 2.59,
+      "summary": "The text on the page has very low contrast against the white background, making it difficult to read. Additionally, there is a stray horizontal line at the bottom that appears to be a design error.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "player_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 3.77,
+      "summary": "The video player interface is rendered correctly with the appropriate title, description, and playback progress indicators. No visible defects or layout issues were found.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "hero_ok",
+      "defect": null,
+      "verdict": "fail",
+      "kinds": [
+        "typo"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 3.93,
+      "summary": "The page contains stray text 'STU' at the bottom which appears to be a typo or an unintended artifact. The layout is otherwise functional but visually sparse.",
+      "clean_pass": false,
+      "false_fail": true
+    },
+    {
+      "id": "schedule_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 9.77,
+      "summary": "The artifact displays the TV schedule as requested with no visual or textual defects. Layout is clear and readable.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "headline_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 14.7,
+      "summary": "The card component displays the title and description correctly as requested. No visual or text defects were identified.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "carousel_ok",
+      "defect": null,
+      "error": "BackendError: Gemini API error: 503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', 'status': 'UNAVAILABLE'}}",
+      "elapsed_s": 3.36
+    },
+    {
+      "id": "subscribe_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 5.93,
+      "summary": "The page displays the requested header, description, and subscription button correctly. All requirements are met. Intent match: 1/1 requirement(s) satisfied.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "subscribe_ok_quoted",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 7.93,
+      "summary": "The page correctly displays the title, description, and the required Subscribe button. Intent match: 1/1 requirement(s) satisfied.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "chart_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 17.75,
+      "summary": "The horizontal bar chart is missing essential data visualization components: an x-axis, scale labels, or percentages, making the bars meaningless. Additionally, the layout is incomplete as it lacks a ",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "social_ok",
+      "defect": null,
+      "verdict": "warn",
+      "kinds": [
+        "other"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 4.17,
+      "summary": "The design is very minimal and looks like a draft. There is a horizontal line element at the bottom left that seems out of place or unfinished. Without a design specification, it is unclear if this li",
+      "clean_pass": false,
+      "false_fail": false
+    }
+  ]
+}

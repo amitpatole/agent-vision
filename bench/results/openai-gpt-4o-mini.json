@@ -1,0 +1,333 @@
+{
+  "label": "openai-gpt-4o-mini",
+  "backend": "openai",
+  "model": "gpt-4o-mini",
+  "score": {
+    "defects_flagged": "12/13",
+    "right_kind": "12/13",
+    "vision_right_kind": "12/13",
+    "clean_pass": "6/9",
+    "false_fail": "3/9",
+    "unparseable": "0/22",
+    "errors": 0,
+    "median_s": 3.96,
+    "max_s": 9.28
+  },
+  "rows": [
+    {
+      "id": "player_error",
+      "defect": "error_text",
+      "verdict": "fail",
+      "kinds": [
+        "error_text",
+        "intent_mismatch"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 9.28,
+      "summary": "The page contains a visible error message related to playback failure, confirming the presence of an issue. Additionally, there is a missing element in terms of user experience.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "hero_low_contrast",
+      "defect": "contrast",
+      "verdict": "fail",
+      "kinds": [
+        "contrast",
+        "typo"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 6.6,
+      "summary": "The rendered webpage has visible text and contrast issues, along with a typographical error in the OCR text extraction.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "schedule_overflow",
+      "defect": "overflow",
+      "verdict": "fail",
+      "kinds": [
+        "overflow",
+        "typo"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 3.96,
+      "summary": "The layout has a horizontal overflow issue and some text is truncated.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "headline_clipped",
+      "defect": "clipped",
+      "verdict": "fail",
+      "kinds": [
+        "clipped"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 4.12,
+      "summary": "The text is clipped due to overflow issues, which needs to be addressed to ensure all content is visible.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "thumbnail_broken",
+      "defect": "broken_image",
+      "verdict": "fail",
+      "kinds": [
+        "broken_image",
+        "layout"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 3.97,
+      "summary": "There are visible defects regarding a broken image and layout issues.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "badge_overlap",
+      "defect": "overlap",
+      "verdict": "warn",
+      "kinds": [
+        "overlap",
+        "typo"
+      ],
+      "n_issues": 4,
+      "unparseable": false,
+      "elapsed_s": 4.39,
+      "summary": "The image contains overlapping text and a typos issue that need correction.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "blank_page",
+      "defect": "blank",
+      "verdict": "fail",
+      "kinds": [
+        "blank"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 3.61,
+      "summary": "The render is completely blank with no visible content.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "typo_headline",
+      "defect": "typo",
+      "verdict": "fail",
+      "kinds": [
+        "typo"
+      ],
+      "n_issues": 8,
+      "unparseable": false,
+      "elapsed_s": 6.19,
+      "summary": "The image contains multiple spelling errors that need correction to enhance readability and professionalism.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "missing_subscribe",
+      "defect": "missing_element",
+      "verdict": "fail",
+      "kinds": [
+        "intent_mismatch"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 3.63,
+      "summary": "The rendered image has issues with missing elements and layout requirements. Intent match: 0/1 requirement(s) satisfied.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "missing_subscribe_quoted",
+      "defect": "missing_element",
+      "verdict": "fail",
+      "kinds": [
+        "intent_mismatch"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 4.04,
+      "summary": "The rendered artifact does not meet the requirements as it lacks the 'Subscribe' button. Intent match: 0/1 requirement(s) satisfied.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "svg_label_clipped",
+      "defect": "clipped",
+      "verdict": "fail",
+      "kinds": [
+        "clipped",
+        "typo"
+      ],
+      "n_issues": 4,
+      "unparseable": false,
+      "elapsed_s": 4.55,
+      "summary": "The visual artifact contains text clipping and a typographical error.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "social_typo",
+      "defect": "typo",
+      "verdict": "fail",
+      "kinds": [
+        "typo"
+      ],
+      "n_issues": 4,
+      "unparseable": false,
+      "elapsed_s": 2.58,
+      "summary": "There are spelling errors present in the text.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "social_low_contrast",
+      "defect": "contrast",
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 1.77,
+      "summary": "The image looks good with no visible defects or issues.",
+      "flagged": false,
+      "kind_hit": false,
+      "vision_hit": false
+    },
+    {
+      "id": "player_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 3.91,
+      "summary": "The rendered artifact appears correct with no visible defects.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "hero_ok",
+      "defect": null,
+      "verdict": "fail",
+      "kinds": [
+        "contrast",
+        "missing_element"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 5.68,
+      "summary": "The layout has several issues including poor contrast and a missing element.",
+      "clean_pass": false,
+      "false_fail": true
+    },
+    {
+      "id": "schedule_ok",
+      "defect": null,
+      "verdict": "fail",
+      "kinds": [
+        "intent_mismatch",
+        "layout"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 5.34,
+      "summary": "The rendered schedule contains errors in terms of missing entries and incorrect formatting compared to the expected information from the OCR. (1 vision finding(s) overruled: DOM/OCR shows the element ",
+      "clean_pass": false,
+      "false_fail": true
+    },
+    {
+      "id": "headline_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 3.03,
+      "summary": "The rendered image looks good with no visible errors or defects.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "carousel_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 3.06,
+      "summary": "The rendered image meets the expected layout and text requirements with no visible defects.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "subscribe_ok",
+      "defect": null,
+      "verdict": "fail",
+      "kinds": [
+        "intent_mismatch"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 3.76,
+      "summary": "The expected 'Subscribe' button is present, but the requirements checklist indicates a potential mismatch with the intended product delivery. Intent match: 0/1 requirement(s) satisfied.",
+      "clean_pass": false,
+      "false_fail": true
+    },
+    {
+      "id": "subscribe_ok_quoted",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 3.69,
+      "summary": "The rendered webpage does not satisfy the requirements due to the absence of the 'Subscribe' button. (1 vision finding(s) overruled: DOM/OCR shows the element is present.) Intent match: 1/1 requiremen",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "chart_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 2.96,
+      "summary": "The rendered visual artifact looks correct with no visible issues.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "social_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 1.69,
+      "summary": "The rendered image is clear and free from defects.",
+      "clean_pass": true,
+      "false_fail": false
+    }
+  ]
+}

@@ -2,6 +2,46 @@
 
 All notable changes to AgentVision are documented here.
 
+## [0.15.0] — 2026-10-24
+
+**OpenAI and Gemini defaults that work, measured like the Ollama ones.** Testing the hosted
+providers the same way found both defaults stale and the OpenAI backend unable to call any
+current model.
+
+### Fixed
+
+- **The OpenAI backend works with GPT-5 and later.** It sent `max_tokens`, which those models
+  reject with a 400 error, so only `gpt-4o-mini` and older could be used. It now sends
+  `max_completion_tokens`, which every current chat model accepts.
+- **The Gemini default was withdrawn.** `gemini-2.0-flash` now returns 404 "no longer
+  available", so `--backend gemini` with default settings failed.
+- **Cut-off replies from OpenAI and Gemini say so.** A reply that stops at the token limit
+  raised a generic "invalid structured output" error. It now says the reply was cut off and
+  names the setting to raise.
+- **Ollama's text-only call** (used to derive requirements from a brief) still had a fixed
+  1024-token limit. It now uses `AGENTVISION_OLLAMA_MAX_TOKENS` like the grading call.
+
+### Changed
+
+- **Default OpenAI model is `gpt-5.4-mini`** (was `gpt-4o-mini`, which shuts down on
+  2027-01-14). Over three benchmark runs it flagged all 39 defects and passed all 27 clean
+  pages. The old default falsely failed 3 of 9 clean pages.
+- **Default Gemini model is `gemini-3.5-flash-lite`** (was `gemini-2.0-flash`). Over three
+  runs it flagged all 39 defects, found 35 of them on its own and passed 26 of 27 clean pages.
+
+### Added
+
+- **`AGENTVISION_OPENAI_MAX_TOKENS`** and **`AGENTVISION_GEMINI_MAX_TOKENS`** (default 8192,
+  256 to 65536). See [Configuration](docs/configuration.md).
+- **Hosted providers in the [pilot benchmark](docs/pilot.md#hosted-providers):** seven OpenAI
+  models and two Gemini models, with repeat runs for both new defaults. `bench/run.py --model`
+  now applies to the `openai`, `gemini` and `anthropic` backends too.
+
+### Not covered
+
+- The Anthropic default `claude-haiku-4-5` was not tested; no key was available.
+- Larger Gemini models were not measured because the test key is on the free tier.
+
 ## [0.14.0] — 2026-10-23
 
 **Every vision model on Ollama Cloud, measured, and two quiet passes closed.** The benchmark now

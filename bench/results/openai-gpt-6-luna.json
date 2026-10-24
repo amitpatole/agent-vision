@@ -1,0 +1,326 @@
+{
+  "label": "openai-gpt-6-luna",
+  "backend": "openai",
+  "model": "gpt-6-luna",
+  "score": {
+    "defects_flagged": "13/13",
+    "right_kind": "13/13",
+    "vision_right_kind": "3/13",
+    "clean_pass": "8/9",
+    "false_fail": "0/9",
+    "unparseable": "0/22",
+    "errors": 0,
+    "median_s": 6.44,
+    "max_s": 11.21
+  },
+  "rows": [
+    {
+      "id": "player_error",
+      "defect": "error_text",
+      "verdict": "warn",
+      "kinds": [
+        "error_text"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 7.59,
+      "summary": "No additional visual or text defects beyond the already-detected playback error.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "hero_low_contrast",
+      "defect": "contrast",
+      "verdict": "fail",
+      "kinds": [
+        "contrast"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 11.21,
+      "summary": "No additional visible defects found beyond the already-detected low-contrast subtitle.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "schedule_overflow",
+      "defect": "overflow",
+      "verdict": "fail",
+      "kinds": [
+        "clipped",
+        "overflow"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 6.88,
+      "summary": "The final schedule entry is cut off at the right edge, truncating its time and program title.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "headline_clipped",
+      "defect": "clipped",
+      "verdict": "warn",
+      "kinds": [
+        "clipped"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 6.44,
+      "summary": "No additional visible defects beyond the already-detected finding.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "thumbnail_broken",
+      "defect": "broken_image",
+      "verdict": "fail",
+      "kinds": [
+        "broken_image"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 8.73,
+      "summary": "No additional visual or text defects beyond the already-detected finding.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "badge_overlap",
+      "defect": "overlap",
+      "verdict": "warn",
+      "kinds": [
+        "overlap",
+        "typo"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 7.53,
+      "summary": "No additional visual issues beyond the already-detected findings.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "blank_page",
+      "defect": "blank",
+      "verdict": "fail",
+      "kinds": [
+        "blank"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 4.22,
+      "summary": "The render is blank, as already noted in the grounded finding; no additional visual or text defects are identifiable.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "typo_headline",
+      "defect": "typo",
+      "verdict": "fail",
+      "kinds": [
+        "typo"
+      ],
+      "n_issues": 4,
+      "unparseable": false,
+      "elapsed_s": 6.46,
+      "summary": "No additional visual defects found beyond the already-detected text issues.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "missing_subscribe",
+      "defect": "missing_element",
+      "verdict": "fail",
+      "kinds": [
+        "intent_mismatch"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 4.77,
+      "summary": "The page shows the briefing title and description, but the required Subscribe button is not visible. Intent match: 0/1 requirement(s) satisfied.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "missing_subscribe_quoted",
+      "defect": "missing_element",
+      "verdict": "fail",
+      "kinds": [
+        "intent_mismatch"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 5.59,
+      "summary": "The page displays the briefing heading and description, but the required Subscribe button is not visible. Intent match: 0/1 requirement(s) satisfied.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "svg_label_clipped",
+      "defect": "clipped",
+      "verdict": "fail",
+      "kinds": [
+        "clipped",
+        "typo"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 6.89,
+      "summary": "No additional visual defects beyond the already-detected findings.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "social_typo",
+      "defect": "typo",
+      "verdict": "fail",
+      "kinds": [
+        "typo"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 5.21,
+      "summary": "No additional visual defects found beyond the already-detected text issues.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "social_low_contrast",
+      "defect": "contrast",
+      "verdict": "fail",
+      "kinds": [
+        "contrast"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 4.85,
+      "summary": "The promotional text has extremely low contrast against the white background and is difficult to read.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "player_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 6.7,
+      "summary": "The video player and episode details appear clean and readable, with no visible defects.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "hero_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 7.11,
+      "summary": "The page appears clean and readable. The headline, supporting text, and call-to-action button are visible without clipping or overlap.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "schedule_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 4.36,
+      "summary": "The schedule is clear and readable, with all six listings shown in a neat two-row grid. No visible defects found.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "headline_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 5.64,
+      "summary": "The headline and subtitle are readable, correctly spelled, and contained within the bordered card. No clear visual defects are apparent.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "carousel_ok",
+      "defect": null,
+      "verdict": "warn",
+      "kinds": [
+        "missing_element"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 7.43,
+      "summary": "The page is readable, but all three program cards show the same generic abstract thumbnail instead of recognizable program imagery.",
+      "clean_pass": false,
+      "false_fail": false
+    },
+    {
+      "id": "subscribe_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 4.45,
+      "summary": "The page is clean and readable, and the Subscribe button is visible as required. Intent match: 1/1 requirement(s) satisfied.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "subscribe_ok_quoted",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 4.2,
+      "summary": "The page is clean and readable, and the visible Subscribe button satisfies the requirement. Intent match: 1/1 requirement(s) satisfied.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "chart_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 4.65,
+      "summary": "The chart is clearly laid out, and the visible text is readable and correctly spelled. No clear visual defects found.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "social_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 3.42,
+      "summary": "The text is legible and correctly rendered, with no visible layout or content defects.",
+      "clean_pass": true,
+      "false_fail": false
+    }
+  ]
+}
