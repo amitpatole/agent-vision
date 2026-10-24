@@ -40,12 +40,37 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e ".[all,dev]"
 
+      # The .deb downloads (~300 MB, mostly LibreOffice) are cached: the Azure mirror has
+      # trickled them for 10+ minutes on several runs. Restore/save are split so a warm cache
+      # is kept even when a later step fails.
+      - name: Restore apt download cache
+        id: apt-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/apt-archives
+          key: apt-${{ runner.os }}-${{ hashFiles('.github/workflows/ci.yml') }}
+
       - name: Install system deps for OCR/PDF/Office
+        # Usually ~35s warm. Retry stalled fetches and cap the step so a bad mirror fails fast
+        # instead of holding the job for hours.
+        timeout-minutes: 15
         run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
+          mkdir -p ~/apt-archives/partial
+          APT="-o Acquire::Retries=3 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30"
+          APT="$APT -o Dir::Cache::Archives=$HOME/apt-archives"
+          sudo apt-get $APT update
+          sudo apt-get $APT install -y --no-install-recommends \
             tesseract-ocr tesseract-ocr-eng poppler-utils \
             libreoffice-writer libreoffice-impress libreoffice-calc
+          sudo rm -rf ~/apt-archives/partial ~/apt-archives/lock
+          sudo chown -R "$USER" ~/apt-archives
+
+      - name: Save apt download cache
+        if: steps.apt-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ~/apt-archives
+          key: ${{ steps.apt-cache.outputs.cache-primary-key }}
 
       - name: Install Chromium (browser pinned by the playwright package version)
         run: python -m playwright install --with-deps chromium

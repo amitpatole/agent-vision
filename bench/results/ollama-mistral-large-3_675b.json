@@ -1,0 +1,363 @@
+{
+  "label": "ollama-mistral-large-3_675b",
+  "backend": "ollama",
+  "model": "mistral-large-3:675b",
+  "score": {
+    "defects_flagged": "13/13",
+    "right_kind": "12/13",
+    "vision_right_kind": "11/13",
+    "clean_pass": "0/9",
+    "false_fail": "8/9",
+    "unparseable": "0/22",
+    "errors": 0,
+    "median_s": 6.95,
+    "max_s": 12.39
+  },
+  "rows": [
+    {
+      "id": "player_error",
+      "defect": "error_text",
+      "verdict": "fail",
+      "kinds": [
+        "error_text",
+        "typo"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 7.84,
+      "summary": "Visible error message and a typo in the episode title.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "hero_low_contrast",
+      "defect": "contrast",
+      "verdict": "fail",
+      "kinds": [
+        "contrast",
+        "layout",
+        "missing_element",
+        "typo"
+      ],
+      "n_issues": 5,
+      "unparseable": false,
+      "elapsed_s": 7.14,
+      "summary": "Multiple visual and text defects detected, including a typo in the heading, low contrast text, and a duplicated button.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "schedule_overflow",
+      "defect": "overflow",
+      "verdict": "fail",
+      "kinds": [
+        "clipped",
+        "overflow",
+        "typo"
+      ],
+      "n_issues": 4,
+      "unparseable": false,
+      "elapsed_s": 6.39,
+      "summary": "Multiple visual and text defects detected, including horizontal overflow, a typo, and a truncated program title.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "headline_clipped",
+      "defect": "clipped",
+      "verdict": "fail",
+      "kinds": [
+        "clipped",
+        "typo"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 5.67,
+      "summary": "The headline text is clipped and does not fully display the intended message.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "thumbnail_broken",
+      "defect": "broken_image",
+      "verdict": "fail",
+      "kinds": [
+        "broken_image",
+        "typo"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 6.85,
+      "summary": "The artifact has a broken image and an incomplete layout with a missing third item in the 'Continue watching' row. (2 vision finding(s) overruled: DOM/OCR shows the element is present.)",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "badge_overlap",
+      "defect": "overlap",
+      "verdict": "fail",
+      "kinds": [
+        "overlap",
+        "typo"
+      ],
+      "n_issues": 5,
+      "unparseable": false,
+      "elapsed_s": 8.8,
+      "summary": "Multiple visual and text defects detected, including overlapping text, a typo, and layout issues.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "blank_page",
+      "defect": "blank",
+      "verdict": "fail",
+      "kinds": [
+        "blank"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 4.43,
+      "summary": "The rendered artifact is completely blank, indicating a critical rendering failure or empty page.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "typo_headline",
+      "defect": "typo",
+      "verdict": "fail",
+      "kinds": [
+        "typo"
+      ],
+      "n_issues": 5,
+      "unparseable": false,
+      "elapsed_s": 5.44,
+      "summary": "Multiple text defects (typos) and no additional visual defects detected beyond those already grounded.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "missing_subscribe",
+      "defect": "missing_element",
+      "verdict": "fail",
+      "kinds": [
+        "intent_mismatch"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 6.85,
+      "summary": "Missing required Subscribe button and layout is incomplete with no stories displayed. (1 vision finding(s) overruled: DOM/OCR shows the element is present.) Intent match: 0/1 requirement(s) satisfied.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "missing_subscribe_quoted",
+      "defect": "missing_element",
+      "verdict": "fail",
+      "kinds": [
+        "intent_mismatch",
+        "typo"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 4.68,
+      "summary": "The rendered page is missing the 'Subscribe' button and contains a typo in the subtitle text. Intent match: 0/1 requirement(s) satisfied.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "svg_label_clipped",
+      "defect": "clipped",
+      "verdict": "fail",
+      "kinds": [
+        "clipped",
+        "layout",
+        "missing_element",
+        "typo"
+      ],
+      "n_issues": 7,
+      "unparseable": false,
+      "elapsed_s": 9.57,
+      "summary": "Multiple visual and text defects detected in the chart, including clipped text, a typo, missing percentage labels, and missing axis labels.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "social_typo",
+      "defect": "typo",
+      "verdict": "fail",
+      "kinds": [
+        "intent_mismatch",
+        "typo"
+      ],
+      "n_issues": 6,
+      "unparseable": false,
+      "elapsed_s": 10.37,
+      "summary": "Multiple text defects and possible intent mismatches detected in the rendered artifact.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "social_low_contrast",
+      "defect": "contrast",
+      "verdict": "fail",
+      "kinds": [
+        "layout",
+        "typo"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 6.95,
+      "summary": "The image contains a typo and a layout issue with the progress bar.",
+      "flagged": true,
+      "kind_hit": false,
+      "vision_hit": false
+    },
+    {
+      "id": "player_ok",
+      "defect": null,
+      "verdict": "fail",
+      "kinds": [
+        "layout",
+        "typo"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 12.39,
+      "summary": "The image contains a typo in the episode description and a layout issue with the video player.",
+      "clean_pass": false,
+      "false_fail": true
+    },
+    {
+      "id": "hero_ok",
+      "defect": null,
+      "verdict": "fail",
+      "kinds": [
+        "clipped",
+        "typo"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 7.19,
+      "summary": "The rendered page has a text defect (repeated phrase) and a truncated button label.",
+      "clean_pass": false,
+      "false_fail": true
+    },
+    {
+      "id": "schedule_ok",
+      "defect": null,
+      "verdict": "fail",
+      "kinds": [
+        "layout",
+        "typo"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 7.86,
+      "summary": "Multiple text and layout defects detected in the TV schedule. (1 vision finding(s) overruled: DOM/OCR shows the element is present.)",
+      "clean_pass": false,
+      "false_fail": true
+    },
+    {
+      "id": "headline_ok",
+      "defect": null,
+      "verdict": "warn",
+      "kinds": [
+        "layout",
+        "typo"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 7.65,
+      "summary": "The rendered artifact has a layout issue with excessive white space and a potential typo in the subheading.",
+      "clean_pass": false,
+      "false_fail": false
+    },
+    {
+      "id": "carousel_ok",
+      "defect": null,
+      "verdict": "fail",
+      "kinds": [
+        "layout",
+        "typo"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 7.58,
+      "summary": "Multiple visual and text defects detected in the 'Continue watching' section. (1 vision finding(s) overruled: DOM/OCR shows the element is present.)",
+      "clean_pass": false,
+      "false_fail": true
+    },
+    {
+      "id": "subscribe_ok",
+      "defect": null,
+      "verdict": "fail",
+      "kinds": [
+        "intent_mismatch",
+        "missing_element",
+        "typo"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 6.71,
+      "summary": "The rendered page has a text duplication defect and lacks the expected list of five stories. Intent match: 0/1 requirement(s) satisfied.",
+      "clean_pass": false,
+      "false_fail": true
+    },
+    {
+      "id": "subscribe_ok_quoted",
+      "defect": null,
+      "verdict": "fail",
+      "kinds": [
+        "missing_element",
+        "typo"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 6.69,
+      "summary": "The rendered page has a duplicated phrase in the subtitle and lacks the expected list of five stories. (1 vision finding(s) overruled: DOM/OCR shows the element is present.) Intent match: 1/1 requirem",
+      "clean_pass": false,
+      "false_fail": true
+    },
+    {
+      "id": "chart_ok",
+      "defect": null,
+      "verdict": "fail",
+      "kinds": [
+        "intent_mismatch",
+        "missing_element"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 6.23,
+      "summary": "The chart is missing percentage values for each genre bar, making it impossible to determine the exact audience share. The chart also lacks a y-axis label or scale for reference.",
+      "clean_pass": false,
+      "false_fail": true
+    },
+    {
+      "id": "social_ok",
+      "defect": null,
+      "verdict": "fail",
+      "kinds": [
+        "typo"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 6.76,
+      "summary": "Detected a typo and a layout issue in the rendered artifact.",
+      "clean_pass": false,
+      "false_fail": true
+    }
+  ]
+}

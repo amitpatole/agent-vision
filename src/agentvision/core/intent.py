@@ -138,9 +138,31 @@ _VISUAL_KW = {
 }
 
 
+# A DOM tag proves the element *exists*, nothing more. So a claim is contradicted only when it
+# says the element itself is absent ("the chart is missing", "no chart"), never when it faults
+# a part of a present element ("the chart lacks an X-axis", "chart is missing a value axis").
+_ABSENT = (r"missing|absent|blank|empty|not\s+(?:rendered|shown|visible|displayed|present"
+           r"|drawn|loaded)")
+_OBJECT = r"(?:a|an|the|its|their|any|some|all|labels?|axis|axes|data|values?|legend|title)\b"
+
+
+def _says_absent(msg: str, kw: str) -> bool:
+    k = re.escape(kw)
+    subject = re.search(
+        rf"\b{k}s?\b(?:\s+itself)?\s+(?:is|are|was|were|appears?|seems?)\s+(?:to\s+be\s+)?"
+        rf"(?:{_ABSENT})\b(?!\s+{_OBJECT})", msg)
+    obj = re.search(
+        rf"\b(?:no|missing|absent|without|lacks?|lacking)\s+"
+        rf"(?:(?!(?:on|in|of|for|from|at|to|with)\b)[\w-]+\s+){{0,2}}{k}s?\b", msg)
+    return bool(subject or obj)
+
+
 def _visual_contradicted(message: str, present: set[str]) -> bool:
     msg = message.lower()
-    return any(kw in msg and (tags & present) for kw, tags in _VISUAL_KW.items())
+    return any(
+        kw in msg and (tags & present) and _says_absent(msg, kw)
+        for kw, tags in _VISUAL_KW.items()
+    )
 
 
 def suppress_contradicted_vision(

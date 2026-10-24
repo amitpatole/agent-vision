@@ -141,9 +141,10 @@ def findings_to_report(
             source=IssueSource.VISION,
         ))
     # Trust the union of grounded + vision issues for the verdict, but never rank below
-    # what the model concluded if it flagged a failure.
+    # what the model concluded if it flagged a problem (a WARN with no listed issues
+    # must not read as a clean PASS).
     verdict = verdict_from_issues(issues)
-    if findings.verdict == Verdict.FAIL and verdict == Verdict.PASS:
+    if findings.verdict in (Verdict.FAIL, Verdict.WARN) and verdict == Verdict.PASS:
         verdict = Verdict.WARN
     summary = findings.summary.strip() or "Visual analysis complete."
     return Report(

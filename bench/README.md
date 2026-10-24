@@ -9,6 +9,8 @@ python bench/make_corpus.py                       # regenerate corpus/ + manifes
 python bench/run.py --backend local               # deterministic checks only
 python bench/run.py --backend ollama --model qwen2.5vl:7b \
     --base-url http://localhost:11434/v1          # a self-hosted vision model
+OLLAMA_API_KEY=... python bench/run.py --backend ollama --model kimi-k2.7-code \
+    --base-url https://ollama.com/v1              # an Ollama Cloud model (corpus is synthetic)
 python bench/run.py --summarize                   # table over results/*.json
 ```
 

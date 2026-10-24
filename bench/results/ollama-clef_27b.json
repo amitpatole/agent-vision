@@ -1,0 +1,150 @@
+{
+  "label": "ollama-clef_27b",
+  "backend": "ollama",
+  "model": "clef:27b",
+  "score": {
+    "defects_flagged": "0/13",
+    "right_kind": "0/13",
+    "vision_right_kind": "0/13",
+    "clean_pass": "0/9",
+    "false_fail": "0/9",
+    "unparseable": "0/22",
+    "errors": 22,
+    "median_s": 2.54,
+    "max_s": 6.64
+  },
+  "rows": [
+    {
+      "id": "player_error",
+      "defect": "error_text",
+      "error": "BackendError: Ollama API error: Error code: 400 - {'error': {'message': 'clef:27b is a decision model and only supports /v1/systemone (ref: 1f8aa821-29fc-40c5-8642-976296ef64ab)', 'type': 'invalid_request_error', 'param': None, 'code': None}}",
+      "elapsed_s": 6.64
+    },
+    {
+      "id": "hero_low_contrast",
+      "defect": "contrast",
+      "error": "BackendError: Ollama API error: Error code: 400 - {'error': {'message': 'clef:27b is a decision model and only supports /v1/systemone (ref: 1ddcea25-0626-4e78-bbb6-4c5b6ec5f3fc)', 'type': 'invalid_request_error', 'param': None, 'code': None}}",
+      "elapsed_s": 3.41
+    },
+    {
+      "id": "schedule_overflow",
+      "defect": "overflow",
+      "error": "BackendError: Ollama API error: Error code: 400 - {'error': {'message': 'clef:27b is a decision model and only supports /v1/systemone (ref: 327be768-a5c2-4f01-b58c-c9b67c26631a)', 'type': 'invalid_request_error', 'param': None, 'code': None}}",
+      "elapsed_s": 2.86
+    },
+    {
+      "id": "headline_clipped",
+      "defect": "clipped",
+      "error": "BackendError: Ollama API error: Error code: 400 - {'error': {'message': 'clef:27b is a decision model and only supports /v1/systemone (ref: 330b4674-4d24-430c-b624-7410c4874f90)', 'type': 'invalid_request_error', 'param': None, 'code': None}}",
+      "elapsed_s": 2.39
+    },
+    {
+      "id": "thumbnail_broken",
+      "defect": "broken_image",
+      "error": "BackendError: Ollama API error: Error code: 400 - {'error': {'message': 'clef:27b is a decision model and only supports /v1/systemone (ref: 707374bf-6804-4c83-b3ed-2880ebbbe5c9)', 'type': 'invalid_request_error', 'param': None, 'code': None}}",
+      "elapsed_s": 2.44
+    },
+    {
+      "id": "badge_overlap",
+      "defect": "overlap",
+      "error": "BackendError: Ollama API error: Error code: 400 - {'error': {'message': 'clef:27b is a decision model and only supports /v1/systemone (ref: da96b69c-f39c-42bf-aaf9-becf48452e57)', 'type': 'invalid_request_error', 'param': None, 'code': None}}",
+      "elapsed_s": 3.3
+    },
+    {
+      "id": "blank_page",
+      "defect": "blank",
+      "error": "BackendError: Ollama API error: Error code: 400 - {'error': {'message': 'clef:27b is a decision model and only supports /v1/systemone (ref: cdd31090-1d75-4273-9451-2dcce0a10d5c)', 'type': 'invalid_request_error', 'param': None, 'code': None}}",
+      "elapsed_s": 2.57
+    },
+    {
+      "id": "typo_headline",
+      "defect": "typo",
+      "error": "BackendError: Ollama API error: Error code: 400 - {'error': {'message': 'clef:27b is a decision model and only supports /v1/systemone (ref: b5511f41-6331-4f0a-8eb4-2f957f5638f3)', 'type': 'invalid_request_error', 'param': None, 'code': None}}",
+      "elapsed_s": 2.42
+    },
+    {
+      "id": "missing_subscribe",
+      "defect": "missing_element",
+      "error": "BackendError: Ollama API error: Error code: 400 - {'error': {'message': 'clef:27b is a decision model and only supports /v1/systemone (ref: ddf281c8-8222-4424-a217-e584992d3afe)', 'type': 'invalid_request_error', 'param': None, 'code': None}}",
+      "elapsed_s": 2.57
+    },
+    {
+      "id": "missing_subscribe_quoted",
+      "defect": "missing_element",
+      "error": "BackendError: Ollama API error: Error code: 400 - {'error': {'message': 'clef:27b is a decision model and only supports /v1/systemone (ref: b475512e-94f1-497a-9241-df908b9bea14)', 'type': 'invalid_request_error', 'param': None, 'code': None}}",
+      "elapsed_s": 2.38
+    },
+    {
+      "id": "svg_label_clipped",
+      "defect": "clipped",
+      "error": "BackendError: Ollama API error: Error code: 400 - {'error': {'message': 'clef:27b is a decision model and only supports /v1/systemone (ref: 928b90f6-519e-4f55-aecb-30a70cb95dd7)', 'type': 'invalid_request_error', 'param': None, 'code': None}}",
+      "elapsed_s": 2.81
+    },
+    {
+      "id": "social_typo",
+      "defect": "typo",
+      "error": "BackendError: Ollama API error: Error code: 400 - {'error': {'message': 'clef:27b is a decision model and only supports /v1/systemone (ref: e1170357-92f3-4b09-9b64-41e1f32b4bd1)', 'type': 'invalid_request_error', 'param': None, 'code': None}}",
+      "elapsed_s": 0.88
+    },
+    {
+      "id": "social_low_contrast",
+      "defect": "contrast",
+      "error": "BackendError: Ollama API error: Error code: 400 - {'error': {'message': 'clef:27b is a decision model and only supports /v1/systemone (ref: 487c353d-9693-4721-9926-b366da491ce2)', 'type': 'invalid_request_error', 'param': None, 'code': None}}",
+      "elapsed_s": 2.09
+    },
+    {
+      "id": "player_ok",
+      "defect": null,
+      "error": "BackendError: Ollama API error: Error code: 400 - {'error': {'message': 'clef:27b is a decision model and only supports /v1/systemone (ref: 76ec3529-74b8-4ee8-a146-6f0eea1c1fb1)', 'type': 'invalid_request_error', 'param': None, 'code': None}}",
+      "elapsed_s": 2.38
+    },
+    {
+      "id": "hero_ok",
+      "defect": null,
+      "error": "BackendError: Ollama API error: Error code: 400 - {'error': {'message': 'clef:27b is a decision model and only supports /v1/systemone (ref: c19eff7a-cd4a-4a86-b586-f209453f8c37)', 'type': 'invalid_request_error', 'param': None, 'code': None}}",
+      "elapsed_s": 2.46
+    },
+    {
+      "id": "schedule_ok",
+      "defect": null,
+      "error": "BackendError: Ollama API error: Error code: 400 - {'error': {'message': 'clef:27b is a decision model and only supports /v1/systemone (ref: 3158ff69-a7c6-46ff-9cb6-f17066c0a985)', 'type': 'invalid_request_error', 'param': None, 'code': None}}",
+      "elapsed_s": 2.44
+    },
+    {
+      "id": "headline_ok",
+      "defect": null,
+      "error": "BackendError: Ollama API error: Error code: 400 - {'error': {'message': 'clef:27b is a decision model and only supports /v1/systemone (ref: 141e6f08-2c9e-416d-973c-d55e8373fc28)', 'type': 'invalid_request_error', 'param': None, 'code': None}}",
+      "elapsed_s": 2.65
+    },
+    {
+      "id": "carousel_ok",
+      "defect": null,
+      "error": "BackendError: Ollama API error: Error code: 400 - {'error': {'message': 'clef:27b is a decision model and only supports /v1/systemone (ref: c25c175b-298c-4bea-a40e-102d30c526a5)', 'type': 'invalid_request_error', 'param': None, 'code': None}}",
+      "elapsed_s": 2.16
+    },
+    {
+      "id": "subscribe_ok",
+      "defect": null,
+      "error": "BackendError: Ollama API error: Error code: 400 - {'error': {'message': 'clef:27b is a decision model and only supports /v1/systemone (ref: 5ed30f17-7596-4c84-ac93-0119c716f216)', 'type': 'invalid_request_error', 'param': None, 'code': None}}",
+      "elapsed_s": 2.54
+    },
+    {
+      "id": "subscribe_ok_quoted",
+      "defect": null,
+      "error": "BackendError: Ollama API error: Error code: 400 - {'error': {'message': 'clef:27b is a decision model and only supports /v1/systemone (ref: 5f7ab304-1b8f-4ab5-97db-4541266483ca)', 'type': 'invalid_request_error', 'param': None, 'code': None}}",
+      "elapsed_s": 2.68
+    },
+    {
+      "id": "chart_ok",
+      "defect": null,
+      "error": "BackendError: Ollama API error: Error code: 400 - {'error': {'message': 'clef:27b is a decision model and only supports /v1/systemone (ref: 71cfc367-1339-4e72-bad2-c27dc28df829)', 'type': 'invalid_request_error', 'param': None, 'code': None}}",
+      "elapsed_s": 2.69
+    },
+    {
+      "id": "social_ok",
+      "defect": null,
+      "error": "BackendError: Ollama API error: Error code: 400 - {'error': {'message': 'clef:27b is a decision model and only supports /v1/systemone (ref: 43db4456-8568-4454-a22e-849a36f93f77)', 'type': 'invalid_request_error', 'param': None, 'code': None}}",
+      "elapsed_s": 1.0
+    }
+  ]
+}

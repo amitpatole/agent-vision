@@ -5,13 +5,13 @@
   "score": {
     "defects_flagged": "12/13",
     "right_kind": "12/13",
-    "vision_right_kind": "2/13",
-    "clean_pass": "7/9",
-    "false_fail": "1/9",
-    "unparseable": "5/22",
+    "vision_right_kind": "3/13",
+    "clean_pass": "9/9",
+    "false_fail": "0/9",
+    "unparseable": "1/22",
     "errors": 0,
-    "median_s": 32.21,
-    "max_s": 58.31
+    "median_s": 32.89,
+    "max_s": 72.65
   },
   "rows": [
     {
@@ -20,12 +20,12 @@
       "verdict": "warn",
       "kinds": [
         "error_text",
-        "layout"
+        "other"
       ],
       "n_issues": 2,
-      "unparseable": false,
-      "elapsed_s": 51.16,
-      "summary": "The page displays a critical error message indicating a regional playback failure, and the layout is significantly unbalanced with most content pushed to the left, leaving a large empty white space on",
+      "unparseable": true,
+      "elapsed_s": 45.19,
+      "summary": "Vision model returned unparseable output; semantic grade is missing.",
       "flagged": true,
       "kind_hit": true,
       "vision_hit": false
@@ -35,13 +35,12 @@
       "defect": "contrast",
       "verdict": "fail",
       "kinds": [
-        "contrast",
-        "other"
+        "contrast"
       ],
-      "n_issues": 2,
-      "unparseable": true,
-      "elapsed_s": 38.05,
-      "summary": "Vision model returned unparseable output; semantic grade is missing.",
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 33.31,
+      "summary": "The page renders correctly with the expected text elements. While the layout is very minimalist with significant white space, there are no clear visual defects, broken elements, or typos beyond the co",
       "flagged": true,
       "kind_hit": true,
       "vision_hit": false
@@ -51,14 +50,14 @@
       "defect": "overflow",
       "verdict": "fail",
       "kinds": [
-        "layout",
+        "clipped",
         "overflow",
         "typo"
       ],
       "n_issues": 3,
       "unparseable": false,
-      "elapsed_s": 34.5,
-      "summary": "The page content overflows the viewport horizontally, and the 'Drama' text is truncated at the right edge.",
+      "elapsed_s": 63.39,
+      "summary": "The schedule table is horizontally overflowing, causing the 20:00 'Drama' slot to be cut off at the right edge of the viewport. The text 'Drama' is also truncated to 'Dra'.",
       "flagged": true,
       "kind_hit": true,
       "vision_hit": false
@@ -72,8 +71,8 @@
       ],
       "n_issues": 1,
       "unparseable": false,
-      "elapsed_s": 43.15,
-      "summary": "The only visible defect is the clipping of the headline text, which is already accounted for in the provided grounded findings. No other layout issues, typos, or broken elements were identified.",
+      "elapsed_s": 50.44,
+      "summary": "No new visual defects were detected. The layout is clean, and the visible text is legible.",
       "flagged": true,
       "kind_hit": true,
       "vision_hit": false
@@ -83,13 +82,12 @@
       "defect": "broken_image",
       "verdict": "fail",
       "kinds": [
-        "broken_image",
-        "other"
+        "broken_image"
       ],
-      "n_issues": 2,
-      "unparseable": true,
-      "elapsed_s": 55.99,
-      "summary": "Vision model returned unparseable output; semantic grade is missing.",
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 44.07,
+      "summary": "No new visual defects were identified beyond those already noted in the grounded findings.",
       "flagged": true,
       "kind_hit": true,
       "vision_hit": false
@@ -99,14 +97,13 @@
       "defect": "overlap",
       "verdict": "warn",
       "kinds": [
-        "other",
         "overlap",
         "typo"
       ],
-      "n_issues": 3,
-      "unparseable": true,
-      "elapsed_s": 58.31,
-      "summary": "Vision model returned unparseable output; semantic grade is missing.",
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 67.6,
+      "summary": "The artifact contains significant issues: a clear typo in the main heading ('Elyaepht' instead of 'Election') and a layout overlap where the 'LIVE NOW' badge covers a portion of the heading text.",
       "flagged": true,
       "kind_hit": true,
       "vision_hit": false
@@ -118,13 +115,13 @@
       "kinds": [
         "blank"
       ],
-      "n_issues": 1,
+      "n_issues": 2,
       "unparseable": false,
-      "elapsed_s": 18.88,
-      "summary": "The rendered page is completely blank, indicating a total failure to display any content.",
+      "elapsed_s": 8.03,
+      "summary": "The rendered page is completely blank and contains no visual elements, content, or layout.",
       "flagged": true,
       "kind_hit": true,
-      "vision_hit": false
+      "vision_hit": true
     },
     {
       "id": "typo_headline",
@@ -135,8 +132,8 @@
       ],
       "n_issues": 4,
       "unparseable": false,
-      "elapsed_s": 50.63,
-      "summary": "The visual artifact contains several typos, all of which have been correctly identified in the grounded findings list. No other layout, content, or visual defects are present in the rendered page.",
+      "elapsed_s": 27.06,
+      "summary": "The rendered content is clear and legible, with no additional layout issues, broken elements, or new typos beyond those already identified in the provided findings.",
       "flagged": true,
       "kind_hit": true,
       "vision_hit": false
@@ -150,8 +147,8 @@
       ],
       "n_issues": 1,
       "unparseable": false,
-      "elapsed_s": 9.07,
-      "summary": "The mandatory 'Subscribe' button is missing from the page. Intent match: 0/1 requirement(s) satisfied.",
+      "elapsed_s": 10.4,
+      "summary": "The 'Subscribe' button required by the specifications is missing from the page. Intent match: 0/1 requirement(s) satisfied.",
       "flagged": true,
       "kind_hit": true,
       "vision_hit": true
@@ -165,8 +162,8 @@
       ],
       "n_issues": 2,
       "unparseable": false,
-      "elapsed_s": 12.99,
-      "summary": "The page is missing the 'Subscribe' button required in the checklist. Intent match: 0/1 requirement(s) satisfied.",
+      "elapsed_s": 12.95,
+      "summary": "The required 'Subscribe' button is missing from the page. Intent match: 0/1 requirement(s) satisfied.",
       "flagged": true,
       "kind_hit": true,
       "vision_hit": true
@@ -177,13 +174,12 @@
       "verdict": "fail",
       "kinds": [
         "clipped",
-        "other",
         "typo"
       ],
-      "n_issues": 3,
-      "unparseable": true,
-      "elapsed_s": 56.34,
-      "summary": "Vision model returned unparseable output; semantic grade is missing.",
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 72.65,
+      "summary": "The first bar label in the chart is significantly clipped on the left side, resulting in the text 'entary and Factual' instead of 'Documentary and Factual'.",
       "flagged": true,
       "kind_hit": true,
       "vision_hit": false
@@ -197,8 +193,8 @@
       ],
       "n_issues": 2,
       "unparseable": false,
-      "elapsed_s": 28.38,
-      "summary": "The rendered artifact contains the primary text elements. The identified typos ('Premeire' and 'seasn') are already captured in the grounded findings and no other visual defects or layout issues were ",
+      "elapsed_s": 32.89,
+      "summary": "No additional visual or text defects were identified beyond those already noted in the grounded findings.",
       "flagged": true,
       "kind_hit": true,
       "vision_hit": false
@@ -210,8 +206,8 @@
       "kinds": [],
       "n_issues": 0,
       "unparseable": false,
-      "elapsed_s": 12.86,
-      "summary": "The image is a clean and well-rendered promotional graphic. The text is clearly legible, the layout is simple and effective, and there are no visible typos or layout defects.",
+      "elapsed_s": 14.38,
+      "summary": "The image is a clean promotional graphic with clear, readable text and no visible layout, contrast, or textual defects.",
       "flagged": false,
       "kind_hit": false,
       "vision_hit": false
@@ -223,24 +219,22 @@
       "kinds": [],
       "n_issues": 0,
       "unparseable": false,
-      "elapsed_s": 28.12,
-      "summary": "The page layout is clean, all text is legible and free of typos, and the video player components appear to be functioning as intended for a simple video detail view.",
+      "elapsed_s": 35.27,
+      "summary": "The rendered image shows a minimalist video player page for 'Harbour, Season 2 Episode 4'. The layout is clean, the text is clear and correctly spelled, and all elements appear to be rendered correctl",
       "clean_pass": true,
       "false_fail": false
     },
     {
       "id": "hero_ok",
       "defect": null,
-      "verdict": "fail",
-      "kinds": [
-        "missing_element"
-      ],
-      "n_issues": 1,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
       "unparseable": false,
-      "elapsed_s": 36.47,
-      "summary": "The page appears to be an incomplete landing page, consisting of only a small amount of text and a button in the top-left corner with the rest of the viewport being entirely empty white space.",
-      "clean_pass": false,
-      "false_fail": true
+      "elapsed_s": 42.8,
+      "summary": "The rendered page displays the requested content correctly. The layout is minimalist but free of any visual defects, overlapping elements, or rendering errors.",
+      "clean_pass": true,
+      "false_fail": false
     },
     {
       "id": "schedule_ok",
@@ -249,23 +243,21 @@
       "kinds": [],
       "n_issues": 0,
       "unparseable": false,
-      "elapsed_s": 16.72,
-      "summary": "The rendered page correctly displays the TV listings in a clear, organized grid layout with no visual defects or typos.",
+      "elapsed_s": 16.45,
+      "summary": "The rendered TV guide is clear, well-structured, and contains no visible defects. All text is legible and properly aligned.",
       "clean_pass": true,
       "false_fail": false
     },
     {
       "id": "headline_ok",
       "defect": null,
-      "verdict": "warn",
-      "kinds": [
-        "other"
-      ],
-      "n_issues": 1,
-      "unparseable": true,
-      "elapsed_s": 32.21,
-      "summary": "Vision model returned unparseable output; semantic grade is missing.",
-      "clean_pass": false,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 16.68,
+      "summary": "The rendered page displays the headline and sub-headline correctly within a bordered container. The layout is clean, text is legible, and there are no visible typos or rendering errors.",
+      "clean_pass": true,
       "false_fail": false
     },
     {
@@ -275,8 +267,8 @@
       "kinds": [],
       "n_issues": 0,
       "unparseable": false,
-      "elapsed_s": 30.96,
-      "summary": "The rendered page correctly displays the 'Continue watching' section with three items: 'Harbour', 'Quiz Night', and 'Late News', following a consistent layout. No visual defects or typos were detected",
+      "elapsed_s": 20.96,
+      "summary": "The 'Continue watching' section is rendered correctly with a clear header and three content placeholders. Text is legible and the layout is clean.",
       "clean_pass": true,
       "false_fail": false
     },
@@ -287,8 +279,8 @@
       "kinds": [],
       "n_issues": 0,
       "unparseable": false,
-      "elapsed_s": 16.63,
-      "summary": "The rendered page correctly displays the heading, description, and the 'Subscribe' button as required. The layout is clean and functional. Intent match: 1/1 requirement(s) satisfied.",
+      "elapsed_s": 11.81,
+      "summary": "The rendered page correctly displays the 'The Morning Briefing' heading, the descriptive text, and the 'Subscribe' button as requested. All requirements are met. Intent match: 1/1 requirement(s) satis",
       "clean_pass": true,
       "false_fail": false
     },
@@ -299,8 +291,8 @@
       "kinds": [],
       "n_issues": 0,
       "unparseable": false,
-      "elapsed_s": 17.12,
-      "summary": "The page correctly displays the requested elements, including the title, description text, and a clearly visible 'Subscribe' button. No layout defects or typos were detected. Intent match: 1/1 require",
+      "elapsed_s": 9.15,
+      "summary": "The rendered page correctly displays the 'Subscribe' button and standard text content as required. Intent match: 1/1 requirement(s) satisfied.",
       "clean_pass": true,
       "false_fail": false
     },
@@ -311,8 +303,8 @@
       "kinds": [],
       "n_issues": 0,
       "unparseable": false,
-      "elapsed_s": 26.68,
-      "summary": "The rendered image shows a clear and correctly rendered horizontal bar chart titled 'Audience share by genre'. The layout is clean, the text is readable, and there are no visible technical defects.",
+      "elapsed_s": 34.36,
+      "summary": "The chart is correctly rendered with legible labels and clearly visible bars. The title, categories, and bars are all present and correctly aligned.",
       "clean_pass": true,
       "false_fail": false
     },
@@ -323,8 +315,8 @@
       "kinds": [],
       "n_issues": 0,
       "unparseable": false,
-      "elapsed_s": 35.68,
-      "summary": "The rendered image shows a clear and readable promotional banner with no layout issues, typos, or broken elements.",
+      "elapsed_s": 10.77,
+      "summary": "The rendered image correctly displays the text content provided in the OCR without any layout issues, typos, or visual defects.",
       "clean_pass": true,
       "false_fail": false
     }

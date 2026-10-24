@@ -1,0 +1,342 @@
+{
+  "label": "ollama-deepseek-v4.1-flash",
+  "backend": "ollama",
+  "model": "deepseek-v4.1-flash",
+  "score": {
+    "defects_flagged": "13/13",
+    "right_kind": "13/13",
+    "vision_right_kind": "8/13",
+    "clean_pass": "8/9",
+    "false_fail": "0/9",
+    "unparseable": "0/22",
+    "errors": 0,
+    "median_s": 4.67,
+    "max_s": 10.46
+  },
+  "rows": [
+    {
+      "id": "player_error",
+      "defect": "error_text",
+      "verdict": "warn",
+      "kinds": [
+        "error_text",
+        "layout",
+        "missing_element"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 10.46,
+      "summary": "The page renders a video player card that fails to load: instead of video, a blank dark-blue surface shows a playback error. The surrounding metadata (title, episode synopsis) renders correctly and co",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "hero_low_contrast",
+      "defect": "contrast",
+      "verdict": "fail",
+      "kinds": [
+        "contrast",
+        "layout",
+        "missing_element"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 4.99,
+      "summary": "The hero text block and CTA render correctly in the top-left, but the page is ~75% empty white space below the button, strongly suggesting a missing hero image/visual asset. The subtitle contrast prob",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "schedule_overflow",
+      "defect": "overflow",
+      "verdict": "fail",
+      "kinds": [
+        "clipped",
+        "layout",
+        "overflow"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 5.37,
+      "summary": "The schedule card row extends past the right edge of the viewport, so the fourth slot is cut off mid-text; nothing else looks broken, and the visible copy is spelled correctly.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "headline_clipped",
+      "defect": "clipped",
+      "verdict": "fail",
+      "kinds": [
+        "blank",
+        "clipped"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 5.15,
+      "summary": "The render is essentially an empty page: a single bordered box in the top-left contains a headline that is cut off mid-sentence, and everything below it (roughly 90% of the 1280x800 canvas) is blank w",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "thumbnail_broken",
+      "defect": "broken_image",
+      "verdict": "fail",
+      "kinds": [
+        "broken_image",
+        "layout",
+        "typo"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 4.96,
+      "summary": "The 'Continue watching' rail renders three cards, but the middle card's poster fails to load and collapses into a thin sliver, leaving the duplicate label 'Quiz Night' stacked twice and misaligning th",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "badge_overlap",
+      "defect": "overlap",
+      "verdict": "fail",
+      "kinds": [
+        "layout",
+        "overlap",
+        "typo"
+      ],
+      "n_issues": 4,
+      "unparseable": false,
+      "elapsed_s": 6.28,
+      "summary": "The headline is partly hidden: a red 'LIVE NOW' badge is absolutely/statically overlaying the h1, so the title reads 'E\u2026ht results special' instead of 'Election night results special'. The badge must ",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "blank_page",
+      "defect": "blank",
+      "verdict": "fail",
+      "kinds": [
+        "blank"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 3.32,
+      "summary": "The rendered artifact is a completely blank white canvas at 1280x800. No layout, text, images, or UI elements are visible anywhere in the frame, confirming the grounded blank-render finding. There is ",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "typo_headline",
+      "defect": "typo",
+      "verdict": "fail",
+      "kinds": [
+        "other",
+        "typo"
+      ],
+      "n_issues": 6,
+      "unparseable": false,
+      "elapsed_s": 4.67,
+      "summary": "The page renders a single headline plus one sentence; layout is clean with no clipping or contrast problems, but the visible text contains four misspellings that must be corrected before this can ship",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "missing_subscribe",
+      "defect": "missing_element",
+      "verdict": "fail",
+      "kinds": [
+        "missing_element"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 4.07,
+      "summary": "The page renders only the heading and subtitle; the rest of the viewport is empty. No Subscribe button is present anywhere on the page, so requirement #1 is unmet. (1 vision finding(s) overruled: DOM/",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "missing_subscribe_quoted",
+      "defect": "missing_element",
+      "verdict": "fail",
+      "kinds": [
+        "intent_mismatch",
+        "missing_element"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 3.29,
+      "summary": "The page renders only the heading and description; the required Subscribe button is absent, leaving nearly the entire page blank below the intro text. Intent match: 0/1 requirement(s) satisfied.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "svg_label_clipped",
+      "defect": "clipped",
+      "verdict": "fail",
+      "kinds": [
+        "clipped",
+        "layout",
+        "typo"
+      ],
+      "n_issues": 4,
+      "unparseable": false,
+      "elapsed_s": 8.01,
+      "summary": "The chart renders but the first category label is clipped on BOTH sides \u2014 the left edge is cut off so it reads 'entary and Factual' instead of 'Documentary and Factual' \u2014 and the plot sits in a small ",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "social_typo",
+      "defect": "typo",
+      "verdict": "fail",
+      "kinds": [
+        "typo"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 3.06,
+      "summary": "The card renders cleanly: bold headline 'Premiere this Friday', subline 'Harbour returns for its final season', and 'Streaming only on Channel 4' are all fully visible, high-contrast, and well-aligned",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "social_low_contrast",
+      "defect": "contrast",
+      "verdict": "fail",
+      "kinds": [
+        "contrast",
+        "layout",
+        "missing_element",
+        "other"
+      ],
+      "n_issues": 4,
+      "unparseable": false,
+      "elapsed_s": 3.83,
+      "summary": "The banner renders as near-blank: all text is very light gray on a white background (effectively unreadable), and the intended hero/background imagery appears to be missing, leaving only a stray teal ",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "player_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 4.58,
+      "summary": "The page renders cleanly: a video player card with play button, progress bar, and timecode sits at the top-left, followed by the title \"Harbour, Season 2 Episode 4\" and the description line. No broken",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "hero_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 4.05,
+      "summary": "The rendered artifact is a clean, minimal hero section: a bold heading ('Stream the final season'), a single well-spaced body line, and a solid blue 'Start free trial' button. Text is crisp, high-cont",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "schedule_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 3.91,
+      "summary": "The schedule grid renders cleanly: a 'Tonight on Channel 4' heading above six bordered time-slot cards in correct chronological order (18:00 Evening News, 18:30 Weather, 19:00 Quiz Night, 20:00 Drama:",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "headline_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 3.59,
+      "summary": "The rendered artifact is a single bordered card at the top-left containing the headline \"Central bank holds rates steady as inflation cools\" and the subtext \"Economists had expected a cut later in the",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "carousel_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 3.8,
+      "summary": "The screenshot shows a clean, defect-free \"Continue watching\" section: the heading renders correctly, three equal-size 16:9 tiles are evenly spaced with consistent gutters, each has a centered label (",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "subscribe_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 5.95,
+      "summary": "The page renders cleanly: the title 'The Morning Briefing', the tagline, and a clearly visible, high-contrast blue 'Subscribe' button are all present and correctly laid out with no overlapping, clippi",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "subscribe_ok_quoted",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 4.86,
+      "summary": "The page renders cleanly: a bold heading \"The Morning Briefing\", a legible one-line subtitle, and a clearly styled dark-blue \"Subscribe\" button that satisfies requirement [#1]. No typos, no overlap, n",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "chart_ok",
+      "defect": null,
+      "verdict": "warn",
+      "kinds": [
+        "layout",
+        "missing_element"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 5.4,
+      "summary": "The chart renders cleanly and all text is spelled correctly, but it is a bare-bones bar chart: there are no axis, gridlines, or value labels, so the \"audience share\" figures cannot actually be read, a",
+      "clean_pass": false,
+      "false_fail": false
+    },
+    {
+      "id": "social_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 4.44,
+      "summary": "The end card renders cleanly: a bold headline, two supporting lines, and a short teal accent rule, all left-aligned to a consistent margin with strong contrast and no clipping, overlap, or text errors",
+      "clean_pass": true,
+      "false_fail": false
+    }
+  ]
+}

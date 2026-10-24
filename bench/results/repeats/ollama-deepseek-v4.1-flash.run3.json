@@ -1,0 +1,353 @@
+{
+  "label": "ollama-deepseek-v4.1-flash",
+  "backend": "ollama",
+  "model": "deepseek-v4.1-flash",
+  "score": {
+    "defects_flagged": "13/13",
+    "right_kind": "13/13",
+    "vision_right_kind": "8/13",
+    "clean_pass": "6/9",
+    "false_fail": "0/9",
+    "unparseable": "0/22",
+    "errors": 0,
+    "median_s": 5.24,
+    "max_s": 8.46
+  },
+  "rows": [
+    {
+      "id": "player_error",
+      "defect": "error_text",
+      "verdict": "warn",
+      "kinds": [
+        "blank",
+        "error_text",
+        "layout",
+        "missing_element"
+      ],
+      "n_issues": 4,
+      "unparseable": false,
+      "elapsed_s": 6.62,
+      "summary": "The page renders a video player in an error state: the playback surface is a solid navy rectangle with no poster/thumbnail frame, and the error banner text sits centered in it. Below, the title and de",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "hero_low_contrast",
+      "defect": "contrast",
+      "verdict": "fail",
+      "kinds": [
+        "blank",
+        "contrast",
+        "layout"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 5.24,
+      "summary": "The page renders as a nearly empty white canvas: only a heading, a barely-visible subtitle, and a small CTA button occupy the top-left ~200px, leaving roughly three quarters of the 1280x800 viewport b",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "schedule_overflow",
+      "defect": "overflow",
+      "verdict": "fail",
+      "kinds": [
+        "clipped",
+        "layout",
+        "overflow"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 5.5,
+      "summary": "The page renders a 'Tonight on Channel 4' schedule strip, but the schedule is wider than the viewport so the fourth slot is cut off at the right edge: its time reads '20:0' and its title reads 'Dra', ",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "headline_clipped",
+      "defect": "clipped",
+      "verdict": "fail",
+      "kinds": [
+        "clipped",
+        "layout",
+        "missing_element",
+        "other"
+      ],
+      "n_issues": 4,
+      "unparseable": false,
+      "elapsed_s": 5.25,
+      "summary": "The page is nearly blank: only a small bordered headline box renders in the top-left corner of an otherwise empty 1280x800 canvas. No article card, image, metadata, body text, or page chrome is presen",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "thumbnail_broken",
+      "defect": "broken_image",
+      "verdict": "fail",
+      "kinds": [
+        "broken_image",
+        "layout",
+        "typo"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 5.42,
+      "summary": "The 'Continue watching' row is visibly broken: the middle tile (Quiz Night) has no card/placeholder background, so only its broken-image alt text and caption render, leaving an irregular ~130px gap be",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "badge_overlap",
+      "defect": "overlap",
+      "verdict": "fail",
+      "kinds": [
+        "overlap",
+        "typo"
+      ],
+      "n_issues": 4,
+      "unparseable": false,
+      "elapsed_s": 5.12,
+      "summary": "The card contains a single heading obscured by the 'LIVE NOW' badge, which sits on top of the title and hides most of 'Election night' \u2014 the heading renders as 'E\u2026ht results special'. The body copy re",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "blank_page",
+      "defect": "blank",
+      "verdict": "fail",
+      "kinds": [
+        "blank"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 4.1,
+      "summary": "The 1280x800 render is entirely uniform white with zero visible content \u2014 no text, navigation, images, containers, or background color. This confirms the grounded blank-render finding: the page either",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "typo_headline",
+      "defect": "typo",
+      "verdict": "fail",
+      "kinds": [
+        "other",
+        "typo"
+      ],
+      "n_issues": 9,
+      "unparseable": false,
+      "elapsed_s": 5.4,
+      "summary": "The page renders cleanly with no layout, overlap, clipping, or contrast problems, but the headline and standfirst contain four confirmed spelling errors ('Brekaing', 'Goverment', 'anounces', 'houshold",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "missing_subscribe",
+      "defect": "missing_element",
+      "verdict": "fail",
+      "kinds": [
+        "missing_element"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 3.72,
+      "summary": "The page renders only the title and one-line subtitle; no Subscribe button (or any other UI) is present, leaving ~85% of the viewport blank. Text itself is clean with no typos. (1 vision finding(s) ov",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "missing_subscribe_quoted",
+      "defect": "missing_element",
+      "verdict": "fail",
+      "kinds": [
+        "intent_mismatch",
+        "missing_element"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 3.1,
+      "summary": "The page renders only the heading and subtitle; the required Subscribe button (and any subscription form) is absent, leaving the rest of the viewport blank. Intent match: 0/1 requirement(s) satisfied.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "svg_label_clipped",
+      "defect": "clipped",
+      "verdict": "fail",
+      "kinds": [
+        "clipped",
+        "layout",
+        "missing_element",
+        "typo"
+      ],
+      "n_issues": 6,
+      "unparseable": false,
+      "elapsed_s": 6.47,
+      "summary": "The chart renders, but the first category label is cut off and the plot is missing its value axis and any data labels; the whole chart is also shrunk into a small corner of a mostly blank 1280x800 can",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "social_typo",
+      "defect": "typo",
+      "verdict": "fail",
+      "kinds": [
+        "typo"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 6.43,
+      "summary": "The card is clean and legible, with solid contrast and no clipping or overlap, but the copy still contains the two known misspellings that make it unpublishable: the headline reads 'Premeire' (should ",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "social_low_contrast",
+      "defect": "contrast",
+      "verdict": "fail",
+      "kinds": [
+        "contrast",
+        "layout",
+        "missing_element"
+      ],
+      "n_issues": 4,
+      "unparseable": false,
+      "elapsed_s": 3.0,
+      "summary": "The poster is essentially blank: all text is rendered in a near-white light gray on a white background, making it virtually unreadable. The headline, both subtitle lines, and the content area appear t",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "player_ok",
+      "defect": null,
+      "verdict": "warn",
+      "kinds": [
+        "layout"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 8.46,
+      "summary": "The page is clean and the title/description text is correct, but the video frame does not fill the player: a 16:9 teal placeholder is rendered small and centered inside the dark navy player, leaving w",
+      "clean_pass": false,
+      "false_fail": false
+    },
+    {
+      "id": "hero_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 3.26,
+      "summary": "The page renders cleanly: a bold heading, one body paragraph, and a single blue 'Start free trial' button, all properly aligned with no overlap, clipping, or text errors. Large empty whitespace below ",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "schedule_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [
+        "layout"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 6.79,
+      "summary": "The schedule renders cleanly: a page title and a consistent 3\u00d72 grid of program cards with times and titles, all legible and correctly spelled. Card borders, spacing, and typography are consistent, wi",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "headline_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 4.44,
+      "summary": "A single bordered news card sits at the top-left of the canvas with a bold headline (\"Central bank holds rates steady as inflation cools\") wrapping cleanly to two lines and a readable lead paragraph. ",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "carousel_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 3.91,
+      "summary": "The 'Continue watching' row renders cleanly: a bold heading, three evenly spaced card thumbnails, and correctly spelled titles (Harbour, Quiz Night, Late News) aligned under each card. No overlap, cli",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "subscribe_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [
+        "layout"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 4.37,
+      "summary": "The page renders correctly: the headline \"The Morning Briefing\", the descriptive line about five stories delivered every weekday, and the required blue Subscribe button are all present, legible, and f",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "subscribe_ok_quoted",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 3.1,
+      "summary": "The rendered page shows the heading \"The Morning Briefing\", the supporting line \"Five stories you need before 8am, written by our newsroom and delivered every weekday.\", and a clearly visible blue \"Su",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "chart_ok",
+      "defect": null,
+      "verdict": "warn",
+      "kinds": [
+        "layout",
+        "missing_element"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 4.48,
+      "summary": "The chart renders cleanly: the title, the three genre labels, and the horizontal bars are all legible with no clipping, overlap, or garbled text. The main shortcoming is informational rather than visu",
+      "clean_pass": false,
+      "false_fail": false
+    },
+    {
+      "id": "social_ok",
+      "defect": null,
+      "verdict": "warn",
+      "kinds": [
+        "layout",
+        "typo"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 6.17,
+      "summary": "The graphic renders cleanly: no clipping, overlap, or contrast problems, and all text is crisp and legible. However, the composition is unbalanced \u2014 the text block sits high in the frame while roughly",
+      "clean_pass": false,
+      "false_fail": false
+    }
+  ]
+}

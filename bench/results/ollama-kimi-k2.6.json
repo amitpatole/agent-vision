@@ -1,0 +1,328 @@
+{
+  "label": "ollama-kimi-k2.6",
+  "backend": "ollama",
+  "model": "kimi-k2.6",
+  "score": {
+    "defects_flagged": "13/13",
+    "right_kind": "13/13",
+    "vision_right_kind": "4/13",
+    "clean_pass": "9/9",
+    "false_fail": "0/9",
+    "unparseable": "0/22",
+    "errors": 0,
+    "median_s": 15.94,
+    "max_s": 72.53
+  },
+  "rows": [
+    {
+      "id": "player_error",
+      "defect": "error_text",
+      "verdict": "warn",
+      "kinds": [
+        "error_text"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 46.97,
+      "summary": "The screenshot is dominated by the already-reported error overlay inside the video player; apart from that, the remaining page elements (title, description, and player chrome) render cleanly with no o",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "hero_low_contrast",
+      "defect": "contrast",
+      "verdict": "fail",
+      "kinds": [
+        "contrast"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 32.02,
+      "summary": "No new visual defects detected beyond the already-reported low-contrast body text. Layout is clean, heading and button are clear, and there are no overlaps, clipped elements, broken images, or typos v",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "schedule_overflow",
+      "defect": "overflow",
+      "verdict": "fail",
+      "kinds": [
+        "clipped",
+        "overflow"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 58.63,
+      "summary": "The TV schedule table suffers from severe horizontal overflow, causing the rightmost visible column to be clipped at the viewport edge. The time and program name in that column are truncated.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "headline_clipped",
+      "defect": "clipped",
+      "verdict": "warn",
+      "kinds": [
+        "clipped"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 17.57,
+      "summary": "No new visual or text defects detected beyond the already-reported clipping issue. The visible text is readable, properly spelled, and cleanly contained within its box. The rest of the page is blank w",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "thumbnail_broken",
+      "defect": "broken_image",
+      "verdict": "fail",
+      "kinds": [
+        "broken_image",
+        "other"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 64.5,
+      "summary": "Vision model returned unparseable output; semantic grade is missing.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "badge_overlap",
+      "defect": "overlap",
+      "verdict": "warn",
+      "kinds": [
+        "other",
+        "overlap",
+        "typo"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 69.35,
+      "summary": "Vision model returned unparseable output; semantic grade is missing.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "blank_page",
+      "defect": "blank",
+      "verdict": "fail",
+      "kinds": [
+        "blank"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 6.06,
+      "summary": "The rendered viewport is entirely blank (solid white/empty) with no visible content, text, images, or UI elements. This indicates a total render failure or empty document.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "typo_headline",
+      "defect": "typo",
+      "verdict": "fail",
+      "kinds": [
+        "typo"
+      ],
+      "n_issues": 4,
+      "unparseable": false,
+      "elapsed_s": 33.18,
+      "summary": "Confirms the four previously identified spelling errors ('Brekaing', 'Goverment', 'anounces', 'houshold'). No additional visual, layout, or text defects were detected; rendering is clean with no clipp",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "missing_subscribe",
+      "defect": "missing_element",
+      "verdict": "fail",
+      "kinds": [
+        "intent_mismatch"
+      ],
+      "n_issues": 1,
+      "unparseable": false,
+      "elapsed_s": 8.48,
+      "summary": "The page displays the heading and tagline for 'The Morning Briefing' but is missing the required Subscribe button. Intent match: 0/1 requirement(s) satisfied.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "missing_subscribe_quoted",
+      "defect": "missing_element",
+      "verdict": "fail",
+      "kinds": [
+        "intent_mismatch"
+      ],
+      "n_issues": 2,
+      "unparseable": false,
+      "elapsed_s": 7.46,
+      "summary": "The page shows the newsletter heading and tagline, but the required 'Subscribe' button is absent. Intent match: 0/1 requirement(s) satisfied.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "svg_label_clipped",
+      "defect": "clipped",
+      "verdict": "fail",
+      "kinds": [
+        "clipped",
+        "other",
+        "typo"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 69.46,
+      "summary": "Vision model returned unparseable output; semantic grade is missing.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "social_typo",
+      "defect": "typo",
+      "verdict": "fail",
+      "kinds": [
+        "other",
+        "typo"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 72.53,
+      "summary": "Vision model returned unparseable output; semantic grade is missing.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": false
+    },
+    {
+      "id": "social_low_contrast",
+      "defect": "contrast",
+      "verdict": "fail",
+      "kinds": [
+        "contrast"
+      ],
+      "n_issues": 3,
+      "unparseable": false,
+      "elapsed_s": 15.94,
+      "summary": "The text is rendered in very light gray on a white background, resulting in extremely poor contrast and readability. No other layout or text defects are visible.",
+      "flagged": true,
+      "kind_hit": true,
+      "vision_hit": true
+    },
+    {
+      "id": "player_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 16.14,
+      "summary": "The video player page renders cleanly with no visible defects. The title, description, player controls, progress bar, and timestamp are all readable and properly positioned. No layout issues, typos, o",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "hero_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 6.57,
+      "summary": "The rendered page displays a clean, simple layout with a heading, subtext, and CTA button. Text is legible, contrast is good, there are no overlaps, overflows, broken elements, or typos visible.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "schedule_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 6.87,
+      "summary": "The TV schedule grid renders cleanly with correct content, good contrast, and no visible layout or text defects. All six program cards are properly aligned in a 3\u00d72 grid with readable text and no over",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "headline_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 6.42,
+      "summary": "The rendered artifact is a clean, minimal text card containing a headline and subheading. Text is readable with good contrast, properly wrapped, free of typos, and there are no layout issues, overflow",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "carousel_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 5.97,
+      "summary": "The page displays a clean 'Continue watching' section with three consistently sized placeholder thumbnails, each labeled correctly beneath. Layout is balanced, text is legible with good contrast, and ",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "subscribe_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 3.85,
+      "summary": "The page shows a clean layout with the heading 'The Morning Briefing', descriptive text, and a clearly visible blue 'Subscribe' button. Requirement #1 is satisfied. No visual defects, typos, or layout",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "subscribe_ok_quoted",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 6.09,
+      "summary": "The page renders cleanly with the heading, descriptive text, and a clearly visible blue Subscribe button. No visual defects detected and requirement #1 is satisfied. Intent match: 1/1 requirement(s) s",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "chart_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 8.38,
+      "summary": "The horizontal bar chart renders cleanly with no visible defects. Text is readable and correctly spelled, bars are proportional and unclipped, and there are no overlaps or missing elements.",
+      "clean_pass": true,
+      "false_fail": false
+    },
+    {
+      "id": "social_ok",
+      "defect": null,
+      "verdict": "pass",
+      "kinds": [],
+      "n_issues": 0,
+      "unparseable": false,
+      "elapsed_s": 9.09,
+      "summary": "The image shows a clean, minimal promotional banner with no visible defects. Text is legible, properly spaced, and free of typos. Layout is intact with no overlaps, clipping, or broken elements.",
+      "clean_pass": true,
+      "false_fail": false
+    }
+  ]
+}

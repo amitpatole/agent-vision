@@ -523,6 +523,11 @@ async def analyze(
     if dropped:
         report.issues = kept
         report.verdict = verdict_from_issues(report.issues)
+        # Never overrule silently: the model's summary may still describe what was dropped.
+        report.summary = (
+            f"{report.summary} ({len(dropped)} vision finding(s) overruled: DOM/OCR shows "
+            "the element is present.)"
+        )
     if claim_notes:  # corroboration ran out of budget: never a silent partial grade
         report.issues.extend(claim_notes)
         report.verdict = verdict_from_issues(report.issues)
