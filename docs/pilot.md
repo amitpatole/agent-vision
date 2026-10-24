@@ -5,6 +5,37 @@ pipeline before relying on it. The pilot is **advisory**: AgentVision grades eve
 reports what it finds, but it does not block a release. You measure its accuracy on your own
 work first, then decide where to turn on gating.
 
+## Run a pilot with us
+
+We are looking for one or two media or communications teams to run this pilot with. It is early,
+so you would be shaping it, not buying something finished.
+
+What we would ask of you:
+
+- **One real pipeline stage to watch.** AgentVision runs in advisory mode, so nothing is blocked
+  and nothing in your release process changes.
+- **A few weeks of your normal output.** Web pages, promo stills, social cards, short promo
+  videos or documents, whatever that stage already produces.
+- **A couple of your own people to mark the results.** They say which artifacts really had a
+  defect, clean ones included. Without that, an accuracy number tells you nothing, and it is the
+  only way to find out whether gating is safe for you.
+
+What you would get:
+
+- **A report on your own artifacts** against the [acceptance criteria](#acceptance-criteria)
+  below, including every clean page it wrongly failed.
+- **Fixes for what you hit.** Defects and false alarms you find are fixed upstream and show up in
+  the [changelog](https://github.com/amitpatole/agent-vision/blob/main/CHANGELOG.md).
+- **The same shadow-mode setup for audio.** AgentVision only grades what renders to pixels. For
+  loudness, A/V sync and delivery specs, [Verel's pilot mode](https://amitpatole.github.io/verel/pilot/)
+  records every grader's verdict in one tamper-evident log, so you can pilot picture and sound
+  together.
+
+To start, [open an issue](https://github.com/amitpatole/agent-vision/issues/new?title=Pilot%3A%20%3Cyour%20team%3E)
+titled `Pilot: <your team>` and tell us three things: which pipeline stage, roughly how many
+artifacts a week it produces, and whether screenshots are allowed to leave your network. That
+last answer decides which backend you use (see [Deployment shape](#deployment-shape)).
+
 ## What the pilot covers
 
 AgentVision grades things that render to pixels. In a media company that means:
